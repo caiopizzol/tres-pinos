@@ -32,7 +32,7 @@ adaptador.
 
 | Conector | O que o agente pode fazer |
 |---|---|
-| [`whatsapp`](connectors/whatsapp) | Ler conversas, ver imagens e vídeos, ler PDFs e boletos, transcrever áudios e mandar mensagens a contatos salvos |
+| [`whatsapp`](connectors/whatsapp) | Ler conversas, ver imagens e vídeos, ler PDFs e boletos e transcrever áudios. Nunca envia mensagens |
 
 | Pacote | Para que serve |
 |---|---|
@@ -50,7 +50,7 @@ cp .env.example .env   # preencha os valores
 docker compose up -d
 ```
 
-Depois, conecte um número ao WhatsApp e escolha o que o agente pode ler e enviar. Veja o
+Depois, conecte o seu número ao WhatsApp e escolha o que o agente pode ler. Veja o
 [conector do WhatsApp](connectors/whatsapp).
 
 Para usar no Codex ou no Claude Code, na mesma máquina:

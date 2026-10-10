@@ -13,10 +13,8 @@ check scripts/media.mjs   # cada fixture pelos conversores; as transcrições pr
 check scripts/smoke.mjs   # cada ferramenta que as configurações oferecem, nas suas conversas reais
 ```
 
-`smoke.mjs` lê `WHATSAPP_URL` (`http://whatsapp:8080/mcp` dentro do Compose) e `WHATSAPP_TOKEN`. Quando o
-conector envia, também precisa de `CHECK_ALLOWED`, o número de um contato salvo, e `CHECK_DENIED`, um número do WhatsApp que você não
-salvou, que `read_messages` e `send_message` devem recusar. Nunca envia nada e só mostra contagens, tamanhos,
-tipos e tempos, nunca o conteúdo das mensagens.
+`smoke.mjs` lê `WHATSAPP_URL` (`http://whatsapp:8080/mcp` dentro do Compose) e `WHATSAPP_TOKEN`. Confere que
+nenhuma ferramenta envia e só mostra contagens, tamanhos, tipos e tempos, nunca o conteúdo das mensagens.
 
 `media.mjs` confere que cada transcrição contém o número falado, cada vídeo dá os quadros esperados, cada PDF
 devolve seus textos ou o erro esperado, e cada conta devolve seus códigos ou diz que está bloqueada.

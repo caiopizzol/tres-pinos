@@ -27,7 +27,7 @@ Ambição: ser o jeito padrão de ligar um agente de IA aos serviços brasileiro
 ### Audience
 
 Desenvolvedores e donos de pequenos negócios no Brasil que já usam IA e querem que ela resolva tarefas reais:
-ler uma conta, responder um cliente, agendar um pagamento. Sabem rodar `docker compose`.
+ler uma conta, achar uma conversa, conferir um pagamento. Sabem rodar `docker compose`.
 
 Desconfiam de dar acesso à conta bancária a uma IA e de integrações não oficiais. Querem ver o que o agente faz e
 aprovar o que mexe com dinheiro.
@@ -46,7 +46,7 @@ dependem de integrações pagas e fechadas. Três Pinos ocupa esse espaço, aber
 
 - Feito para o Brasil: boleto, Pix, bancos brasileiros, WhatsApp.
 - Código aberto (MIT) e auto-hospedado: os dados ficam com quem roda.
-- Seguro por padrão: lê só contatos salvos, escreve só para eles, e pagamento só com aprovação.
+- Seguro por padrão: no WhatsApp, só lê, e só contatos salvos; pagamento só com aprovação.
 - Funciona com qualquer cliente MCP.
 
 Território: a tomada. O ponto onde o agente se liga ao Brasil.
@@ -140,7 +140,7 @@ Slogans:
 - Fale como um colega técnico explica para outro.
 - Comece pelo que a pessoa consegue fazer, depois explique como.
 - Use frases curtas e verbos concretos: ler, conferir, agendar, aprovar.
-- Diga o limite junto com o recurso, como "escreve só para contatos salvos".
+- Diga o limite junto com o recurso, como "lê só contatos salvos".
 - Use humor só na tomada e no padrão jabuticaba, nunca no dinheiro.
 - Não prometa segurança absoluta. Diga o que o código garante.
 - Avise que o WhatsApp via WAHA não é oficial.
@@ -155,7 +155,7 @@ O que não somos:
 | Dizemos | Nunca dizemos |
 |---|---|
 | "O agente pede sua aprovação antes de pagar" | "Pagamentos 100% automáticos" |
-| "Escreve só para contatos salvos" | "Disparo em massa" |
+| "Só lê o WhatsApp, nunca envia" | "Disparo em massa" |
 | "Você hospeda" | "Nossa nuvem segura" |
 | "Não é oficial do WhatsApp" | "Integração oficial" |
 

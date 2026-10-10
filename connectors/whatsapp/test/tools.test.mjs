@@ -58,15 +58,13 @@ const waha = await fakeWaha({
       contacts: { [SAVED]: { name: "Ana" }, [SAVED_LID]: { name: "Ana" }, [STRANGER_LID]: { pushname: "Bo" }, [GONE]: null },
       lids: { [SAVED_LID]: SAVED, [STRANGER_LID]: STRANGER, [FAILING_LID]: "error" },
     },
-    // The assistant's own phone, which has saved the stranger, but not Ana.
-    default: { contacts: { [STRANGER]: { name: "Stranger" } } },
   },
   files: Object.fromEntries(Object.values(messages).flat().filter((m) => m.hasMedia).map((m) => [m.id, PNG])),
   // A download that answers with a hidden group's message instead of the one that was checked.
   swap: { [id(SAVED, "d10")]: id(GROUP, "g1") },
 });
 after(() => waha.close());
-const POLICY = { READ_SESSION: "", READ_CHATS: "", READ_GROUPS: "", SEND_SESSION: "", CONTACTS_SESSION: "", TRANSCRIBE_URL: "" };
+const POLICY = { READ_SESSION: "", READ_CHATS: "", READ_GROUPS: "", TRANSCRIBE_URL: "" };
 
 // A gateway with these settings, as an MCP client: tools() lists its tools, call() runs one.
 async function gateway(settings) {
@@ -181,38 +179,21 @@ test("READ_GROUPS adds groups, and READ_CHATS=all adds everyone", async () => {
   await assert.rejects(reader.call("read_chat", { chat: "status@broadcast" }), /don't allow/);
 });
 
-test("the gateway refuses to start with no session to read or send", async () => {
-  // A contacts session alone gives no tools either.
-  for (const settings of [{}, { CONTACTS_SESSION: "personal" }]) {
-    const child = fork(new URL("./serve.mjs", import.meta.url), {
-      env: { ...process.env, ...POLICY, WAHA_URL: waha.url, WAHA_API_KEY: "test", ...settings },
-      stdio: ["ignore", "ignore", "pipe", "ipc"],
-    });
-    let stderr = "";
-    child.stderr.on("data", (chunk) => (stderr += chunk));
-    const code = await new Promise((resolve) => child.on("exit", resolve));
-    assert.equal(code, 1, JSON.stringify(settings));
-    assert.match(stderr, /Set READ_SESSION, SEND_SESSION or both/);
-  }
+test("the gateway refuses to start without a session to read", async () => {
+  const child = fork(new URL("./serve.mjs", import.meta.url), {
+    env: { ...process.env, ...POLICY, WAHA_URL: waha.url, WAHA_API_KEY: "test" },
+    stdio: ["ignore", "ignore", "pipe", "ipc"],
+  });
+  let stderr = "";
+  child.stderr.on("data", (chunk) => (stderr += chunk));
+  assert.equal(await new Promise((resolve) => child.on("exit", resolve)), 1);
+  assert.match(stderr, /Set READ_SESSION/);
 });
 
-test("each session setting registers its own tools", async () => {
+test("it only reads: no tool sends", async () => {
   const read = ["list_chats", "find_chat", "read_chat", "view_image", "view_video", "read_pdf", "read_bill"];
   assert.deepEqual(await reader.tools(), read);
-  assert.deepEqual(await (await gateway({ SEND_SESSION: "default" })).tools(), ["send_message", "read_messages"]);
-  assert.deepEqual(await (await gateway({ READ_SESSION: "personal", SEND_SESSION: "default" })).tools(), [...read, "send_message", "read_messages"]);
-  // Reading and sending as the same number: read_chat already shows the replies.
-  assert.deepEqual(await (await gateway({ READ_SESSION: "personal", SEND_SESSION: "personal" })).tools(), [...read, "send_message"]);
-});
-
-test("send_message sends only to contacts saved in the contacts session, from the sending session", async () => {
-  const both = await gateway({ READ_SESSION: "personal", SEND_SESSION: "default" });
-  await assert.rejects(both.call("send_message", { to: STRANGER.split("@")[0], text: "hi" }), /not a saved contact/);
-  assert.equal(await both.call("send_message", { to: `+${SAVED.split("@")[0]}`, text: "hi" }), "Sent (sent)");
-  assert.deepEqual(waha.sent.at(-1), { session: "default", chatId: SAVED, text: "hi" });
-
-  // With no read session, the sending phone's own contacts decide.
-  const assistant = await gateway({ SEND_SESSION: "default" });
-  await assert.rejects(assistant.call("send_message", { to: SAVED.split("@")[0], text: "hi" }), /not a saved contact/);
-  assert.equal(await assistant.call("send_message", { to: STRANGER.split("@")[0], text: "hi" }), "Sent (sent)");
+  // Leftover settings from a version that could send are ignored.
+  assert.deepEqual(await (await gateway({ READ_SESSION: "personal", SEND_SESSION: "personal" })).tools(), read);
+  assert.deepEqual(waha.sent, []);
 });

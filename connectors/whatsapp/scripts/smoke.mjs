@@ -1,12 +1,10 @@
 // Checks a running connector against its real WhatsApp sessions, through the MCP client. Prints counts,
 // sizes, kinds and timing only, never message content, and never sends.
-// WHATSAPP_URL defaults to the connector inside Compose. When it sends, it needs CHECK_ALLOWED, a saved
-// contact's number, for read_messages, and CHECK_DENIED, a WhatsApp number that isn't saved, which
-// send_message and read_messages must refuse.
+// WHATSAPP_URL defaults to the connector inside Compose.
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 
-const { WHATSAPP_URL = "http://whatsapp:8080/mcp", WHATSAPP_TOKEN, CHECK_ALLOWED, CHECK_DENIED } = process.env;
+const { WHATSAPP_URL = "http://whatsapp:8080/mcp", WHATSAPP_TOKEN } = process.env;
 const url = new URL(WHATSAPP_URL);
 const auth = { authorization: `Bearer ${WHATSAPP_TOKEN}` };
 
@@ -23,9 +21,7 @@ const client = new Client({ name: "smoke", version: "0" });
 await client.connect(new StreamableHTTPClientTransport(url, { requestInit: { headers: auth } }));
 const tools = (await client.listTools()).tools.map((t) => t.name);
 console.log("tools:", tools.join(", "));
-if (tools.includes("send_message") && (!CHECK_DENIED || (tools.includes("read_messages") && !CHECK_ALLOWED))) {
-  throw new Error("This connector sends, so set CHECK_DENIED, and CHECK_ALLOWED when it offers read_messages");
-}
+report(!tools.some((t) => /send/.test(t)), "no tool sends");
 
 // Runs a tool, timing it. Returns its parsed text and its images, or its error.
 async function call(name, args) {
@@ -88,18 +84,6 @@ if (tools.includes("list_chats")) {
   if (media.image) {
     const wrongKind = await call("read_pdf", media.image);
     report(/no pdf/.test(wrongKind.error), "read_pdf refuses an image");
-  }
-}
-
-if (tools.includes("read_messages")) {
-  const r = await call("read_messages", { contact: CHECK_ALLOWED, limit: 5 });
-  report(!r.error, `read_messages with CHECK_ALLOWED: ${r.error ?? `${r.value.length} messages`}`);
-}
-if (tools.includes("send_message")) {
-  for (const [tool, args] of [["read_messages", { contact: CHECK_DENIED }], ["send_message", { to: CHECK_DENIED, text: "x" }]]) {
-    if (!tools.includes(tool)) continue;
-    const r = await call(tool, args);
-    report(/not a saved contact/.test(r.error ?? ""), `${tool} refuses CHECK_DENIED`);
   }
 }
 

@@ -17,11 +17,10 @@ export async function fakeWaha({ sessions, files = {}, swap = {}, delay = 0 }) {
     };
     let match;
     if ((match = url.pathname.match(/^\/api\/files\/(.+)$/))) return res.writeHead(200).end(files[match[1]]);
+    // Records any attempt to send, so a test can check there are none.
     if (url.pathname === "/api/sendText") {
-      let body = "";
-      for await (const chunk of req) body += chunk;
-      sent.push(JSON.parse(body));
-      return json({ id: "sent" });
+      sent.push(url.pathname);
+      return res.writeHead(500).end();
     }
 
     const name = url.pathname.startsWith("/api/contacts") ? url.searchParams.get("session") : url.pathname.split("/")[2];
