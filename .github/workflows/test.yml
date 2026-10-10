@@ -21,6 +21,7 @@ jobs:
       - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends poppler-utils qpdf
       - run: bun install --frozen-lockfile
       - run: bun run test
+      - run: bun run --filter @tres-pinos/boleto typecheck
 
   # The image the README runs, with every media fixture through its converters. Transcription needs a server,
   # so it's checked by hand: see connectors/whatsapp/docs/checks.md.

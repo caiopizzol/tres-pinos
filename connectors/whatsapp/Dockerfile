@@ -16,4 +16,4 @@ RUN bun install --frozen-lockfile --production --filter @tres-pinos/whatsapp && 
 COPY packages/boleto/src packages/boleto/src
 COPY connectors/whatsapp/src connectors/whatsapp/src
 WORKDIR /app/connectors/whatsapp
-CMD ["node", "src/gateway.mjs"]
+CMD ["node", "src/server.mjs"]

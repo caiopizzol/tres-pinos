@@ -1,6 +1,6 @@
 // A WAHA stand-in for tests: serves each session's chats, messages, contacts and hidden ids from plain
 // objects, shaped like WAHA's engine-neutral responses, and records every request. A contact set to null
-// answers like a missing contact on NOWEB, and a lid set to "error" like a failing WAHA. `swap` makes a
+// answers like a missing contact, and a lid set to "error" like a failing WAHA. `swap` makes a
 // media download answer with another message, and `delay` slows every contact lookup by that many ms.
 import { createServer } from "node:http";
 

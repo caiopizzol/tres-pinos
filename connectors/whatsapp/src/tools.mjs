@@ -64,7 +64,7 @@ async function readable(chat) {
 }
 
 async function checkReadable(chat) {
-  if (!(await readable(chat))) throw new Error("The gateway's settings don't allow reading that chat.");
+  if (!(await readable(chat))) throw new Error("The connector's settings don't allow reading that chat.");
 }
 
 // Leaves out a chat whose contact can't be looked up, instead of failing the whole list.

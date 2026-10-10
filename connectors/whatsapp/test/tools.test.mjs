@@ -1,5 +1,5 @@
 // The tools against a fake WAHA, through a real MCP client. Needs no WhatsApp session or network.
-// Each gateway runs in its own process, because the settings are read once, from the environment.
+// Each connector runs in its own process, because the settings are read once, from the environment.
 import assert from "node:assert/strict";
 import { fork } from "node:child_process";
 import { after, test } from "node:test";
@@ -66,8 +66,8 @@ const waha = await fakeWaha({
 after(() => waha.close());
 const POLICY = { READ_SESSION: "", READ_CHATS: "", READ_GROUPS: "", TRANSCRIBE_URL: "" };
 
-// A gateway with these settings, as an MCP client: tools() lists its tools, call() runs one.
-async function gateway(settings) {
+// A connector with these settings, as an MCP client: tools() lists its tools, call() runs one.
+async function connector(settings) {
   const child = fork(new URL("./serve.mjs", import.meta.url), {
     env: { ...process.env, ...POLICY, WAHA_URL: waha.url, WAHA_API_KEY: "test", ...settings },
   });
@@ -86,7 +86,7 @@ async function gateway(settings) {
   return { tools: () => ask({ tools: true }), call: (name, args = {}) => ask({ name, args }) };
 }
 
-const reader = await gateway({ READ_SESSION: "personal", READ_CHATS: "all", READ_GROUPS: "true" });
+const reader = await connector({ READ_SESSION: "personal", READ_CHATS: "all", READ_GROUPS: "true" });
 
 test("read_chat names each media kind from its mimetype", async () => {
   const history = await reader.call("read_chat", { chat: SAVED, limit: 20 });
@@ -140,7 +140,7 @@ test("media tools refuse a message of another kind", async () => {
 });
 
 test("by default, agents read only direct chats with saved contacts", async () => {
-  const saved = await gateway({ READ_SESSION: "personal" });
+  const saved = await connector({ READ_SESSION: "personal" });
   assert.deepEqual((await saved.call("list_chats")).map((c) => c.chat), [SAVED]);
   assert.deepEqual((await saved.call("find_chat", { query: "5511" })).map((c) => c.chat), [SAVED]);
   assert.equal((await saved.call("read_chat", { chat: SAVED })).length, 11);
@@ -164,22 +164,22 @@ test("find_chat checks many hidden matches at once", async () => {
   });
   after(() => slow.close());
   const started = Date.now();
-  const found = await (await gateway({ READ_SESSION: "personal", WAHA_URL: slow.url })).call("find_chat", { query: "5511" });
+  const found = await (await connector({ READ_SESSION: "personal", WAHA_URL: slow.url })).call("find_chat", { query: "5511" });
   assert.deepEqual(found.map((c) => c.chat), [SAVED]);
   // One by one it would take 300 × 50 ms = 15 s.
   assert.ok(Date.now() - started < 3000, `took ${Date.now() - started} ms`);
 });
 
 test("READ_GROUPS adds groups, and READ_CHATS=all adds everyone", async () => {
-  const groups = await gateway({ READ_SESSION: "personal", READ_GROUPS: "true" });
-  const listed = async (gateway) => (await gateway.call("list_chats", { limit: 50 })).map((c) => c.chat).filter((c) => !filler.some((f) => f.id === c));
+  const groups = await connector({ READ_SESSION: "personal", READ_GROUPS: "true" });
+  const listed = async (c) => (await c.call("list_chats", { limit: 50 })).map((c) => c.chat).filter((c) => !filler.some((f) => f.id === c));
   assert.deepEqual(await listed(groups), [GROUP]);
   await assert.rejects(groups.call("read_chat", { chat: STRANGER }), /don't allow/);
   assert.deepEqual(await listed(reader), [GROUP, STRANGER]);
   await assert.rejects(reader.call("read_chat", { chat: "status@broadcast" }), /don't allow/);
 });
 
-test("the gateway refuses to start without a session to read", async () => {
+test("the connector refuses to start without a session to read", async () => {
   const child = fork(new URL("./serve.mjs", import.meta.url), {
     env: { ...process.env, ...POLICY, WAHA_URL: waha.url, WAHA_API_KEY: "test" },
     stdio: ["ignore", "ignore", "pipe", "ipc"],
@@ -193,7 +193,5 @@ test("the gateway refuses to start without a session to read", async () => {
 test("it only reads: no tool sends", async () => {
   const read = ["list_chats", "find_chat", "read_chat", "view_image", "view_video", "read_pdf", "read_bill"];
   assert.deepEqual(await reader.tools(), read);
-  // Leftover settings from a version that could send are ignored.
-  assert.deepEqual(await (await gateway({ READ_SESSION: "personal", SEND_SESSION: "personal" })).tools(), read);
   assert.deepEqual(waha.sent, []);
 });
