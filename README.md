@@ -52,6 +52,16 @@ bun install
 bun run test
 ```
 
+## Por que três pinos?
+
+Em 2011 o Brasil tornou obrigatória a sua própria tomada: três pinos redondos, o terra um pouco abaixo dos outros
+dois e dois tamanhos de pino, para o plugue grosso não entrar na tomada fina. Quase nenhum outro país usa. A
+imprensa chamou de padrão jabuticaba: aquilo que só dá aqui.
+
+A tomada tem companhia: boleto, Pix, CPF para tudo e cliente que só fala por WhatsApp. Os agentes de IA chegam
+prontos para o resto do mundo e travam nas nossas jabuticabas. Três Pinos é a tomada brasileira para eles. Sem
+adaptador.
+
 ## Licença
 
 [MIT](LICENSE)
