@@ -47,7 +47,7 @@ Conecte um número à sessão `default` no painel do WAHA, em `http://127.0.0.1:
 dela em `READ_SESSION` ou `SEND_SESSION`. O conector atende em `http://127.0.0.1:3011/mcp` e exige
 `Authorization: Bearer $GATEWAY_TOKEN`.
 
-Para usar no ChatGPT, no Claude ou no Grok, suba o túnel da Cloudflare com `docker compose --profile tunnel up -d`,
+Para usar no ChatGPT ou no Claude, suba o túnel da Cloudflare com `docker compose --profile tunnel up -d`,
 aponte o endereço público do túnel para `http://whatsapp:8082` e proteja-o com o Cloudflare Access; veja
 [`.env.example`](../../.env.example).
 
