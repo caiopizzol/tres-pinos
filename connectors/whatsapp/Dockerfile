@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 # Built from the repository root, because read_bill runs packages/boleto.
 FROM node:22-alpine
 # ImageMagick converts every image format to JPEG, which every agent's model can see.
