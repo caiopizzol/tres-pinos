@@ -21,3 +21,18 @@ jobs:
       - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends poppler-utils qpdf
       - run: bun install --frozen-lockfile
       - run: bun run test
+
+  # The image the README runs, with every media fixture through its converters. Transcription needs a server,
+  # so it's checked by hand: see connectors/whatsapp/docs/checks.md.
+  image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: docker build -f connectors/whatsapp/Dockerfile -t whatsapp .
+      - run: >-
+          docker run --rm --entrypoint node
+          -v "$PWD/connectors/whatsapp/scripts:/app/connectors/whatsapp/scripts:ro"
+          -v "$PWD/connectors/whatsapp/fixtures:/app/connectors/whatsapp/fixtures:ro"
+          -v "$PWD/packages/boleto/fixtures:/app/packages/boleto/fixtures:ro"
+          whatsapp scripts/media.mjs

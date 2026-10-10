@@ -1,14 +1,14 @@
-// Checks a running gateway against its real WhatsApp sessions, through the MCP client. Prints counts,
+// Checks a running connector against its real WhatsApp sessions, through the MCP client. Prints counts,
 // sizes, kinds and timing only, never message content, and never sends.
-// GATEWAY_URL defaults to this container's own listener. When the gateway sends, it needs CHECK_ALLOWED, a
-// saved contact's number, for read_messages, and CHECK_DENIED, a WhatsApp number that isn't saved, which
+// WHATSAPP_URL defaults to the connector inside Compose. When it sends, it needs CHECK_ALLOWED, a saved
+// contact's number, for read_messages, and CHECK_DENIED, a WhatsApp number that isn't saved, which
 // send_message and read_messages must refuse.
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 
-const { GATEWAY_URL = "http://127.0.0.1:8080/mcp", GATEWAY_TOKEN, CHECK_ALLOWED, CHECK_DENIED } = process.env;
-const url = new URL(GATEWAY_URL);
-const auth = { authorization: `Bearer ${GATEWAY_TOKEN}` };
+const { WHATSAPP_URL = "http://whatsapp:8080/mcp", WHATSAPP_TOKEN, CHECK_ALLOWED, CHECK_DENIED } = process.env;
+const url = new URL(WHATSAPP_URL);
+const auth = { authorization: `Bearer ${WHATSAPP_TOKEN}` };
 
 let failed = 0;
 const report = (ok, line) => {
@@ -24,7 +24,7 @@ await client.connect(new StreamableHTTPClientTransport(url, { requestInit: { hea
 const tools = (await client.listTools()).tools.map((t) => t.name);
 console.log("tools:", tools.join(", "));
 if (tools.includes("send_message") && (!CHECK_DENIED || (tools.includes("read_messages") && !CHECK_ALLOWED))) {
-  throw new Error("This gateway sends, so set CHECK_DENIED, and CHECK_ALLOWED when it offers read_messages");
+  throw new Error("This connector sends, so set CHECK_DENIED, and CHECK_ALLOWED when it offers read_messages");
 }
 
 // Runs a tool, timing it. Returns its parsed text and its images, or its error.

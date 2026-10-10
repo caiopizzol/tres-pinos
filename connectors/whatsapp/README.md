@@ -12,8 +12,7 @@ com o WhatsApp; as configurações escolhem o que o agente pode ler e para quem 
 | `READ_GROUPS` | `false` | Se pode ler grupos, inclusive mensagens de quem você não salvou |
 | `SEND_SESSION` | vazio | Sessão que envia, sempre só para contatos salvos. Vazio: sem envio |
 | `CONTACTS_SESSION` | `READ_SESSION`, senão `SEND_SESSION` | De qual celular vêm os contatos salvos |
-| `GROQ_API_KEY` | vazio | Ativa `transcribe_audio` e a transcrição de vídeos |
-| `NTFY_TOPIC` | vazio | Alerta pelo [ntfy](https://docs.ntfy.sh/) quando uma sessão para de funcionar |
+| `TRANSCRIBE_URL` | vazio | Servidor que transcreve áudios. Ativa `transcribe_audio` e a transcrição de vídeos |
 
 Defina `READ_SESSION`, `SEND_SESSION` ou as duas. Por exemplo, `READ_SESSION=personal` deixa o agente ler o seu
 número, e `SEND_SESSION=assistant` dá a ele um número próprio que escreve para os seus contatos. Status, canais e
@@ -45,11 +44,26 @@ docker compose up -d
 
 Conecte um número à sessão `default` no painel do WAHA, em `http://127.0.0.1:3010/dashboard/`, e coloque o nome
 dela em `READ_SESSION` ou `SEND_SESSION`. O conector atende em `http://127.0.0.1:3011/mcp` e exige
-`Authorization: Bearer $GATEWAY_TOKEN`.
+`Authorization: Bearer $WHATSAPP_TOKEN`.
 
-Para usar no ChatGPT ou no Claude, suba o túnel da Cloudflare com `docker compose --profile tunnel up -d`,
-aponte o endereço público do túnel para `http://whatsapp:8082` e proteja-o com o Cloudflare Access; veja
-[`.env.example`](../../.env.example).
+## Transcrição
+
+Áudios e vídeos são transcritos por qualquer servidor com a API de transcrição da OpenAI. Para não mandar o
+áudio para fora, rode o Whisper na mesma máquina com o [Speaches](https://speaches.ai):
+
+```bash
+COMPOSE_PROFILES=whisper
+TRANSCRIBE_URL=http://whisper:8000/v1
+```
+
+Na primeira vez, ele baixa o modelo (cerca de 500 MB). Num processador de 16 núcleos, um áudio de um minuto
+leva uns 10 segundos. Para usar o [Groq](https://console.groq.com/docs/speech-to-text):
+
+```bash
+TRANSCRIBE_URL=https://api.groq.com/openai/v1
+TRANSCRIBE_KEY=gsk_...
+TRANSCRIBE_MODEL=whisper-large-v3-turbo
+```
 
 ## Desenvolvimento
 

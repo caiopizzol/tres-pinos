@@ -5,7 +5,7 @@
 <h1 align="center">Três Pinos</h1>
 
 <p align="center">
-  Ligue seu agente de IA no Brasil: WhatsApp, boletos, Pix e bancos.
+  Ligue seu agente de IA no Brasil: WhatsApp, boletos e Pix.
 </p>
 
 <p align="center">
@@ -37,11 +37,6 @@ adaptador.
 | Pacote | Para que serve |
 |---|---|
 | [`boleto`](packages/boleto) | Lê os códigos de boleto e Pix de um PDF ou foto. Usado pelos conectores e também como CLI |
-| [`plugin`](packages/plugin) | Gera o plugin para o seu agente de IA, com os seus conectores e as skills que eles rodam |
-
-| Skill | O que faz |
-|---|---|
-| [`check-bill`](skills/check-bill) | Acha uma conta que chegou no WhatsApp, lê os códigos e confere antes de qualquer pagamento |
 
 ## Requisitos
 
@@ -58,12 +53,12 @@ docker compose up -d
 Depois, conecte um número ao WhatsApp e escolha o que o agente pode ler e enviar. Veja o
 [conector do WhatsApp](connectors/whatsapp).
 
-Para usar no Codex, gere o plugin com o endereço do seu conector:
+Para usar no Codex ou no Claude Code, na mesma máquina:
 
 ```bash
-bun run plugin whatsapp=https://whatsapp.seudominio.com/mcp
-codex plugin marketplace add ./plugins/tres-pinos
-codex plugin add tres-pinos@tres-pinos
+export WHATSAPP_TOKEN=...   # o mesmo do .env
+codex mcp add whatsapp --url http://127.0.0.1:3011/mcp --bearer-token-env-var WHATSAPP_TOKEN
+claude mcp add --transport http whatsapp http://127.0.0.1:3011/mcp --header "Authorization: Bearer $WHATSAPP_TOKEN"
 ```
 
 ## Desenvolvimento

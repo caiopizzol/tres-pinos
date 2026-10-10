@@ -3,17 +3,18 @@
 `bun run test` roda as ferramentas contra um WAHA falso, sem sessão do WhatsApp, rede nem ferramentas de mídia.
 O CI roda em todo pull request.
 
-Num ambiente rodando, `scripts/` roda dentro da imagem do conector sem fazer parte dela. Na raiz do repositório:
+Num ambiente rodando, `scripts/` e as fixtures entram na imagem do conector só na hora da verificação. Na raiz
+do repositório:
 
 ```sh
-alias check='docker compose run --rm --no-deps -v ./connectors/whatsapp:/app/connectors/whatsapp:ro -v ./packages/boleto/fixtures:/app/packages/boleto/fixtures:ro --entrypoint node whatsapp'
+alias check='docker compose run --rm --no-deps -v ./connectors/whatsapp/scripts:/app/connectors/whatsapp/scripts:ro -v ./connectors/whatsapp/fixtures:/app/connectors/whatsapp/fixtures:ro -v ./packages/boleto/fixtures:/app/packages/boleto/fixtures:ro --entrypoint node whatsapp'
 
-check scripts/media.mjs   # cada fixture pelos conversores; as transcrições precisam de GROQ_API_KEY
+check scripts/media.mjs   # cada fixture pelos conversores; as transcrições precisam de TRANSCRIBE_URL
 check scripts/smoke.mjs   # cada ferramenta que as configurações oferecem, nas suas conversas reais
 ```
 
-`smoke.mjs` lê `GATEWAY_URL` (`http://whatsapp:8080/mcp` dentro do Compose). Quando o conector envia, também
-precisa de `CHECK_ALLOWED`, o número de um contato salvo, e `CHECK_DENIED`, um número do WhatsApp que você não
+`smoke.mjs` lê `WHATSAPP_URL` (`http://whatsapp:8080/mcp` dentro do Compose) e `WHATSAPP_TOKEN`. Quando o
+conector envia, também precisa de `CHECK_ALLOWED`, o número de um contato salvo, e `CHECK_DENIED`, um número do WhatsApp que você não
 salvou, que `read_messages` e `send_message` devem recusar. Nunca envia nada e só mostra contagens, tamanhos,
 tipos e tempos, nunca o conteúdo das mensagens.
 

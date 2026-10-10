@@ -2,9 +2,9 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { readBill } from "./bills.mjs";
-import { readPdf, toJpeg, transcribe, videoFrames } from "./media.mjs";
+import { readPdf, toJpeg, TRANSCRIBE, transcribe, videoFrames } from "./media.mjs";
 
-const { WAHA_URL = "http://waha:3000", WAHA_API_KEY, GROQ_API_KEY } = process.env;
+const { WAHA_URL = "http://waha:3000", WAHA_API_KEY } = process.env;
 // An empty setting means its default, as when compose passes one that .env leaves out.
 const setting = (name, fallback) => process.env[name] || fallback;
 // The session agents read. These tools only make GET requests, which never mark messages as read.
@@ -288,9 +288,9 @@ function registerReadTools(server) {
       if (!times) {
         about.transcript = !sound
           ? "no sound"
-          : !GROQ_API_KEY
+          : !TRANSCRIBE
             ? "not transcribed"
-            : await transcribe(video, GROQ_API_KEY).catch((e) => e.message);
+            : await transcribe(video).catch((e) => e.message);
       }
       return { content: [{ type: "text", text: JSON.stringify(about) }, ...(await Promise.all(frames.map((f) => image(f.png))))] };
     },
@@ -339,7 +339,7 @@ function registerReadTools(server) {
     },
   );
 
-  if (!GROQ_API_KEY) return;
+  if (!TRANSCRIBE) return;
   server.registerTool(
     "transcribe_audio",
     {
@@ -348,7 +348,7 @@ function registerReadTools(server) {
       annotations: { readOnlyHint: true },
     },
     async ({ chat, message }) => {
-      const { text, language } = await transcribe(await mediaBytes(chat, message, "audio"), GROQ_API_KEY);
+      const { text, language } = await transcribe(await mediaBytes(chat, message, "audio"));
       return { content: [{ type: "text", text: JSON.stringify({ text, language }) }] };
     },
   );

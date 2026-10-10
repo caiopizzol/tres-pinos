@@ -6,5 +6,3 @@ node_modules/
 # Real bills for local checks only; never committed.
 packages/boleto/corpus/
 
-# Plugins generated for a deployment
-/plugins/

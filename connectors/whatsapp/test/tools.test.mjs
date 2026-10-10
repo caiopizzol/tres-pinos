@@ -66,7 +66,7 @@ const waha = await fakeWaha({
   swap: { [id(SAVED, "d10")]: id(GROUP, "g1") },
 });
 after(() => waha.close());
-const POLICY = { READ_SESSION: "", READ_CHATS: "", READ_GROUPS: "", SEND_SESSION: "", CONTACTS_SESSION: "", GROQ_API_KEY: "" };
+const POLICY = { READ_SESSION: "", READ_CHATS: "", READ_GROUPS: "", SEND_SESSION: "", CONTACTS_SESSION: "", TRANSCRIBE_URL: "" };
 
 // A gateway with these settings, as an MCP client: tools() lists its tools, call() runs one.
 async function gateway(settings) {

@@ -9,12 +9,7 @@ Os conversores ficam em `src/media.mjs`.
 | `view_video` | Vídeos de até 200 MB. Os quadros vão do início até meio segundo antes do fim, com pelo menos um segundo entre eles. Com `times`, devolve os quadros nesses segundos. O ffmpeg só abre contêineres de áudio e vídeo, então um arquivo disfarçado de playlist não lê outros arquivos |
 | `read_pdf` | Usa o Poppler: `pdftotext` para o texto e `pdftoppm` para as páginas. O qpdf abre PDFs com senha recebendo a senha pela entrada padrão, para que ela nunca apareça numa linha de comando |
 | `read_bill` | Roda o [`packages/boleto`](../../../packages/boleto) num processo próprio. Um código é `confirmed` quando os dígitos verificadores batem ou duas leituras concordam. Isso prova que o código foi lido certo, não que a conta é verdadeira; por isso o resultado diz se quem enviou é um contato salvo |
-| `transcribe_audio` | Converte o áudio para Opus com o ffmpeg e envia ao [Groq](https://console.groq.com/docs/speech-to-text) (`whisper-large-v3-turbo`). Ative **Inference APIs ZDR** nos Data Controls do Groq para que ele não guarde cópia |
-
-Com `NTFY_TOPIC`, o conector confere as sessões a cada 5 minutos e avisa pelo [ntfy](https://docs.ntfy.sh/)
-quando uma fica fora do ar por duas verificações seguidas, e de novo quando volta. O nome do tópico é o único
-segredo, então use um nome longo e aleatório. O aviso nunca passa pelo WhatsApp, porque a sessão fora do ar
-pode ser justamente a que enviaria.
+| `transcribe_audio` | Converte o áudio para Opus com o ffmpeg e envia ao servidor de `TRANSCRIBE_URL`. Com o Groq, ative **Inference APIs ZDR** nos Data Controls para que ele não guarde cópia |
 
 ## Fixtures
 

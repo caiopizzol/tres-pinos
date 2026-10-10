@@ -42,7 +42,7 @@ const open = (path) => ["-format_whitelist", CONTAINERS, "-protocol_whitelist", 
 const ffmpeg = (args, limits) => run("ffmpeg", ["-nostdin", "-loglevel", "error", ...args], "", limits);
 
 // Groq rejects AAC, AMR and CAF, and WhatsApp's ".oga" name, so every audio becomes 16 kHz mono Opus,
-// the format Groq resamples to anyway.
+// the format Whisper resamples to anyway.
 export function toOpus(bytes) {
   const out = ["-vn", "-ac", "1", "-ar", "16000", "-c:a", "libopus", "-b:a", "24k", "-f", "ogg", "pipe:1"];
   return withFile(bytes, (path) => ffmpeg([...open(path), ...out], { maxBuffer: 50e6, timeout: 60_000, what: "audio" }));
@@ -125,19 +125,28 @@ async function unlock(path, password) {
   throw new Error(password ? "Wrong PDF password" : "This PDF needs a password");
 }
 
-// Only the text goes on to the agent; the audio itself goes no further than Groq.
-export async function transcribe(bytes, apiKey) {
+// Where audio is transcribed: any server with OpenAI's transcription API, such as a local Whisper or Groq.
+// Without TRANSCRIBE_URL there's no transcription. An empty setting means its default, as Compose passes them.
+const env = (name) => process.env[name] || undefined;
+export const TRANSCRIBE = env("TRANSCRIBE_URL") && {
+  url: env("TRANSCRIBE_URL").replace(/\/$/, ""),
+  key: env("TRANSCRIBE_KEY"),
+  model: env("TRANSCRIBE_MODEL") ?? "Systran/faster-whisper-small",
+};
+
+// Only the text goes on to the agent; the audio itself goes no further than the transcription server.
+export async function transcribe(bytes, { url, key, model } = TRANSCRIBE) {
   const form = new FormData();
   form.append("file", new Blob([await toOpus(bytes)]), "audio.ogg");
-  form.append("model", "whisper-large-v3-turbo");
+  form.append("model", model);
   form.append("response_format", "verbose_json");
   // Segment times mark the start of a 30-second window, often well before the words are spoken.
   // Word times are where the speech is, so each segment starts at its first word.
   form.append("timestamp_granularities[]", "word");
   form.append("timestamp_granularities[]", "segment");
-  const res = await fetch("https://api.groq.com/openai/v1/audio/transcriptions", {
+  const res = await fetch(`${url}/audio/transcriptions`, {
     method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}` },
+    headers: key ? { Authorization: `Bearer ${key}` } : {},
     body: form,
     signal: AbortSignal.timeout(60_000),
   });

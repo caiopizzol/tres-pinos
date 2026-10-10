@@ -5,7 +5,7 @@ import childProcess from "node:child_process";
 import { readdirSync, readFileSync } from "node:fs";
 import { syncBuiltinESMExports } from "node:module";
 import { readBill } from "../src/bills.mjs";
-import { readPdf, toJpeg, transcribe, videoFrames } from "../src/media.mjs";
+import { readPdf, toJpeg, TRANSCRIBE, transcribe, videoFrames } from "../src/media.mjs";
 
 const fixture = (path) => new URL(`../fixtures/${path}`, import.meta.url).pathname;
 const AUDIO = fixture("audio");
@@ -38,12 +38,14 @@ const report = (ok, line) => {
 };
 const isJpeg = (b) => b[0] === 0xff && b[1] === 0xd8;
 
-// Groq's free tier allows 20 transcriptions a minute, and this check makes 14, so a second run
-// right after the first waits for the limit instead of failing.
+if (!TRANSCRIBE) console.log("skip transcriptions: TRANSCRIBE_URL is not set");
+
+// Groq's free tier allows 20 transcriptions a minute, and this check makes 22, so it waits for the limit
+// instead of failing.
 async function speech(bytes) {
   for (let attempt = 0; ; attempt++) {
     try {
-      return await transcribe(bytes, process.env.GROQ_API_KEY);
+      return await transcribe(bytes);
     } catch (e) {
       if (!e.message.includes("(429)") || attempt === 3) return { text: e.message };
       await new Promise((r) => setTimeout(r, 20_000));
@@ -51,7 +53,7 @@ async function speech(bytes) {
   }
 }
 
-for (const file of readdirSync(AUDIO).sort()) {
+for (const file of TRANSCRIBE ? readdirSync(AUDIO).sort() : []) {
   const { text, language } = await speech(readFileSync(`${AUDIO}/${file}`));
   report(text.includes(TOKENS[file]), `${file.padEnd(26)} ${language ?? ""}: ${text}`);
 }
@@ -71,9 +73,9 @@ for (const file of readdirSync(VIDEO).sort()) {
   }
   const jpegs = await Promise.all(v.frames.map((f) => toJpeg(f.png).catch(() => Buffer.alloc(0))));
   const framesOk = v.frames.length === want.frames && jpegs.every(isJpeg) && v.sound === Boolean(want.token);
-  const { text = "" } = want.token ? await speech(bytes) : {};
-  const speechOk = !want.token || text.includes(want.token);
-  report(framesOk && speechOk, `${file.padEnd(26)} ${v.duration}s, frames at ${v.frames.map((f) => f.seconds).join(", ")}, sound=${v.sound}${want.token ? `: ${text}` : ""}`);
+  const { text = "" } = want.token && TRANSCRIBE ? await speech(bytes) : {};
+  const speechOk = !want.token || !TRANSCRIBE || text.includes(want.token);
+  report(framesOk && speechOk, `${file.padEnd(26)} ${v.duration}s, frames at ${v.frames.map((f) => f.seconds).join(", ")}, sound=${v.sound}${text ? `: ${text}` : ""}`);
 }
 
 // Exact times: sorted, deduplicated, and rejected past the end instead of moved.

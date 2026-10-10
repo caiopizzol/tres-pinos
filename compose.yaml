@@ -23,27 +23,27 @@ services:
     environment:
       WAHA_URL: ${WAHA_URL:-http://waha:3000}
       WAHA_API_KEY: ${WAHA_API_KEY}
-      GATEWAY_TOKEN: ${GATEWAY_TOKEN:?set GATEWAY_TOKEN in .env}
+      WHATSAPP_TOKEN: ${WHATSAPP_TOKEN:?set WHATSAPP_TOKEN in .env}
       READ_SESSION: ${READ_SESSION:-}
       READ_CHATS: ${READ_CHATS:-}
       READ_GROUPS: ${READ_GROUPS:-}
       SEND_SESSION: ${SEND_SESSION:-}
       CONTACTS_SESSION: ${CONTACTS_SESSION:-}
-      GROQ_API_KEY: ${GROQ_API_KEY:-}
-      NTFY_TOPIC: ${NTFY_TOPIC:-}
-      CHECK_INTERVAL_MS: ${CHECK_INTERVAL_MS:-300000}
-      ACCESS_TEAM_DOMAIN: ${ACCESS_TEAM_DOMAIN:-}
-      ACCESS_AUD: ${ACCESS_AUD:-}
-      OWNER_EMAIL: ${OWNER_EMAIL:-}
+      TRANSCRIBE_URL: ${TRANSCRIBE_URL:-}
+      TRANSCRIBE_KEY: ${TRANSCRIBE_KEY:-}
+      TRANSCRIBE_MODEL: ${TRANSCRIBE_MODEL:-}
     ports:
       - 127.0.0.1:3011:8080
-  # Only with `--profile tunnel`, for remote clients through Cloudflare Access.
-  tunnel:
-    image: cloudflare/cloudflared:2026.9.3
+  # Only with the whisper profile: transcribes audio on this machine, so it never leaves it.
+  # 0.9 is the first release that downloads the model on start.
+  whisper:
+    image: ghcr.io/speaches-ai/speaches:0.9.0-rc.3-cpu
     restart: unless-stopped
-    profiles: [tunnel]
-    command: tunnel --no-autoupdate run
+    profiles: [whisper]
     environment:
-      TUNNEL_TOKEN: ${TUNNEL_TOKEN:-}
-    depends_on:
-      - whatsapp
+      PRELOAD_MODELS: '["${TRANSCRIBE_MODEL:-Systran/faster-whisper-small}"]'
+    volumes:
+      - whisper:/home/ubuntu/.cache/huggingface/hub
+
+volumes:
+  whisper:
