@@ -1,0 +1,31 @@
+{
+	"generator": "make-fixtures.ts",
+	"note": "Synthetic documents with fabricated codes. Bank 999 does not exist; no real bill data.",
+	"files": {
+		"boleto.pdf": {
+			"bytes": 1268,
+			"sha256": "f91389b1f7233c6a0b890ffb78624673ef062c1fd4486d17490f88b3d3125e27",
+			"purpose": "Valid boleto line (due 2026-07-07, R$ 123,45) and a Pix payload wrapped across two lines, over two pages."
+		},
+		"locked.pdf": {
+			"bytes": 1574,
+			"sha256": "155627f3a66736c097213ba4f90cb2f64174315b5afc22d9a44efabc416dba98",
+			"purpose": "boleto.pdf locked with the password 1234 (40-bit RC4); must read only with that password, otherwise report locked."
+		},
+		"permissions-only.pdf": {
+			"bytes": 1574,
+			"sha256": "1246d519a64796012dff8de0cf187a8759e1b9eedfda6de594c612fd1a07c5ea",
+			"purpose": "boleto.pdf with only a permissions password; must open without a password, even when a wrong one is also given."
+		},
+		"no-codes.pdf": {
+			"bytes": 668,
+			"sha256": "8d9a06f6a1e5c7bd1a09f2e10e0640cbb6d22b5d5ff1c41bce747569105dad03",
+			"purpose": "Readable text with no payment code; must report no-codes, not an empty success."
+		},
+		"bad-check-digit.pdf": {
+			"bytes": 669,
+			"sha256": "b2f44a5e7b6aff6a74870c806e71aa115354ca83291dc65fd371d77f01241046",
+			"purpose": "Boleto line with its general check digit altered; must be reported invalid."
+		}
+	}
+}

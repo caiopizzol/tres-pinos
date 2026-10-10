@@ -1,0 +1,20 @@
+{
+	"name": "@tres-pinos/boleto",
+	"private": true,
+	"type": "module",
+	"bin": { "boleto-reader": "src/cli.ts" },
+	"exports": { ".": "./src/read.ts" },
+	"scripts": {
+		"read": "bun src/cli.ts read",
+		"corpus": "bun scripts/corpus.ts",
+		"typecheck": "tsc",
+		"test": "bun test && node scripts/node-check.mjs"
+	},
+	"dependencies": {
+		"zxing-wasm": "3.1.4"
+	},
+	"devDependencies": {
+		"@types/bun": "1.4.2",
+		"typescript": "7.0.2"
+	}
+}

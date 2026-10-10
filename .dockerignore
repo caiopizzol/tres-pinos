@@ -1,0 +1,7 @@
+**
+!package.json
+!bun.lock
+!connectors/whatsapp/package.json
+!connectors/whatsapp/src/**
+!packages/boleto/package.json
+!packages/boleto/src/**

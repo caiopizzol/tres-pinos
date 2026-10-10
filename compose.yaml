@@ -1,0 +1,49 @@
+services:
+  waha:
+    image: devlikeapro/waha:gows-2026.9.1
+    restart: unless-stopped
+    environment:
+      WHATSAPP_DEFAULT_ENGINE: GOWS
+      WHATSAPP_START_SESSION: default
+      WAHA_PRESENCE_AUTO_ONLINE: "False"
+      WAHA_API_KEY: ${WAHA_API_KEY:?set WAHA_API_KEY in .env}
+      WAHA_DASHBOARD_USERNAME: ${WAHA_DASHBOARD_USERNAME:-admin}
+      WAHA_DASHBOARD_PASSWORD: ${WAHA_DASHBOARD_PASSWORD:?set WAHA_DASHBOARD_PASSWORD in .env}
+      WHATSAPP_SWAGGER_USERNAME: ${WHATSAPP_SWAGGER_USERNAME:-admin}
+      WHATSAPP_SWAGGER_PASSWORD: ${WHATSAPP_SWAGGER_PASSWORD:?set WHATSAPP_SWAGGER_PASSWORD in .env}
+    ports:
+      - 127.0.0.1:3010:3000
+    volumes:
+      - ./sessions:/app/.sessions
+  whatsapp:
+    build:
+      context: .
+      dockerfile: connectors/whatsapp/Dockerfile
+    restart: unless-stopped
+    environment:
+      WAHA_URL: ${WAHA_URL:-http://waha:3000}
+      WAHA_API_KEY: ${WAHA_API_KEY}
+      GATEWAY_TOKEN: ${GATEWAY_TOKEN:?set GATEWAY_TOKEN in .env}
+      READ_SESSION: ${READ_SESSION:-}
+      READ_CHATS: ${READ_CHATS:-}
+      READ_GROUPS: ${READ_GROUPS:-}
+      SEND_SESSION: ${SEND_SESSION:-}
+      CONTACTS_SESSION: ${CONTACTS_SESSION:-}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      NTFY_TOPIC: ${NTFY_TOPIC:-}
+      CHECK_INTERVAL_MS: ${CHECK_INTERVAL_MS:-300000}
+      ACCESS_TEAM_DOMAIN: ${ACCESS_TEAM_DOMAIN:-}
+      ACCESS_AUD: ${ACCESS_AUD:-}
+      OWNER_EMAIL: ${OWNER_EMAIL:-}
+    ports:
+      - 127.0.0.1:3011:8080
+  # Only with `--profile tunnel`, for remote clients through Cloudflare Access.
+  tunnel:
+    image: cloudflare/cloudflared:2026.9.3
+    restart: unless-stopped
+    profiles: [tunnel]
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:-}
+    depends_on:
+      - whatsapp

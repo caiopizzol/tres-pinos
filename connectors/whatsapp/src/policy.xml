@@ -1,0 +1,20 @@
+<policymap>
+  <!-- Images come from any WhatsApp contact: decode only these formats and run no external programs.
+       ImageMagick checks the inkscape delegate before using its built-in SVG renderer; inkscape isn't installed. -->
+  <policy domain="delegate" rights="none" pattern="*"/>
+  <policy domain="delegate" rights="execute" pattern="inkscape"/>
+  <policy domain="coder" rights="none" pattern="*"/>
+  <policy domain="coder" rights="read" pattern="{AVIF,BMP,GIF,HEIC,HEIF,PNG,SVG,TIFF,WEBP}"/>
+  <policy domain="coder" rights="read | write" pattern="JPEG"/>
+  <policy domain="filter" rights="none" pattern="*"/>
+  <policy domain="path" rights="none" pattern="@*"/>
+  <policy domain="resource" name="width" value="16KP"/>
+  <policy domain="resource" name="height" value="16KP"/>
+  <policy domain="resource" name="area" value="128MP"/>
+  <policy domain="resource" name="memory" value="512MiB"/>
+  <policy domain="resource" name="map" value="1GiB"/>
+  <policy domain="resource" name="disk" value="1GiB"/>
+  <!-- An animated sticker is read whole before its first frame is taken. The longest seen had 75 frames. -->
+  <policy domain="resource" name="list-length" value="128"/>
+  <policy domain="resource" name="time" value="15"/>
+</policymap>

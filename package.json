@@ -1,0 +1,10 @@
+{
+	"name": "tres-pinos",
+	"private": true,
+	"type": "module",
+	"packageManager": "bun@1.3.14",
+	"workspaces": ["connectors/*", "packages/*"],
+	"scripts": {
+		"test": "bun run --filter '*' test"
+	}
+}

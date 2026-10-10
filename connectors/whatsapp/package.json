@@ -1,0 +1,14 @@
+{
+  "name": "@tres-pinos/whatsapp",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.31.0",
+    "@tres-pinos/boleto": "workspace:*",
+    "jose": "6.2.12",
+    "zod": "4.6.5"
+  }
+}
