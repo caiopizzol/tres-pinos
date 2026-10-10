@@ -1,15 +1,19 @@
+<p align="center">
+  <img src="assets/logo.svg" width="80" height="80" alt="Três Pinos">
+</p>
+
 <h1 align="center">Três Pinos</h1>
 
 <p align="center">
-  Conecte seu agente de IA ao WhatsApp, a boletos e Pix, e a bancos brasileiros.
+  Ligue seu agente de IA no Brasil: WhatsApp, boletos, Pix e bancos.
   <br>
   Servidores MCP para Codex, Claude, ChatGPT e Grok, que você hospeda onde quiser.
 </p>
 
 <p align="center">
-  <a href="LICENSE"><img src="https://img.shields.io/badge/licença-MIT-blue" alt="Licença MIT"></a>
-  <a href="https://bun.sh"><img src="https://img.shields.io/badge/bun-1.3+-blue" alt="Bun"></a>
-  <a href="https://modelcontextprotocol.io"><img src="https://img.shields.io/badge/MCP-servidor-blue" alt="MCP"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/licença-MIT-1d1d1f" alt="Licença MIT"></a>
+  <a href="https://bun.sh"><img src="https://img.shields.io/badge/bun-1.3+-1d1d1f" alt="Bun"></a>
+  <a href="https://modelcontextprotocol.io"><img src="https://img.shields.io/badge/MCP-servidor-f7c831?labelColor=1d1d1f" alt="MCP"></a>
 </p>
 
 > [!WARNING]

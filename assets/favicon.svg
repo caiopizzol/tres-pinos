@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" role="img" aria-label="Três Pinos">
+  <rect width="16" height="16" rx="3.5" fill="#1d1d1f"/>
+  <polygon points="5,3.5 11,3.5 13.5,8 11,12.5 5,12.5 2.5,8" fill="#f7c831" stroke="#f7c831" stroke-width="1" stroke-linejoin="round"/>
+  <circle cx="5.6" cy="7.2" r="1.35" fill="#1d1d1f"/>
+  <circle cx="10.4" cy="7.2" r="1.35" fill="#1d1d1f"/>
+  <circle cx="8" cy="9.9" r="1.35" fill="#1d1d1f"/>
+</svg>
