@@ -9,8 +9,8 @@ COPY connectors/whatsapp/src/policy.xml /etc/ImageMagick-7/policy.xml
 COPY --from=oven/bun:1.3.14-alpine /usr/local/bin/bun /usr/local/bin/bun
 WORKDIR /app
 COPY package.json bun.lock ./
-COPY connectors/whatsapp/package.json connectors/whatsapp/
-COPY packages/boleto/package.json packages/boleto/
+# Every workspace's package.json, which bun needs to match the lockfile.
+COPY --parents connectors/*/package.json packages/*/package.json ./
 RUN bun install --frozen-lockfile --production --filter @tres-pinos/whatsapp && rm /usr/local/bin/bun
 COPY packages/boleto/src packages/boleto/src
 COPY connectors/whatsapp/src connectors/whatsapp/src

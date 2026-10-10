@@ -6,7 +6,7 @@ O CI roda em todo pull request.
 Num ambiente rodando, `scripts/` roda dentro da imagem do conector sem fazer parte dela. Na raiz do repositório:
 
 ```sh
-alias check='docker compose run --rm --no-deps -v ./connectors/whatsapp:/app/connectors/whatsapp:ro --entrypoint node whatsapp'
+alias check='docker compose run --rm --no-deps -v ./connectors/whatsapp:/app/connectors/whatsapp:ro -v ./packages/boleto/fixtures:/app/packages/boleto/fixtures:ro --entrypoint node whatsapp'
 
 check scripts/media.mjs   # cada fixture pelos conversores; as transcrições precisam de GROQ_API_KEY
 check scripts/smoke.mjs   # cada ferramenta que as configurações oferecem, nas suas conversas reais
