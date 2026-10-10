@@ -39,6 +39,11 @@ adaptador.
 | Pacote | Para que serve |
 |---|---|
 | [`boleto`](packages/boleto) | Lê os códigos de boleto e Pix de um PDF ou foto. Usado pelos conectores e também como CLI |
+| [`plugin`](packages/plugin) | Gera o plugin para o seu agente de IA, com os seus conectores e as skills que eles rodam |
+
+| Skill | O que faz |
+|---|---|
+| [`check-bill`](skills/check-bill) | Acha uma conta que chegou no WhatsApp, lê os códigos e confere antes de qualquer pagamento |
 
 ## Requisitos
 
@@ -54,6 +59,14 @@ docker compose up -d
 
 Depois, conecte um número ao WhatsApp e escolha o que o agente pode ler e enviar. Veja o
 [conector do WhatsApp](connectors/whatsapp).
+
+Para usar no Codex, gere o plugin com o endereço do seu conector:
+
+```bash
+bun run plugin whatsapp=https://whatsapp.seudominio.com/mcp
+codex plugin marketplace add ./plugins/tres-pinos
+codex plugin add tres-pinos@tres-pinos
+```
 
 ## Desenvolvimento
 
