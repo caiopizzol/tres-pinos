@@ -20,6 +20,16 @@
 > O conector do WhatsApp usa o WhatsApp Web por meio do [WAHA](https://waha.devlike.pro/), que não é oficial.
 > Um número conectado assim pode ser banido. Este projeto não tem relação com o WhatsApp nem com a Meta.
 
+## Por que três pinos?
+
+Em 2011 o Brasil tornou obrigatória a sua própria tomada: três pinos redondos, o terra um pouco abaixo dos outros
+dois e dois tamanhos de pino, para o plugue grosso não entrar na tomada fina. Quase nenhum outro país usa. A
+imprensa chamou de padrão jabuticaba: aquilo que só dá aqui.
+
+A tomada tem companhia: boleto, Pix, CPF para tudo e cliente que só fala por WhatsApp. Os agentes de IA chegam
+prontos para o resto do mundo e travam nas nossas jabuticabas. Três Pinos é a tomada brasileira para eles. Sem
+adaptador.
+
 ## Conectores
 
 | Conector | O que o agente pode fazer |
@@ -51,16 +61,6 @@ Depois, conecte um número ao WhatsApp e escolha o que o agente pode ler e envia
 bun install
 bun run test
 ```
-
-## Por que três pinos?
-
-Em 2011 o Brasil tornou obrigatória a sua própria tomada: três pinos redondos, o terra um pouco abaixo dos outros
-dois e dois tamanhos de pino, para o plugue grosso não entrar na tomada fina. Quase nenhum outro país usa. A
-imprensa chamou de padrão jabuticaba: aquilo que só dá aqui.
-
-A tomada tem companhia: boleto, Pix, CPF para tudo e cliente que só fala por WhatsApp. Os agentes de IA chegam
-prontos para o resto do mundo e travam nas nossas jabuticabas. Três Pinos é a tomada brasileira para eles. Sem
-adaptador.
 
 ## Licença
 
