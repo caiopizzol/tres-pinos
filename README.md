@@ -6,8 +6,6 @@
 
 <p align="center">
   Ligue seu agente de IA no Brasil: WhatsApp, boletos, Pix e bancos.
-  <br>
-  Servidores MCP para Codex, Claude, ChatGPT e Grok, que você hospeda onde quiser.
 </p>
 
 <p align="center">
