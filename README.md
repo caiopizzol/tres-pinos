@@ -16,10 +16,6 @@
   <a href="https://modelcontextprotocol.io"><img src="https://img.shields.io/badge/MCP-servidor-f7c831?labelColor=1d1d1f" alt="MCP"></a>
 </p>
 
-> [!WARNING]
-> O conector do WhatsApp usa o WhatsApp Web por meio do [WAHA](https://waha.devlike.pro/), que não é oficial.
-> Um número conectado assim pode ser banido. Este projeto não tem relação com o WhatsApp nem com a Meta.
-
 ## Por que três pinos?
 
 Em 2011 o Brasil tornou obrigatória a sua própria tomada: três pinos redondos, o terra um pouco abaixo dos outros
@@ -29,6 +25,10 @@ imprensa chamou de padrão jabuticaba: aquilo que só dá aqui.
 A tomada tem companhia: boleto, Pix, CPF para tudo e cliente que só fala por WhatsApp. Os agentes de IA chegam
 prontos para o resto do mundo e travam nas nossas jabuticabas. Três Pinos é a tomada brasileira para eles. Sem
 adaptador.
+
+> [!WARNING]
+> O conector do WhatsApp usa o WhatsApp Web por meio do [WAHA](https://waha.devlike.pro/), que não é oficial.
+> Um número conectado assim pode ser banido. Este projeto não tem relação com o WhatsApp nem com a Meta.
 
 ## Conectores
 
