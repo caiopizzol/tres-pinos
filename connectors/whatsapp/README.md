@@ -14,6 +14,8 @@ docker compose up -d
 1. Leia o QR da sessão `default` no painel do WAHA, em `http://127.0.0.1:3010/dashboard/`.
 2. Ligue o agente em `http://127.0.0.1:3011/mcp`, com o cabeçalho `Authorization: Bearer $WHATSAPP_KEY`.
 
+Para apps na internet, com login, veja [acesso pela internet](docs/remote.md).
+
 ## Configuração
 
 | Variável | Padrão | O que faz |
@@ -23,6 +25,7 @@ docker compose up -d
 | `READ_CHATS` | `saved` | `saved`: só conversas com contatos salvos. `all`: todas |
 | `READ_GROUPS` | `false` | `true` libera grupos, inclusive mensagens de quem você não salvou |
 | `TRANSCRIBE_URL` | vazio | Servidor de transcrição. Ativa `transcribe_audio` e a fala dos vídeos |
+| `PUBLIC_URL` | vazio | Endereço público do conector. Ativa o login para apps na internet |
 
 Status, canais e listas de transmissão nunca são lidos.
 
@@ -46,7 +49,7 @@ Qualquer servidor com a API de transcrição da OpenAI serve. Para o áudio não
 local com o [Speaches](https://speaches.ai):
 
 ```bash
-COMPOSE_PROFILES=whisper
+COMPOSE_PROFILES=whisper   # com o túnel também: tunnel,whisper
 TRANSCRIBE_URL=http://whisper:8000/v1
 ```
 

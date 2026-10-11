@@ -30,8 +30,21 @@ services:
       TRANSCRIBE_URL: ${TRANSCRIBE_URL:-}
       TRANSCRIBE_KEY: ${TRANSCRIBE_KEY:-}
       TRANSCRIBE_MODEL: ${TRANSCRIBE_MODEL:-}
+      PUBLIC_URL: ${PUBLIC_URL:-}
     ports:
       - 127.0.0.1:3011:8080
+    volumes:
+      - whatsapp:/data
+  # Only with the tunnel profile: publishes the connector at PUBLIC_URL through a Cloudflare Tunnel.
+  tunnel:
+    image: cloudflare/cloudflared:2026.9.3
+    restart: unless-stopped
+    profiles: [tunnel]
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:-}
+    depends_on:
+      - whatsapp
   # Only with the whisper profile: transcribes audio on this machine, so it never leaves it.
   # 0.9 is the first release that downloads the model on start.
   whisper:
@@ -44,4 +57,5 @@ services:
       - whisper:/home/ubuntu/.cache/huggingface/hub
 
 volumes:
+  whatsapp:
   whisper:
