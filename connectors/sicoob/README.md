@@ -30,7 +30,7 @@ docker run --rm -v ./certificate:/c alpine chown 1000:1000 /c/sicoob.crt /c/sico
 
 ## Rodar
 
-Na raiz do repositório, preencha as variáveis abaixo no `.env`. Depois:
+No `.env` da raiz do repositório, inclua `sicoob` em `COMPOSE_PROFILES` e preencha as variáveis abaixo. Depois:
 
 ```bash
 docker compose up -d

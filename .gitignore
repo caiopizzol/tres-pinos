@@ -8,5 +8,5 @@ packages/boleto/corpus/
 # WhatsApp sessions saved by WAHA, before it left the repo
 /sessions/
 
-# The e-CPF certificate for the Sicoob connector
+# The bank certificates for the Sicoob and Inter connectors
 /certificate/

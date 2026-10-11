@@ -43,6 +43,7 @@ prontos para o resto do mundo e travam nas nossas jabuticabas.
 | Conector                      | O que o agente pode fazer                                           |
 | ----------------------------- | ------------------------------------------------------------------- |
 | [`sicoob`](connectors/sicoob) | Ler o saldo e o extrato da conta corrente. Nunca movimenta dinheiro |
+| [`inter`](connectors/inter)   | Ler o saldo e o extrato da conta PJ. Nunca movimenta dinheiro       |
 
 | Pacote                      | O que faz                                                                        |
 | --------------------------- | -------------------------------------------------------------------------------- |
@@ -56,14 +57,20 @@ prontos para o resto do mundo e travam nas nossas jabuticabas.
 
 ## Início rápido
 
-Prepare o certificado e o app do Sicoob como diz o [conector do Sicoob](connectors/sicoob). Depois:
+Prepare o certificado do seu banco como diz o conector do [Sicoob](connectors/sicoob) ou do
+[Inter](connectors/inter). Depois:
 
 ```bash
-cp .env.example .env   # preencha as variáveis
+cp .env.example .env   # escolha os conectores em COMPOSE_PROFILES e preencha as variáveis
 docker compose up -d
 ```
 
-E ligue o seu agente na mesma máquina:
+E ligue o seu agente na mesma máquina, com a porta e a chave de cada conector:
+
+| Conector | Endereço                    | Chave        |
+| -------- | --------------------------- | ------------ |
+| `sicoob` | `http://127.0.0.1:3012/mcp` | `SICOOB_KEY` |
+| `inter`  | `http://127.0.0.1:3013/mcp` | `INTER_KEY`  |
 
 ```bash
 export SICOOB_KEY=...   # a mesma do .env
