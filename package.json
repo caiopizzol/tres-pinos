@@ -8,7 +8,7 @@
   "type": "module",
   "scripts": {
     "prepare": "vp config --no-agent",
-    "check": "vp check && bun run --filter '*' typecheck",
+    "check": "vp fmt --check && vp lint --deny-warnings && bun run --filter '*' typecheck",
     "test": "bun run --filter '*' test"
   },
   "devDependencies": {
