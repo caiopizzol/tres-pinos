@@ -17,6 +17,7 @@ import {
   TOKEN_URL,
   toCents,
 } from "../src/sicoob.mjs";
+import { buildServer } from "../src/tools.mjs";
 
 const PASSWORD = "test-password-123";
 const dir = mkdtempSync(join(tmpdir(), "sicoob-"));
@@ -193,6 +194,11 @@ test("the guard refuses a redirect instead of following it", async () => {
     /Refused a 302 redirect/,
   );
   reply = null;
+});
+
+test("the tools won't run on a fetch the guard didn't wrap", () => {
+  assert.throws(() => buildServer(config, client()), /readOnly/);
+  buildServer(config, readOnly(client()));
 });
 
 test("an error carries Sicoob's code and status, never its message text", async () => {
