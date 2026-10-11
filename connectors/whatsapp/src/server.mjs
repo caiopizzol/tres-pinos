@@ -5,7 +5,8 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import { buildServer } from "./tools.mjs";
 
 // The key is the only thing between the internet and the owner's chats, so it must be long enough not to guess.
-const { WHATSAPP_KEY } = process.env;
+// PORT is for tests; the image always listens on 8080.
+const { WHATSAPP_KEY, PORT = 8080 } = process.env;
 if (!WHATSAPP_KEY || WHATSAPP_KEY.length < 32) throw new Error("WHATSAPP_KEY needs at least 32 characters: openssl rand -hex 32");
 const expectedAuth = Buffer.from(`Bearer ${WHATSAPP_KEY}`);
 
@@ -34,4 +35,4 @@ createServer((req, res) => {
   if (req.url !== "/mcp") return res.writeHead(404).end();
   if (!hasToken(req)) return res.writeHead(401).end();
   handle(req, res);
-}).listen(8080);
+}).listen(Number(PORT));
