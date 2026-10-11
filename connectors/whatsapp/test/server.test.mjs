@@ -1,8 +1,15 @@
-// The server over HTTP: runs the real server.mjs in its own process, against a fake WAHA.
+// The server over HTTP, as remote clients reach it: runs the real server.mjs in its own process, against a
+// fake WAHA, and signs in with the MCP SDK's own OAuth client through the consent page.
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
+import { mkdtempSync, rmSync } from "node:fs";
 import { createServer } from "node:net";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { after, test } from "node:test";
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { UnauthorizedError } from "@modelcontextprotocol/sdk/client/auth.js";
+import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { fakeWaha } from "./fake-waha.mjs";
 
 const KEY = "k".repeat(32);
@@ -17,14 +24,19 @@ const freePort = () =>
     });
   });
 
+// The server with PUBLIC_URL at its own address, so sign-in and /mcp are on one origin, as behind a tunnel.
 function start(port, settings) {
+  const data = mkdtempSync(join(tmpdir(), "tres-pinos-"));
   const child = spawn(process.execPath, [new URL("../src/server.mjs", import.meta.url).pathname], {
-    env: { ...process.env, WAHA_URL: waha.url, WAHA_API_KEY: "test", WHATSAPP_KEY: KEY, READ_SESSION: "personal", TRANSCRIBE_URL: "", PORT: String(port), ...settings },
+    env: { ...process.env, WAHA_URL: waha.url, WAHA_API_KEY: "test", WHATSAPP_KEY: KEY, READ_SESSION: "personal", TRANSCRIBE_URL: "", PORT: String(port), DATA_DIR: data, PUBLIC_URL: `http://127.0.0.1:${port}`, ...settings },
     stdio: ["ignore", "ignore", "pipe"],
   });
   let stderr = "";
   child.stderr.on("data", (chunk) => (stderr += chunk));
-  after(() => child.kill());
+  after(() => {
+    child.kill();
+    rmSync(data, { recursive: true, force: true });
+  });
   return { child, stderr: () => stderr };
 }
 
@@ -39,13 +51,82 @@ async function server(settings = {}) {
   throw new Error("The server did not start");
 }
 
-test("only WHATSAPP_KEY gets in", async () => {
+// What a desktop client keeps between steps. "Opening the browser" is approving on the consent page here.
+function provider(approve) {
+  const saved = {};
+  return {
+    saved,
+    redirectUrl: "http://127.0.0.1:33418/callback",
+    clientMetadata: { client_name: "Test client", redirect_uris: ["http://127.0.0.1:33418/callback"], grant_types: ["authorization_code", "refresh_token"], response_types: ["code"], token_endpoint_auth_method: "none" },
+    clientInformation: () => saved.client,
+    saveClientInformation: (c) => (saved.client = c),
+    tokens: () => saved.tokens,
+    saveTokens: (t) => (saved.tokens = t),
+    saveCodeVerifier: (v) => (saved.verifier = v),
+    codeVerifier: () => saved.verifier,
+    redirectToAuthorization: async (authorizationUrl) => (saved.callback = await approve(authorizationUrl)),
+  };
+}
+
+// The owner's browser: open the consent page, enter the key, follow the page to the callback.
+async function ownerApproves(authorizationUrl, key = KEY) {
+  const page = await fetch(authorizationUrl);
+  assert.equal(page.status, 200);
+  const res = await fetch(new URL("/authorize", authorizationUrl), {
+    method: "POST",
+    headers: { Origin: authorizationUrl.origin },
+    body: new URLSearchParams({ query: authorizationUrl.search.slice(1), key, decision: "allow" }),
+  });
+  const target = /content="0;url=([^"]+)"/.exec(await res.text())?.[1];
+  return target && new URL(target.replace(/&#(\d+);/g, (_, c) => String.fromCharCode(c)));
+}
+
+async function connect(url, auth) {
+  const client = new Client({ name: "test", version: "0" });
+  await client.connect(new StreamableHTTPClientTransport(new URL(`${url}/mcp`), { authProvider: auth }));
+  return client;
+}
+
+test("an MCP client signs in through the consent page and lists the tools", async () => {
+  const url = await server();
+  const auth = provider(ownerApproves);
+  // The first try has no token, so the client discovers the server, registers and sends the owner to approve.
+  await assert.rejects(connect(url, auth), UnauthorizedError);
+  assert.equal(auth.saved.callback.origin + auth.saved.callback.pathname, "http://127.0.0.1:33418/callback");
+  assert.equal(auth.saved.callback.searchParams.get("iss"), url);
+
+  const transport = new StreamableHTTPClientTransport(new URL(`${url}/mcp`), { authProvider: auth });
+  await transport.finishAuth(auth.saved.callback.searchParams.get("code"));
+  const client = new Client({ name: "test", version: "0" });
+  await client.connect(transport);
+  const tools = (await client.listTools()).tools.map((t) => t.name);
+  assert.ok(tools.includes("list_chats"), tools.join());
+  await client.close();
+});
+
+test("a wrong key gets no code", async () => {
+  const url = await server();
+  const auth = provider((u) => ownerApproves(u, "guess"));
+  await assert.rejects(connect(url, auth), UnauthorizedError);
+  assert.equal(auth.saved.callback, undefined);
+});
+
+test("WHATSAPP_KEY works directly, and nothing else gets in", async () => {
   const url = await server();
   const call = (headers) => fetch(`${url}/mcp`, { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json, text/event-stream", ...headers }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list" }) });
   assert.equal((await call({ Authorization: `Bearer ${KEY}` })).status, 200);
-  assert.equal((await call({ Authorization: "Bearer guess" })).status, 401);
-  assert.equal((await call({})).status, 401);
+  const refused = await call({ Authorization: "Bearer guess" });
+  assert.equal(refused.status, 401);
+  assert.match(refused.headers.get("www-authenticate"), /resource_metadata="http:\/\/127\.0\.0\.1:\d+\/\.well-known\/oauth-protected-resource\/mcp"/);
   assert.equal((await fetch(`${url}/elsewhere`)).status, 404);
+});
+
+test("without PUBLIC_URL there is no sign-in, only WHATSAPP_KEY", async () => {
+  const url = await server({ PUBLIC_URL: "" });
+  assert.equal((await fetch(`${url}/.well-known/oauth-authorization-server`)).status, 404);
+  const refused = await fetch(`${url}/mcp`, { method: "POST" });
+  assert.equal(refused.status, 401);
+  assert.equal(refused.headers.get("www-authenticate"), null);
 });
 
 test("refuses to start with a key short enough to guess", async () => {
