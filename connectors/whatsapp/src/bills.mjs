@@ -14,11 +14,19 @@ export async function readBill(bytes, password) {
     await writeFile(path, bytes);
     return await new Promise((resolve, reject) => {
       const options = { maxBuffer: 10e6, timeout: 120_000, killSignal: "SIGKILL" };
-      const child = execFile("node", [CLI, "read", path, "--password-file", "-"], options, (error, stdout, stderr) => {
-        // Exit 2 is a result with no confirmed code, such as a locked or blank bill, not a failure.
-        if (error && error.code !== 2) return reject(new Error(String(stderr).trim().split("\n").at(-1) || "Could not read the bill"));
-        resolve(JSON.parse(stdout));
-      });
+      const child = execFile(
+        "node",
+        [CLI, "read", path, "--password-file", "-"],
+        options,
+        (error, stdout, stderr) => {
+          // Exit 2 is a result with no confirmed code, such as a locked or blank bill, not a failure.
+          if (error && error.code !== 2)
+            return reject(
+              new Error(String(stderr).trim().split("\n").at(-1) || "Could not read the bill"),
+            );
+          resolve(JSON.parse(stdout));
+        },
+      );
       child.stdin.on("error", () => {});
       child.stdin.end(password ?? "");
     });

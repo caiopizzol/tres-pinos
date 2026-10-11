@@ -31,13 +31,13 @@ prontos para o resto do mundo e travam nas nossas jabuticabas.
 
 ## Conectores
 
-| Conector | O que o agente pode fazer |
-|---|---|
+| Conector                          | O que o agente pode fazer                                                                  |
+| --------------------------------- | ------------------------------------------------------------------------------------------ |
 | [`whatsapp`](connectors/whatsapp) | Ler conversas, imagens, vídeos, PDFs e contas, e transcrever áudios. Nunca envia mensagens |
-| [`sicoob`](connectors/sicoob) | Ler o saldo e o extrato da conta corrente. Nunca movimenta dinheiro |
+| [`sicoob`](connectors/sicoob)     | Ler o saldo e o extrato da conta corrente. Nunca movimenta dinheiro                        |
 
-| Pacote | O que faz |
-|---|---|
+| Pacote                      | O que faz                                                                                |
+| --------------------------- | ---------------------------------------------------------------------------------------- |
 | [`boleto`](packages/boleto) | Lê os códigos de boleto e Pix de um PDF ou foto. Os conectores usam, e funciona como CLI |
 
 ## Requisitos
@@ -67,6 +67,7 @@ claude mcp add --transport http whatsapp http://127.0.0.1:3011/mcp --header "Aut
 
 ```bash
 bun install
+bun run check
 bun run test
 ```
 

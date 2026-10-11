@@ -18,27 +18,27 @@ Para apps na internet, com login, veja [acesso pela internet](docs/remote.md).
 
 ## Configuração
 
-| Variável | Padrão | O que faz |
-|---|---|---|
-| `WHATSAPP_KEY` | obrigatória | Chave que o agente envia. Pelo menos 32 caracteres |
-| `READ_SESSION` | obrigatória | Sessão do WAHA que o agente lê |
-| `READ_CHATS` | `saved` | `saved`: só conversas com contatos salvos. `all`: todas |
-| `READ_GROUPS` | `false` | `true` libera grupos, inclusive mensagens de quem você não salvou |
-| `TRANSCRIBE_URL` | vazio | Servidor de transcrição. Ativa `transcribe_audio` e a fala dos vídeos |
-| `PUBLIC_URL` | vazio | Endereço público do conector. Ativa o login para apps na internet |
+| Variável         | Padrão      | O que faz                                                             |
+| ---------------- | ----------- | --------------------------------------------------------------------- |
+| `WHATSAPP_KEY`   | obrigatória | Chave que o agente envia. Pelo menos 32 caracteres                    |
+| `READ_SESSION`   | obrigatória | Sessão do WAHA que o agente lê                                        |
+| `READ_CHATS`     | `saved`     | `saved`: só conversas com contatos salvos. `all`: todas               |
+| `READ_GROUPS`    | `false`     | `true` libera grupos, inclusive mensagens de quem você não salvou     |
+| `TRANSCRIBE_URL` | vazio       | Servidor de transcrição. Ativa `transcribe_audio` e a fala dos vídeos |
+| `PUBLIC_URL`     | vazio       | Endereço público do conector. Ativa o login para apps na internet     |
 
 Status, canais e listas de transmissão nunca são lidos.
 
 ## Ferramentas
 
-| Ferramenta | O que devolve |
-|---|---|
+| Ferramenta                             | O que devolve                                                                   |
+| -------------------------------------- | ------------------------------------------------------------------------------- |
 | `list_chats`, `find_chat`, `read_chat` | Conversas recentes, qualquer conversa por nome ou número, e as mensagens de uma |
-| `view_image` | Uma imagem ou figurinha, em JPEG |
-| `view_video` | Quadros de um vídeo ou GIF e a fala transcrita, com tempos |
-| `read_pdf` | O texto e imagens das páginas de um PDF, com senha se precisar |
-| `read_bill` | Os códigos de boleto e Pix de uma conta, e se quem enviou é um contato salvo |
-| `transcribe_audio` | Um áudio em texto |
+| `view_image`                           | Uma imagem ou figurinha, em JPEG                                                |
+| `view_video`                           | Quadros de um vídeo ou GIF e a fala transcrita, com tempos                      |
+| `read_pdf`                             | O texto e imagens das páginas de um PDF, com senha se precisar                  |
+| `read_bill`                            | Os códigos de boleto e Pix de uma conta, e se quem enviou é um contato salvo    |
+| `transcribe_audio`                     | Um áudio em texto                                                               |
 
 Mídias antigas podem já ter saído dos servidores do WhatsApp; nesse caso a ferramenta avisa. Detalhes em
 [como as ferramentas funcionam](docs/tools.md).

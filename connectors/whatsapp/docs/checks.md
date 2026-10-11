@@ -12,7 +12,7 @@ check scripts/media.mjs   # cada fixture pelas conversões
 check scripts/smoke.mjs   # cada ferramenta nas suas conversas reais
 ```
 
-| Script | O que confere |
-|---|---|
-| `media.mjs` | Cada áudio e vídeo vira o texto falado, cada vídeo dá os quadros esperados, cada PDF dá o texto ou o erro esperado, e cada conta dá os seus códigos. Sem `TRANSCRIBE_URL`, pula as transcrições |
+| Script      | O que confere                                                                                                                                                                                                                |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `media.mjs` | Cada áudio e vídeo vira o texto falado, cada vídeo dá os quadros esperados, cada PDF dá o texto ou o erro esperado, e cada conta dá os seus códigos. Sem `TRANSCRIBE_URL`, pula as transcrições                              |
 | `smoke.mjs` | A chave é exigida, nenhuma ferramenta envia, e cada ferramenta funciona nas suas conversas. Lê `WHATSAPP_URL` (padrão `http://whatsapp:8080/mcp`) e `WHATSAPP_KEY`. Mostra só contagens, tamanhos e tempos, nunca o conteúdo |

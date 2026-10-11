@@ -1,13 +1,18 @@
 {
-	"name": "tres-pinos",
-	"private": true,
-	"type": "module",
-	"packageManager": "bun@1.3.14",
-	"workspaces": [
-		"connectors/*",
-		"packages/*"
-	],
-	"scripts": {
-		"test": "bun run --filter '*' test"
-	}
+  "name": "tres-pinos",
+  "private": true,
+  "workspaces": [
+    "connectors/*",
+    "packages/*"
+  ],
+  "type": "module",
+  "scripts": {
+    "prepare": "vp config --no-agent",
+    "check": "vp check && bun run --filter '*' typecheck",
+    "test": "bun run --filter '*' test"
+  },
+  "devDependencies": {
+    "vite-plus": "1.1.0"
+  },
+  "packageManager": "bun@1.3.14"
 }

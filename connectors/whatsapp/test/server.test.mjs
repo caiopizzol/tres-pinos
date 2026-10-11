@@ -28,7 +28,18 @@ const freePort = () =>
 function start(port, settings) {
   const data = mkdtempSync(join(tmpdir(), "tres-pinos-"));
   const child = spawn(process.execPath, [new URL("../src/server.mjs", import.meta.url).pathname], {
-    env: { ...process.env, WAHA_URL: waha.url, WAHA_API_KEY: "test", WHATSAPP_KEY: KEY, READ_SESSION: "personal", TRANSCRIBE_URL: "", PORT: String(port), DATA_DIR: data, PUBLIC_URL: `http://127.0.0.1:${port}`, ...settings },
+    env: {
+      ...process.env,
+      WAHA_URL: waha.url,
+      WAHA_API_KEY: "test",
+      WHATSAPP_KEY: KEY,
+      READ_SESSION: "personal",
+      TRANSCRIBE_URL: "",
+      PORT: String(port),
+      DATA_DIR: data,
+      PUBLIC_URL: `http://127.0.0.1:${port}`,
+      ...settings,
+    },
     stdio: ["ignore", "ignore", "pipe"],
   });
   let stderr = "";
@@ -45,7 +56,13 @@ async function server(settings = {}) {
   const url = `http://127.0.0.1:${port}`;
   start(port, settings);
   for (let i = 0; i < 50; i++) {
-    if (await fetch(`${url}/mcp`, { method: "POST" }).then(() => true, () => false)) return url;
+    if (
+      await fetch(`${url}/mcp`, { method: "POST" }).then(
+        () => true,
+        () => false,
+      )
+    )
+      return url;
     await new Promise((r) => setTimeout(r, 100));
   }
   throw new Error("The server did not start");
@@ -57,14 +74,21 @@ function provider(approve) {
   return {
     saved,
     redirectUrl: "http://127.0.0.1:33418/callback",
-    clientMetadata: { client_name: "Test client", redirect_uris: ["http://127.0.0.1:33418/callback"], grant_types: ["authorization_code", "refresh_token"], response_types: ["code"], token_endpoint_auth_method: "none" },
+    clientMetadata: {
+      client_name: "Test client",
+      redirect_uris: ["http://127.0.0.1:33418/callback"],
+      grant_types: ["authorization_code", "refresh_token"],
+      response_types: ["code"],
+      token_endpoint_auth_method: "none",
+    },
     clientInformation: () => saved.client,
     saveClientInformation: (c) => (saved.client = c),
     tokens: () => saved.tokens,
     saveTokens: (t) => (saved.tokens = t),
     saveCodeVerifier: (v) => (saved.verifier = v),
     codeVerifier: () => saved.verifier,
-    redirectToAuthorization: async (authorizationUrl) => (saved.callback = await approve(authorizationUrl)),
+    redirectToAuthorization: async (authorizationUrl) =>
+      (saved.callback = await approve(authorizationUrl)),
   };
 }
 
@@ -83,7 +107,9 @@ async function ownerApproves(authorizationUrl, key = KEY) {
 
 async function connect(url, auth) {
   const client = new Client({ name: "test", version: "0" });
-  await client.connect(new StreamableHTTPClientTransport(new URL(`${url}/mcp`), { authProvider: auth }));
+  await client.connect(
+    new StreamableHTTPClientTransport(new URL(`${url}/mcp`), { authProvider: auth }),
+  );
   return client;
 }
 
@@ -92,10 +118,15 @@ test("an MCP client signs in through the consent page and lists the tools", asyn
   const auth = provider(ownerApproves);
   // The first try has no token, so the client discovers the server, registers and sends the owner to approve.
   await assert.rejects(connect(url, auth), UnauthorizedError);
-  assert.equal(auth.saved.callback.origin + auth.saved.callback.pathname, "http://127.0.0.1:33418/callback");
+  assert.equal(
+    auth.saved.callback.origin + auth.saved.callback.pathname,
+    "http://127.0.0.1:33418/callback",
+  );
   assert.equal(auth.saved.callback.searchParams.get("iss"), url);
 
-  const transport = new StreamableHTTPClientTransport(new URL(`${url}/mcp`), { authProvider: auth });
+  const transport = new StreamableHTTPClientTransport(new URL(`${url}/mcp`), {
+    authProvider: auth,
+  });
   await transport.finishAuth(auth.saved.callback.searchParams.get("code"));
   const client = new Client({ name: "test", version: "0" });
   await client.connect(transport);
@@ -113,11 +144,23 @@ test("a wrong key gets no code", async () => {
 
 test("WHATSAPP_KEY works directly, and nothing else gets in", async () => {
   const url = await server();
-  const call = (headers) => fetch(`${url}/mcp`, { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json, text/event-stream", ...headers }, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list" }) });
+  const call = (headers) =>
+    fetch(`${url}/mcp`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json, text/event-stream",
+        ...headers,
+      },
+      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list" }),
+    });
   assert.equal((await call({ Authorization: `Bearer ${KEY}` })).status, 200);
   const refused = await call({ Authorization: "Bearer guess" });
   assert.equal(refused.status, 401);
-  assert.match(refused.headers.get("www-authenticate"), /resource_metadata="http:\/\/127\.0\.0\.1:\d+\/\.well-known\/oauth-protected-resource\/mcp"/);
+  assert.match(
+    refused.headers.get("www-authenticate"),
+    /resource_metadata="http:\/\/127\.0\.0\.1:\d+\/\.well-known\/oauth-protected-resource\/mcp"/,
+  );
   assert.equal((await fetch(`${url}/elsewhere`)).status, 404);
 });
 
@@ -133,7 +176,9 @@ test("without PUBLIC_URL there is no sign-in, only WHATSAPP_KEY", async () => {
 const rawGet = (url, path) =>
   new Promise((resolve, reject) => {
     const { hostname, port } = new URL(url);
-    const socket = tcp(Number(port), hostname, () => socket.end(`GET ${path} HTTP/1.1\r\nHost: x\r\nConnection: close\r\n\r\n`));
+    const socket = tcp(Number(port), hostname, () =>
+      socket.end(`GET ${path} HTTP/1.1\r\nHost: x\r\nConnection: close\r\n\r\n`),
+    );
     let reply = "";
     socket.on("data", (chunk) => (reply += chunk));
     socket.on("end", () => resolve(reply.split("\r\n")[0]));

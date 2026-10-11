@@ -117,10 +117,12 @@ WhatsApp, boletos, Pix e a sua conta no Sicoob.** Embaixo do título, na descri�
 Diz só o que existe: cada conector novo entra na lista quando funcionar.
 
 Alternativas:
+
 - Ligue seu agente de IA no Brasil.
 - Conectores brasileiros para agentes de IA.
 
 Slogans:
+
 - Do WhatsApp ao boleto, sem gambiarra.
 - Você hospeda. Você aprova.
 - Padrão brasileiro, código aberto.
@@ -152,17 +154,18 @@ Slogans:
 - Escreva em português do Brasil. Nomes de ferramentas e código ficam em inglês.
 
 O que não somos:
+
 - Não somos um banco nem uma fintech.
 - Não somos um produto oficial do WhatsApp ou da Meta.
 - Não somos uma plataforma de automação.
 - Não guardamos seus dados.
 
-| Dizemos | Nunca dizemos |
-|---|---|
+| Dizemos                                      | Nunca dizemos                 |
+| -------------------------------------------- | ----------------------------- |
 | "O agente pede sua aprovação antes de pagar" | "Pagamentos 100% automáticos" |
-| "Só lê o WhatsApp, nunca envia" | "Disparo em massa" |
-| "Você hospeda" | "Nossa nuvem segura" |
-| "Não é oficial do WhatsApp" | "Integração oficial" |
+| "Só lê o WhatsApp, nunca envia"              | "Disparo em massa"            |
+| "Você hospeda"                               | "Nossa nuvem segura"          |
+| "Não é oficial do WhatsApp"                  | "Integração oficial"          |
 
 ## Visual
 

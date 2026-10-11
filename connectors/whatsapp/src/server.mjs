@@ -11,7 +11,8 @@ import { buildServer } from "./tools.mjs";
 // The key is the only thing between the internet and the owner's chats, so it must be long enough not to guess.
 // PORT is for tests; the image always listens on 8080.
 const { WHATSAPP_KEY, PUBLIC_URL, DATA_DIR = "/data", PORT = 8080 } = process.env;
-if (!WHATSAPP_KEY || WHATSAPP_KEY.length < 32) throw new Error("WHATSAPP_KEY needs at least 32 characters: openssl rand -hex 32");
+if (!WHATSAPP_KEY || WHATSAPP_KEY.length < 32)
+  throw new Error("WHATSAPP_KEY needs at least 32 characters: openssl rand -hex 32");
 const expectedAuth = Buffer.from(`Bearer ${WHATSAPP_KEY}`);
 
 // Constant-time, so response timing doesn't reveal how much of a guessed key was right.
@@ -24,7 +25,11 @@ let oauth = null;
 if (PUBLIC_URL) {
   mkdirSync(DATA_DIR, { recursive: true });
   const issuer = new URL(PUBLIC_URL).origin;
-  oauth = createOAuth({ issuer, db: new DatabaseSync(`${DATA_DIR}/oauth.sqlite`), key: WHATSAPP_KEY });
+  oauth = createOAuth({
+    issuer,
+    db: new DatabaseSync(`${DATA_DIR}/oauth.sqlite`),
+    key: WHATSAPP_KEY,
+  });
 }
 
 async function handle(req, res) {
@@ -32,7 +37,10 @@ async function handle(req, res) {
 
   try {
     const server = buildServer();
-    const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true });
+    const transport = new StreamableHTTPServerTransport({
+      sessionIdGenerator: undefined,
+      enableJsonResponse: true,
+    });
     res.on("close", () => server.close().catch(console.error));
     await server.connect(transport);
     await transport.handleRequest(req, res);

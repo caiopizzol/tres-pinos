@@ -40,19 +40,19 @@ Ligue o agente em `http://127.0.0.1:3012/mcp`, com o cabeçalho `Authorization: 
 
 ## Configuração
 
-| Variável | O que faz |
-|---|---|
-| `SICOOB_KEY` | Chave que o agente envia. Pelo menos 32 caracteres |
-| `SICOOB_CLIENT_ID` | O client ID do app no portal do Sicoob |
-| `SICOOB_ACCOUNT` | Número da conta corrente, só dígitos |
-| `SICOOB_CERT_DIR` | Pasta com `sicoob.crt` e `sicoob.key`. Padrão: `./certificate` |
-| `SICOOB_CERT_PASSWORD` | A senha de `sicoob.key` |
+| Variável               | O que faz                                                      |
+| ---------------------- | -------------------------------------------------------------- |
+| `SICOOB_KEY`           | Chave que o agente envia. Pelo menos 32 caracteres             |
+| `SICOOB_CLIENT_ID`     | O client ID do app no portal do Sicoob                         |
+| `SICOOB_ACCOUNT`       | Número da conta corrente, só dígitos                           |
+| `SICOOB_CERT_DIR`      | Pasta com `sicoob.crt` e `sicoob.key`. Padrão: `./certificate` |
+| `SICOOB_CERT_PASSWORD` | A senha de `sicoob.key`                                        |
 
 ## Ferramentas
 
-| Ferramenta | O que devolve |
-|---|---|
-| `get_balance` | Saldo e limite, em centavos |
+| Ferramenta      | O que devolve                                                                  |
+| --------------- | ------------------------------------------------------------------------------ |
+| `get_balance`   | Saldo e limite, em centavos                                                    |
 | `get_statement` | As transações de um mês, em centavos. O Sicoob guarda só os últimos três meses |
 
 O conector só deixa sair as chamadas dessas duas ferramentas. Qualquer outra, como um pagamento, é recusada
