@@ -76,8 +76,8 @@ let reply = null;
 let tokens = 0;
 const transaction = {
   idTransacao: "a1",
-  dataInclusao: "2026-09-02 10:00:00",
-  dataTransacao: "2026-09-02",
+  dataInclusao: "2026-02-02 10:00:00",
+  dataTransacao: "2026-02-02",
   tipoTransacao: "PIX",
   tipoOperacao: "D",
   valor: "12.3",
@@ -159,7 +159,7 @@ test("reads the balance and a month's statement, presenting the integration's ce
   assert.deepEqual(await inter.getStatement(2026, 2), [
     {
       id: "a1",
-      date: "2026-09-02",
+      date: "2026-02-02",
       type: "DEBITO",
       amountCents: 1230,
       title: "Pix enviado",
@@ -229,6 +229,20 @@ test("refuses a statement month with more transactions than one request returns"
     interClient(config, readOnly(client())).getStatement(2026, 2),
     /more than 10000/,
   );
+  // Without a page count that matches, a first page cut short would look like the whole month.
+  for (const body of [
+    { transacoes: [transaction] },
+    { totalPaginas: "1", transacoes: [transaction] },
+    { totalPaginas: 0, transacoes: [transaction] },
+    { totalPaginas: 1, transacoes: [] },
+  ]) {
+    reply = [200, body];
+    await assert.rejects(
+      interClient(config, readOnly(client())).getStatement(2026, 2),
+      /no page count/,
+      JSON.stringify(body),
+    );
+  }
 });
 
 test("asks for exactly one calendar month, leap years included", async () => {
@@ -239,7 +253,7 @@ test("asks for exactly one calendar month, leap years included", async () => {
       urls.push(url);
       return url === TOKEN_URL
         ? { status: 200, text: '{"access_token":"t","scope":"extrato.read","expires_in":3600}' }
-        : { status: 200, text: '{"transacoes":[]}' };
+        : { status: 200, text: '{"totalPaginas":0,"transacoes":[]}' };
     }),
   );
   for (const [year, month] of [

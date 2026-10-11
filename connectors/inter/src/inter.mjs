@@ -140,8 +140,11 @@ export function interClient({ clientId, clientSecret }, fetch, now = Date.now) {
       const r = await get(`${API_URL}/banking/v2/extrato/completo?${query}`, "statement request");
       if (!Array.isArray(r.transacoes))
         throw new Error("Inter's statement has no transactions list");
+      // Inter sends 0 pages for an empty month and 1 for a full one; anything else may be cut short.
       if (r.totalPaginas > 1)
         throw new Error(`Inter's statement has more than ${PAGE_SIZE} transactions this month`);
+      if (r.totalPaginas !== (r.transacoes.length ? 1 : 0))
+        throw new Error("Inter's statement has no page count");
       return r.transacoes.map((t) => {
         const type = { C: "CREDITO", D: "DEBITO" }[t?.tipoOperacao];
         if (
