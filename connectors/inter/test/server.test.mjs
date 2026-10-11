@@ -134,21 +134,26 @@ test("the README and the site name exactly the tools it offers", async () => {
   assert.deepEqual(siteTools(site, "inter"), tools, "site");
 });
 
-test("refuses to start with a short key, a missing setting, or a certificate and key that don't match", async () => {
-  const mismatch = /INTER_CERT_PATH and INTER_CERT_KEY_PATH are not a matching certificate and key/;
-  for (const [settings, message] of [
-    [{ INTER_KEY: "short" }, /INTER_KEY needs at least 32 characters/],
-    [{ INTER_CLIENT_SECRET: "" }, /Set INTER_CLIENT_SECRET/],
-    [{ INTER_CERT_PATH: file("missing.crt") }, /Can't read .*missing\.crt/],
-    [{ INTER_CERT_KEY_PATH: file("other.key") }, mismatch],
-    [{ INTER_CERT_PATH: file("owner.key"), INTER_CERT_KEY_PATH: file("owner.crt") }, mismatch],
-  ]) {
-    const { child, stderr } = start(await freePort(), settings);
-    assert.equal(
-      await new Promise((resolve) => child.on("exit", resolve)),
-      1,
-      JSON.stringify(settings),
-    );
-    assert.match(stderr(), message);
-  }
-});
+test(
+  "refuses to start with a short key, a missing setting, or a certificate and key that don't match",
+  { timeout: 10_000 },
+  async () => {
+    const mismatch =
+      /INTER_CERT_PATH and INTER_CERT_KEY_PATH are not a matching certificate and key/;
+    for (const [settings, message] of [
+      [{ INTER_KEY: "short" }, /INTER_KEY needs at least 32 characters/],
+      [{ INTER_CLIENT_SECRET: "" }, /Set INTER_CLIENT_SECRET/],
+      [{ INTER_CERT_PATH: file("missing.crt") }, /Can't read .*missing\.crt/],
+      [{ INTER_CERT_KEY_PATH: file("other.key") }, mismatch],
+      [{ INTER_CERT_PATH: file("owner.key"), INTER_CERT_KEY_PATH: file("owner.crt") }, mismatch],
+    ]) {
+      const { child, stderr } = start(await freePort(), settings);
+      assert.equal(
+        await new Promise((resolve) => child.on("exit", resolve)),
+        1,
+        JSON.stringify(settings),
+      );
+      assert.match(stderr(), message);
+    }
+  },
+);

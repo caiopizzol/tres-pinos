@@ -1,7 +1,7 @@
-// Lets only the requests this connector was built to make reach Sicoob: the token for the read-only scope,
-// the balance and a month's statement. Anything else, such as a payment, is refused before the network,
-// even if a later change calls it by mistake. The certificate itself can do much more.
-import { API_URL, TOKEN_URL } from "./sicoob.mjs";
+// The only requests this connector may make to Sicoob: the token for the read-only scope, the balance and a
+// month's statement. The certificate itself can do much more, payments included.
+import { readOnly as guard } from "@tres-pinos/bank";
+import { API_URL, SCOPE, TOKEN_URL } from "./sicoob.mjs";
 
 const API = API_URL.replaceAll(".", "\\.");
 const REQUESTS = [
@@ -9,26 +9,5 @@ const REQUESTS = [
   `^GET ${API}/conta-corrente/v4/extrato/([1-9]|1[0-2])/2\\d{3}\\?numeroContaCorrente=\\d{1,14}$`,
 ].map((pattern) => new RegExp(pattern));
 
-const guarded = new WeakSet();
-export const isReadOnly = (fetch) => guarded.has(fetch);
-
-export function readOnly(fetch) {
-  const guard = (url, init = {}) => {
-    const method = (init.method ?? "GET").toUpperCase();
-    // A body can repeat `scope`; only the one read-only scope passes.
-    const scopes =
-      typeof init.body === "string" ? new URLSearchParams(init.body).getAll("scope") : [];
-    const allowed =
-      url === TOKEN_URL
-        ? method === "POST" && scopes.length === 1 && scopes[0] === "cco_consulta"
-        : REQUESTS.some((p) => p.test(`${method} ${url}`));
-    if (!allowed) return Promise.reject(new Error(`Refused ${method} request`));
-    return fetch(url, init).then((res) => {
-      if (res.status >= 300 && res.status < 400)
-        throw new Error(`Refused a ${res.status} redirect`);
-      return res;
-    });
-  };
-  guarded.add(guard);
-  return guard;
-}
+export const readOnly = (fetch) =>
+  guard(fetch, { tokenUrl: TOKEN_URL, scope: SCOPE, requests: REQUESTS });

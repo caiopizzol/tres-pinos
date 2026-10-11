@@ -1,0 +1,11 @@
+{
+  "name": "@tres-pinos/bank",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/bank.mjs"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  }
+}
