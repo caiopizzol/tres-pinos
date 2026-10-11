@@ -1,0 +1,10 @@
+// The landing page: site/ served as static assets by a Worker with no code, deployed by .github/workflows/site.yml.
+{
+  "name": "tres-pinos-site",
+  "compatibility_date": "2026-10-08",
+  "assets": { "directory": "./site" },
+  "routes": [{ "pattern": "trespinos.dev", "custom_domain": true }],
+  // Only the domain serves it: no workers.dev address, and no public preview or version URLs.
+  "workers_dev": false,
+  "preview_urls": false
+}
