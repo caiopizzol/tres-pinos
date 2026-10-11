@@ -2,10 +2,12 @@
   <img src="assets/logo.svg" width="80" height="80" alt="Três Pinos">
 </p>
 
-<h1 align="center">Três Pinos</h1>
+<h1 align="center">Três pinos, nenhum adaptador.</h1>
 
 <p align="center">
-  Ligue seu agente de IA no Brasil: WhatsApp, boletos e Pix.
+  A tomada brasileira para agentes de IA: um conector MCP de código aberto,
+  <br>
+  que você hospeda, para ler WhatsApp, boletos e Pix.
 </p>
 
 <p align="center">
@@ -21,8 +23,7 @@ dois e dois tamanhos de pino, para o plugue grosso não entrar na tomada fina. Q
 imprensa chamou de padrão jabuticaba: aquilo que só dá aqui.
 
 A tomada tem companhia: boleto, Pix, CPF para tudo e cliente que só fala por WhatsApp. Os agentes de IA chegam
-prontos para o resto do mundo e travam nas nossas jabuticabas. Três Pinos é a tomada brasileira para eles. Sem
-adaptador.
+prontos para o resto do mundo e travam nas nossas jabuticabas.
 
 > [!WARNING]
 > O conector do WhatsApp usa o WhatsApp Web por meio do [WAHA](https://waha.devlike.pro/), que não é oficial.

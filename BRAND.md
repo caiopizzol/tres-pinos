@@ -1,6 +1,6 @@
 ---
 name: "Três Pinos"
-tagline: "Ligue seu agente de IA no Brasil."
+tagline: "A tomada brasileira para agentes de IA."
 specVersion: "0.3.0"
 version: 1
 language: pt-BR
@@ -84,7 +84,7 @@ Não é: corporativo, ufanista, exagerado, mágico.
 
 Mensagem base: conectores abertos para o agente de IA resolver tarefas brasileiras.
 
-Síntese: a tomada que liga a IA ao Brasil.
+Síntese: a tomada brasileira para agentes de IA.
 
 ### Guardrails
 
@@ -108,17 +108,22 @@ Essência: tudo que é brasileiro, ligado ao seu agente.
 
 ### Tagline & Slogans
 
-Tagline principal: **Ligue seu agente de IA no Brasil.** No README, no site e nos perfis.
+Título: **Três pinos, nenhum adaptador.** No topo do README e do site, sempre com a frase de baixo.
+
+Tagline: **A tomada brasileira para agentes de IA.** Sozinha, onde não cabe explicação.
+
+Descrição: **A tomada brasileira para agentes de IA: um conector MCP de código aberto, que você hospeda, para ler
+WhatsApp, boletos e Pix.** Embaixo do título, na descrição do GitHub e nas prévias de link. Diz só o que existe:
+"um conector" vira "conectores" quando houver o segundo.
 
 Alternativas:
-- A tomada que liga a IA ao Brasil.
+- Ligue seu agente de IA no Brasil.
 - Conectores brasileiros para agentes de IA.
 
 Slogans:
 - Do WhatsApp ao boleto, sem gambiarra.
 - Você hospeda. Você aprova.
 - Padrão brasileiro, código aberto.
-- Três pinos, nenhum adaptador.
 
 ### Message Pillars
 
