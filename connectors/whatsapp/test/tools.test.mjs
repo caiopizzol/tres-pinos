@@ -2,6 +2,7 @@
 // Each connector runs in its own process, because the settings are read once, from the environment.
 import assert from "node:assert/strict";
 import { fork } from "node:child_process";
+import { readFile } from "node:fs/promises";
 import { after, test } from "node:test";
 import { fakeWaha, message } from "./fake-waha.mjs";
 
@@ -194,4 +195,27 @@ test("it only reads: no tool sends", async () => {
   const read = ["list_chats", "find_chat", "read_chat", "view_image", "view_video", "read_pdf", "read_bill"];
   assert.deepEqual(await reader.tools(), read);
   assert.deepEqual(waha.sent, []);
+});
+
+// The tool names in the first column of the README's "## Ferramentas" table, and of the site's table with this id.
+// connectors/sicoob/test/server.test.mjs has the same three functions; change both.
+function readmeTools(markdown) {
+  const section = markdown.split("## Ferramentas")[1].split("\n## ")[0];
+  return toolNames(section.split("\n").filter((line) => line.startsWith("| `")).map((line) => line.split("|")[1]));
+}
+function siteTools(html, id) {
+  const table = html.split(`id="${id}"`)[1].split("</table>")[0];
+  return toolNames([...table.matchAll(/<tr><td>(.*?)<\/td>/g)].map((match) => match[1]));
+}
+const toolNames = (cells) => [...new Set(cells.join(" ").match(/\b[a-z]+(?:_[a-z]+)+\b/g))].sort();
+
+// The README and the site list the tools by hand, so they must name every tool the connector can serve, and no other.
+test("the README and the site name exactly the tools it serves", async () => {
+  const transcribing = await connector({ READ_SESSION: "personal", TRANSCRIBE_URL: "http://127.0.0.1:9" });
+  const all = await transcribing.tools();
+  assert.deepEqual(all, [...(await reader.tools()), "transcribe_audio"]);
+  const readme = await readFile(new URL("../README.md", import.meta.url), "utf8");
+  const site = await readFile(new URL("../../../site/index.html", import.meta.url), "utf8");
+  assert.deepEqual(readmeTools(readme), [...all].sort(), "README");
+  assert.deepEqual(siteTools(site, "whatsapp"), [...all].sort(), "site");
 });
