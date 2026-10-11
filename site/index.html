@@ -81,15 +81,45 @@
             </tbody>
           </table>
         </div>
+        <div class="sheet" id="inter">
+          <table>
+            <caption>
+              inter
+              <span>só lê, nunca movimenta dinheiro</span>
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Ferramenta</th>
+                <th scope="col">O que faz</th>
+                <th scope="col">Precisa de</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>get_balance</td>
+                <td>Lê o saldo e o limite da conta PJ.</td>
+                <td>Inter Empresas</td>
+              </tr>
+              <tr>
+                <td>get_statement</td>
+                <td>Lê as transações de um mês.</td>
+                <td>Inter Empresas</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
         <ul class="fine">
           <li>
-            <strong>Pela API oficial</strong>, com o seu certificado e-CPF A1.
+            <strong>Pela API oficial</strong> de cada banco: no Sicoob, com o seu certificado e-CPF
+            A1; no Inter, com o certificado da integração. Como configurar o
             <a href="https://github.com/caiopizzol/tres-pinos/tree/main/connectors/sicoob"
-              >Como configurar</a
-            >.
+              >Sicoob</a
+            >
+            e o
+            <a href="https://github.com/caiopizzol/tres-pinos/tree/main/connectors/inter">Inter</a>.
           </li>
           <li>
-            <strong>Pagamentos são recusados</strong> antes de chegar ao Sicoob, mesmo que o
+            <strong>Pagamentos são recusados</strong> antes de chegar ao banco, mesmo que o
             certificado permita.
           </li>
           <li>

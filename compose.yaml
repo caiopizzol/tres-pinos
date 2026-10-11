@@ -1,9 +1,11 @@
+# Each connector runs only when its profile is in COMPOSE_PROFILES, and checks its own settings.
 services:
   sicoob:
     build:
       context: .
       dockerfile: connectors/sicoob/Dockerfile
     restart: unless-stopped
+    profiles: [sicoob]
     environment:
       SICOOB_KEY: ${SICOOB_KEY:-}
       SICOOB_CLIENT_ID: ${SICOOB_CLIENT_ID:-}
@@ -15,3 +17,19 @@ services:
       - 127.0.0.1:3012:8080
     volumes:
       - ${SICOOB_CERT_DIR:-./certificate}:/certificate:ro
+  inter:
+    build:
+      context: .
+      dockerfile: connectors/inter/Dockerfile
+    restart: unless-stopped
+    profiles: [inter]
+    environment:
+      INTER_KEY: ${INTER_KEY:-}
+      INTER_CLIENT_ID: ${INTER_CLIENT_ID:-}
+      INTER_CLIENT_SECRET: ${INTER_CLIENT_SECRET:-}
+      INTER_CERT_PATH: /certificate/inter.crt
+      INTER_CERT_KEY_PATH: /certificate/inter.key
+    ports:
+      - 127.0.0.1:3013:8080
+    volumes:
+      - ${INTER_CERT_DIR:-./certificate}:/certificate:ro
