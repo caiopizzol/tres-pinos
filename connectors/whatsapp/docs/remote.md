@@ -20,9 +20,12 @@ sozinho. A `WHATSAPP_KEY` não sai da página.
 
 ## Conectar
 
-| App | Comandos |
+| App | Como |
 |---|---|
 | Codex | `codex mcp add whatsapp --url https://whatsapp.seudominio.com/mcp` e `codex mcp login whatsapp` |
 | Claude Code | `claude mcp add --transport http whatsapp https://whatsapp.seudominio.com/mcp` e `claude mcp login whatsapp` |
+| Grok Bot | Peça: "Adicione um servidor MCP chamado whatsapp em https://whatsapp.seudominio.com/mcp" |
+
+O Grok Bot mostra um cartão para conectar, que abre a página do conector.
 
 Para desconectar todos os apps, apague `oauth.sqlite` no volume `whatsapp` e reinicie o conector.
