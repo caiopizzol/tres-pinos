@@ -11,7 +11,7 @@ sozinho. A `WHATSAPP_KEY` não sai da página.
 3. No `.env`:
 
    ```bash
-   COMPOSE_PROFILES=tunnel
+   COMPOSE_PROFILES=tunnel   # com o Whisper também: tunnel,whisper
    PUBLIC_URL=https://whatsapp.seudominio.com
    TUNNEL_TOKEN=...
    ```
@@ -22,7 +22,7 @@ sozinho. A `WHATSAPP_KEY` não sai da página.
 
 | App | Comandos |
 |---|---|
-| Codex | `codex mcp add whatsapp --url https://whatsapp.seudominio.com/mcp` |
+| Codex | `codex mcp add whatsapp --url https://whatsapp.seudominio.com/mcp` e `codex mcp login whatsapp` |
 | Claude Code | `claude mcp add --transport http whatsapp https://whatsapp.seudominio.com/mcp` e `claude mcp login whatsapp` |
 
 Para desconectar todos os apps, apague `oauth.sqlite` no volume `whatsapp` e reinicie o conector.

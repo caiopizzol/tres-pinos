@@ -49,7 +49,7 @@ Qualquer servidor com a API de transcrição da OpenAI serve. Para o áudio não
 local com o [Speaches](https://speaches.ai):
 
 ```bash
-COMPOSE_PROFILES=whisper
+COMPOSE_PROFILES=whisper   # com o túnel também: tunnel,whisper
 TRANSCRIBE_URL=http://whisper:8000/v1
 ```
 
