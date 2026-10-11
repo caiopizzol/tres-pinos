@@ -67,6 +67,7 @@ claude mcp add --transport http whatsapp http://127.0.0.1:3011/mcp --header "Aut
 
 ```bash
 bun install
+bun run check
 bun run test
 ```
 
