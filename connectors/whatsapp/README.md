@@ -38,7 +38,7 @@ docker compose up -d
 ```
 
 Conecte o seu número à sessão `default` no painel do WAHA, em `http://127.0.0.1:3010/dashboard/`. O conector atende em `http://127.0.0.1:3011/mcp` e exige
-`Authorization: Bearer $WHATSAPP_TOKEN`.
+`Authorization: Bearer $WHATSAPP_KEY`.
 
 ## Transcrição
 

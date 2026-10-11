@@ -56,9 +56,9 @@ Depois, conecte o seu número ao WhatsApp e escolha o que o agente pode ler. Vej
 Para usar no Codex ou no Claude Code, na mesma máquina:
 
 ```bash
-export WHATSAPP_TOKEN=...   # o mesmo do .env
-codex mcp add whatsapp --url http://127.0.0.1:3011/mcp --bearer-token-env-var WHATSAPP_TOKEN
-claude mcp add --transport http whatsapp http://127.0.0.1:3011/mcp --header "Authorization: Bearer $WHATSAPP_TOKEN"
+export WHATSAPP_KEY=...   # a mesma do .env
+codex mcp add whatsapp --url http://127.0.0.1:3011/mcp --bearer-token-env-var WHATSAPP_KEY
+claude mcp add --transport http whatsapp http://127.0.0.1:3011/mcp --header "Authorization: Bearer $WHATSAPP_KEY"
 ```
 
 ## Desenvolvimento

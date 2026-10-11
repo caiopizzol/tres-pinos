@@ -4,9 +4,9 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 
-const { WHATSAPP_URL = "http://whatsapp:8080/mcp", WHATSAPP_TOKEN } = process.env;
+const { WHATSAPP_URL = "http://whatsapp:8080/mcp", WHATSAPP_KEY } = process.env;
 const url = new URL(WHATSAPP_URL);
-const auth = { authorization: `Bearer ${WHATSAPP_TOKEN}` };
+const auth = { authorization: `Bearer ${WHATSAPP_KEY}` };
 
 let failed = 0;
 const report = (ok, line) => {

@@ -23,7 +23,7 @@ services:
     environment:
       WAHA_URL: ${WAHA_URL:-http://waha:3000}
       WAHA_API_KEY: ${WAHA_API_KEY}
-      WHATSAPP_TOKEN: ${WHATSAPP_TOKEN:?set WHATSAPP_TOKEN in .env}
+      WHATSAPP_KEY: ${WHATSAPP_KEY:?set WHATSAPP_KEY in .env}
       READ_SESSION: ${READ_SESSION:-}
       READ_CHATS: ${READ_CHATS:-}
       READ_GROUPS: ${READ_GROUPS:-}

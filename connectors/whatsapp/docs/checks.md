@@ -13,7 +13,7 @@ check scripts/media.mjs   # cada fixture pelos conversores; as transcrições pr
 check scripts/smoke.mjs   # cada ferramenta que as configurações oferecem, nas suas conversas reais
 ```
 
-`smoke.mjs` lê `WHATSAPP_URL` (`http://whatsapp:8080/mcp` dentro do Compose) e `WHATSAPP_TOKEN`. Confere que
+`smoke.mjs` lê `WHATSAPP_URL` (`http://whatsapp:8080/mcp` dentro do Compose) e `WHATSAPP_KEY`. Confere que
 nenhuma ferramenta envia e só mostra contagens, tamanhos, tipos e tempos, nunca o conteúdo das mensagens.
 
 `media.mjs` confere que cada transcrição contém o número falado, cada vídeo dá os quadros esperados, cada PDF

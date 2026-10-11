@@ -4,9 +4,10 @@ import { createServer } from "node:http";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { buildServer } from "./tools.mjs";
 
-const { WHATSAPP_TOKEN } = process.env;
-if (!WHATSAPP_TOKEN) throw new Error("WHATSAPP_TOKEN is required");
-const expectedAuth = Buffer.from(`Bearer ${WHATSAPP_TOKEN}`);
+// The key is the only thing between the internet and the owner's chats, so it must be long enough not to guess.
+const { WHATSAPP_KEY } = process.env;
+if (!WHATSAPP_KEY || WHATSAPP_KEY.length < 32) throw new Error("WHATSAPP_KEY needs at least 32 characters: openssl rand -hex 32");
+const expectedAuth = Buffer.from(`Bearer ${WHATSAPP_KEY}`);
 
 // Constant-time, so response timing doesn't reveal how much of a guessed token was right.
 function hasToken(req) {
