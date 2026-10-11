@@ -2,7 +2,7 @@
 // It never reaches Sicoob: listing tools needs no bank call.
 import assert from "node:assert/strict";
 import { execFileSync, spawn } from "node:child_process";
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -57,6 +57,30 @@ test("only SICOOB_KEY gets in, and it offers only the two read tools", async () 
   assert.deepEqual(tools.map((t) => t.name), ["get_balance", "get_statement"]);
   assert.ok(tools.every((t) => t.annotations.readOnlyHint));
   await client.close();
+});
+
+// The tool names in the first column of the README's "## Ferramentas" table, and of the site's table with this id.
+// connectors/whatsapp/test/tools.test.mjs has the same three functions; change both.
+function readmeTools(markdown) {
+  const section = markdown.split("## Ferramentas")[1].split("\n## ")[0];
+  return toolNames(section.split("\n").filter((line) => line.startsWith("| `")).map((line) => line.split("|")[1]));
+}
+function siteTools(html, id) {
+  const table = html.split(`id="${id}"`)[1].split("</table>")[0];
+  return toolNames([...table.matchAll(/<tr><td>(.*?)<\/td>/g)].map((match) => match[1]));
+}
+const toolNames = (cells) => [...new Set(cells.join(" ").match(/\b[a-z]+(?:_[a-z]+)+\b/g))].sort();
+
+// The README and the site list the tools by hand, so they must name every tool the server offers, and no other.
+test("the README and the site name exactly the tools it offers", async () => {
+  const client = new Client({ name: "test", version: "0" });
+  await client.connect(new StreamableHTTPClientTransport(new URL(`${await server()}/mcp`), { requestInit: { headers: { Authorization: `Bearer ${KEY}` } } }));
+  const tools = (await client.listTools()).tools.map((t) => t.name).sort();
+  await client.close();
+  const readme = readFileSync(new URL("../README.md", import.meta.url), "utf8");
+  const site = readFileSync(new URL("../../../site/index.html", import.meta.url), "utf8");
+  assert.deepEqual(readmeTools(readme), tools, "README");
+  assert.deepEqual(siteTools(site, "sicoob"), tools, "site");
 });
 
 test("refuses to start with a short key, a missing setting, or a wrong certificate password", async () => {
