@@ -30,6 +30,9 @@ prontos para o resto do mundo e travam nas nossas jabuticabas.
 > WhatsApp Web sem ser oficial. O número pessoal do autor foi bloqueado pelo WhatsApp enquanto estava ligado ao
 > WAHA, com o conector só lendo mensagens, sem nunca enviar. Como não dá para oferecer o conector sem pôr o seu
 > número em risco, ele saiu do projeto. Se você usa o WAHA no seu número, só ler não evita um bloqueio.
+>
+> Se você já rodava o conector, rode `docker compose up -d --remove-orphans` para parar o WAHA, apague a pasta
+> `sessions/` e remova o aparelho em **Aparelhos conectados**, no WhatsApp do celular.
 
 ## Conectores
 

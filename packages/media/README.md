@@ -22,7 +22,8 @@ Em `src/media.mjs`, menos `readBill`, em `src/bills.mjs`.
 | `readBill`    | Roda o [`packages/boleto`](../boleto) num processo próprio. `confirmed` quer dizer que o código foi lido certo, não que a conta é verdadeira                                                                                |
 | `transcribe`  | Converte o áudio para Opus e envia ao servidor de `TRANSCRIBE_URL`                                                                                                                                                          |
 
-Cada conversão tem limite de tamanho e de tempo.
+Cada programa que elas rodam tem limite de tempo e de tamanho da saída. O tamanho do arquivo de entrada fica com
+quem chama: limite antes de converter.
 
 ## Transcrição
 
