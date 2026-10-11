@@ -31,6 +31,9 @@ prontos para o resto do mundo e travam nas nossas jabuticabas.
 > WAHA, com o conector só lendo mensagens, sem nunca enviar. Como não dá para oferecer o conector sem pôr o seu
 > número em risco, ele saiu do projeto. Se você usa o WAHA no seu número, só ler não evita um bloqueio.
 >
+> Estamos estudando um jeito de trazer o WhatsApp de volta sem pôr número nenhum em risco. Até lá, o foco é o banco
+> e as ferramentas: PDF, boleto e Pix.
+>
 > Se você já rodava o conector, atualize o repositório e rode `docker compose down --remove-orphans`, que remove o
 > WAHA sem subir nada. Depois apague a pasta `sessions/` e remova o aparelho em **Aparelhos conectados**, no
 > WhatsApp do celular.
