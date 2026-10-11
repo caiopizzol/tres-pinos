@@ -112,9 +112,9 @@ Título: **Três pinos, nenhum adaptador.** No topo do README e do site, sempre 
 
 Tagline: **A tomada brasileira para agentes de IA.** Sozinha, onde não cabe explicação.
 
-Descrição: **A tomada brasileira para agentes de IA: um conector MCP de código aberto, que você hospeda, para ler
-WhatsApp, boletos e Pix.** Embaixo do título, na descrição do GitHub e nas prévias de link. Diz só o que existe:
-"um conector" vira "conectores" quando houver o segundo.
+Descrição: **A tomada brasileira para agentes de IA: conectores MCP de código aberto, que você hospeda, para ler
+WhatsApp, boletos, Pix e a sua conta no Sicoob.** Embaixo do título, na descrição do GitHub e nas prévias de link.
+Diz só o que existe: cada conector novo entra na lista quando funcionar.
 
 Alternativas:
 - Ligue seu agente de IA no Brasil.

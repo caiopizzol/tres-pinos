@@ -5,9 +5,9 @@
 <h1 align="center">Três pinos, nenhum adaptador.</h1>
 
 <p align="center">
-  A tomada brasileira para agentes de IA: um conector MCP de código aberto,
+  A tomada brasileira para agentes de IA: conectores MCP de código aberto,
   <br>
-  que você hospeda, para ler WhatsApp, boletos e Pix.
+  que você hospeda, para ler WhatsApp, boletos, Pix e a sua conta no Sicoob.
 </p>
 
 <p align="center">
@@ -34,6 +34,7 @@ prontos para o resto do mundo e travam nas nossas jabuticabas.
 | Conector | O que o agente pode fazer |
 |---|---|
 | [`whatsapp`](connectors/whatsapp) | Ler conversas, imagens, vídeos, PDFs e contas, e transcrever áudios. Nunca envia mensagens |
+| [`sicoob`](connectors/sicoob) | Ler o saldo e o extrato da conta corrente. Nunca movimenta dinheiro |
 
 | Pacote | O que faz |
 |---|---|

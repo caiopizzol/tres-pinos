@@ -4,4 +4,5 @@
 !connectors/*/package.json
 !packages/*/package.json
 !connectors/whatsapp/src/**
+!connectors/sicoob/src/**
 !packages/boleto/src/**
