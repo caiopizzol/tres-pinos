@@ -35,6 +35,24 @@ services:
       - 127.0.0.1:3011:8080
     volumes:
       - whatsapp:/data
+  # Only with the sicoob profile. The connector checks its own settings, so WhatsApp alone needs none of them.
+  sicoob:
+    build:
+      context: .
+      dockerfile: connectors/sicoob/Dockerfile
+    restart: unless-stopped
+    profiles: [sicoob]
+    environment:
+      SICOOB_KEY: ${SICOOB_KEY:-}
+      SICOOB_CLIENT_ID: ${SICOOB_CLIENT_ID:-}
+      SICOOB_ACCOUNT: ${SICOOB_ACCOUNT:-}
+      SICOOB_CERT_PATH: /certificate/sicoob.crt
+      SICOOB_CERT_KEY_PATH: /certificate/sicoob.key
+      SICOOB_CERT_PASSWORD: ${SICOOB_CERT_PASSWORD:-}
+    ports:
+      - 127.0.0.1:3012:8080
+    volumes:
+      - ${SICOOB_CERT_DIR:-./certificate}:/certificate:ro
   # Only with the tunnel profile: publishes the connector at PUBLIC_URL through a Cloudflare Tunnel.
   tunnel:
     image: cloudflare/cloudflared:2026.9.3
