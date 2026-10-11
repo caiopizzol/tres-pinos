@@ -43,14 +43,15 @@ async function handle(req, res) {
 }
 
 createServer(async (req, res) => {
+  // A malformed path, such as //[, makes URL parsing throw; answer it here instead of crashing the server.
   try {
     if (oauth && (await oauth.handle(req, res))) return;
+    if (new URL(req.url, "http://x").pathname !== "/mcp") return res.writeHead(404).end();
   } catch (error) {
     console.error(error);
     if (!res.headersSent) res.writeHead(400).end();
     return;
   }
-  if (new URL(req.url, "http://x").pathname !== "/mcp") return res.writeHead(404).end();
   if (hasKey(req) || oauth?.verify(req.headers.authorization)) return handle(req, res);
   if (oauth) return oauth.challenge(res);
   res.writeHead(401).end();

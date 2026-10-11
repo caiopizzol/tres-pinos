@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { mkdtempSync, rmSync } from "node:fs";
-import { createServer } from "node:net";
+import { connect as tcp, createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, test } from "node:test";
@@ -127,6 +127,25 @@ test("without PUBLIC_URL there is no sign-in, only WHATSAPP_KEY", async () => {
   const refused = await fetch(`${url}/mcp`, { method: "POST" });
   assert.equal(refused.status, 401);
   assert.equal(refused.headers.get("www-authenticate"), null);
+});
+
+// fetch can't send a malformed path, so this writes the request by hand.
+const rawGet = (url, path) =>
+  new Promise((resolve, reject) => {
+    const { hostname, port } = new URL(url);
+    const socket = tcp(Number(port), hostname, () => socket.end(`GET ${path} HTTP/1.1\r\nHost: x\r\nConnection: close\r\n\r\n`));
+    let reply = "";
+    socket.on("data", (chunk) => (reply += chunk));
+    socket.on("end", () => resolve(reply.split("\r\n")[0]));
+    socket.on("error", reject);
+  });
+
+test("a malformed path gets 400 and the server keeps running, with or without sign-in", async () => {
+  for (const settings of [{ PUBLIC_URL: "" }, {}]) {
+    const url = await server(settings);
+    assert.equal(await rawGet(url, "//["), "HTTP/1.1 400 Bad Request");
+    assert.equal((await fetch(`${url}/elsewhere`)).status, 404, "still running");
+  }
 });
 
 test("refuses to start with a key short enough to guess", async () => {
