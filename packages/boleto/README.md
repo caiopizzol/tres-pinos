@@ -1,7 +1,6 @@
 # Boleto
 
-Lê os códigos de boleto e Pix de um PDF ou da foto de uma conta. Os conectores usam como biblioteca; você pode
-usar como CLI. Nunca usa a rede.
+Lê os códigos de boleto e Pix de um PDF ou da foto de uma conta, como CLI ou como biblioteca. Nunca usa a rede.
 
 > [!IMPORTANT]
 > Um código lido só da imagem do código de barras fica `unconfirmed`: o código de barras de 44 dígitos tem um

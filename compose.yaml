@@ -1,47 +1,9 @@
 services:
-  waha:
-    image: devlikeapro/waha:gows-2026.9.1
-    restart: unless-stopped
-    environment:
-      WHATSAPP_DEFAULT_ENGINE: GOWS
-      WHATSAPP_START_SESSION: default
-      WAHA_PRESENCE_AUTO_ONLINE: "False"
-      WAHA_API_KEY: ${WAHA_API_KEY:?set WAHA_API_KEY in .env}
-      WAHA_DASHBOARD_USERNAME: ${WAHA_DASHBOARD_USERNAME:-admin}
-      WAHA_DASHBOARD_PASSWORD: ${WAHA_DASHBOARD_PASSWORD:?set WAHA_DASHBOARD_PASSWORD in .env}
-      WHATSAPP_SWAGGER_USERNAME: ${WHATSAPP_SWAGGER_USERNAME:-admin}
-      WHATSAPP_SWAGGER_PASSWORD: ${WHATSAPP_SWAGGER_PASSWORD:?set WHATSAPP_SWAGGER_PASSWORD in .env}
-    ports:
-      - 127.0.0.1:3010:3000
-    volumes:
-      - ./sessions:/app/.sessions
-  whatsapp:
-    build:
-      context: .
-      dockerfile: connectors/whatsapp/Dockerfile
-    restart: unless-stopped
-    environment:
-      WAHA_URL: ${WAHA_URL:-http://waha:3000}
-      WAHA_API_KEY: ${WAHA_API_KEY}
-      WHATSAPP_KEY: ${WHATSAPP_KEY:?set WHATSAPP_KEY in .env}
-      READ_SESSION: ${READ_SESSION:-}
-      READ_CHATS: ${READ_CHATS:-}
-      READ_GROUPS: ${READ_GROUPS:-}
-      TRANSCRIBE_URL: ${TRANSCRIBE_URL:-}
-      TRANSCRIBE_KEY: ${TRANSCRIBE_KEY:-}
-      TRANSCRIBE_MODEL: ${TRANSCRIBE_MODEL:-}
-      PUBLIC_URL: ${PUBLIC_URL:-}
-    ports:
-      - 127.0.0.1:3011:8080
-    volumes:
-      - whatsapp:/data
-  # Only with the sicoob profile. The connector checks its own settings, so WhatsApp alone needs none of them.
   sicoob:
     build:
       context: .
       dockerfile: connectors/sicoob/Dockerfile
     restart: unless-stopped
-    profiles: [sicoob]
     environment:
       SICOOB_KEY: ${SICOOB_KEY:-}
       SICOOB_CLIENT_ID: ${SICOOB_CLIENT_ID:-}
@@ -53,27 +15,3 @@ services:
       - 127.0.0.1:3012:8080
     volumes:
       - ${SICOOB_CERT_DIR:-./certificate}:/certificate:ro
-  # Only with the tunnel profile: publishes the connector at PUBLIC_URL through a Cloudflare Tunnel.
-  tunnel:
-    image: cloudflare/cloudflared:2026.9.3
-    restart: unless-stopped
-    profiles: [tunnel]
-    command: tunnel --no-autoupdate run
-    environment:
-      TUNNEL_TOKEN: ${TUNNEL_TOKEN:-}
-    depends_on:
-      - whatsapp
-  # Only with the whisper profile: transcribes audio on this machine, so it never leaves it.
-  # 0.9 is the first release that downloads the model on start.
-  whisper:
-    image: ghcr.io/speaches-ai/speaches:0.9.0-rc.3-cpu
-    restart: unless-stopped
-    profiles: [whisper]
-    environment:
-      PRELOAD_MODELS: '["${TRANSCRIBE_MODEL:-Systran/faster-whisper-small}"]'
-    volumes:
-      - whisper:/home/ubuntu/.cache/huggingface/hub
-
-volumes:
-  whatsapp:
-  whisper:

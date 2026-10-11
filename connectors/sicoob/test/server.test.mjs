@@ -103,7 +103,6 @@ test("only SICOOB_KEY gets in, and it offers only the two read tools", async () 
 });
 
 // The tool names in the first column of the README's "## Ferramentas" table, and of the site's table with this id.
-// connectors/whatsapp/test/tools.test.mjs has the same three functions; change both.
 function readmeTools(markdown) {
   const section = markdown.split("## Ferramentas")[1].split("\n## ")[0];
   return toolNames(

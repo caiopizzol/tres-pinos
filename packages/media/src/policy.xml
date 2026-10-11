@@ -1,5 +1,5 @@
 <policymap>
-  <!-- Images come from any WhatsApp contact: decode only these formats and run no external programs.
+  <!-- Images come from any sender: decode only these formats and run no external programs.
        ImageMagick checks the inkscape delegate before using its built-in SVG renderer; inkscape isn't installed. -->
   <policy domain="delegate" rights="none" pattern="*"/>
   <policy domain="delegate" rights="execute" pattern="inkscape"/>

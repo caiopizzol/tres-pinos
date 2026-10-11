@@ -55,7 +55,7 @@ const open = (path) => ["-format_whitelist", CONTAINERS, "-protocol_whitelist", 
 const ffmpeg = (args, limits) =>
   run("ffmpeg", ["-nostdin", "-loglevel", "error", ...args], "", limits);
 
-// Groq rejects AAC, AMR and CAF, and WhatsApp's ".oga" name, so every audio becomes 16 kHz mono Opus,
+// Groq rejects AAC, AMR and CAF, and the ".oga" name voice notes use, so every audio becomes 16 kHz mono Opus,
 // the format Whisper resamples to anyway.
 export function toOpus(bytes) {
   const out = [
@@ -79,7 +79,7 @@ export function toOpus(bytes) {
 
 // Frames as PNG, at the given times, or spread evenly from the start to half a second before the end,
 // where videos often fade out, at least a second apart. Times past the end are rejected, not moved.
-// Also reports whether there is sound to transcribe: WhatsApp sends GIFs as silent videos.
+// Also reports whether there is sound to transcribe: GIFs often arrive as silent videos.
 export function videoFrames(bytes, { count = 5, times } = {}) {
   return withFile(bytes, async (path) => {
     const limits = { maxBuffer: 20e6, timeout: 30_000, what: "video" };

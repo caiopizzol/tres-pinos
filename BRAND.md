@@ -12,14 +12,14 @@ language: pt-BR
 
 ### Overview
 
-Três Pinos liga agentes de IA aos serviços que o brasileiro usa no dia a dia: WhatsApp, boletos, Pix e bancos.
+Três Pinos liga agentes de IA aos serviços que o brasileiro usa no dia a dia: boletos, Pix e bancos.
 São servidores MCP de código aberto que a pessoa hospeda onde quiser.
 
 Nasceu de um assistente pessoal que lia contas no WhatsApp e agendava pagamentos no Sicoob. O nome é a tomada de
 três pinos (NBR 14136), o padrão que só o Brasil adotou em larga escala.
 
-O problema: Codex, Claude, ChatGPT e Grok já se conectam a Gmail e GitHub, mas não ao WhatsApp, ao boleto nem ao
-banco brasileiro. Antes, cada pessoa monta sua gambiarra. Depois, ela liga um conector e o agente lê a conta,
+O problema: Codex, Claude, ChatGPT e Grok já se conectam a Gmail e GitHub, mas não ao boleto, ao Pix nem ao banco
+brasileiro. Antes, cada pessoa monta sua gambiarra. Depois, ela liga um conector e o agente lê a conta,
 confere o código e pede confirmação antes de pagar.
 
 Ambição: ser o jeito padrão de ligar um agente de IA aos serviços brasileiros.
@@ -27,26 +27,25 @@ Ambição: ser o jeito padrão de ligar um agente de IA aos serviços brasileiro
 ### Audience
 
 Desenvolvedores e donos de pequenos negócios no Brasil que já usam IA e querem que ela resolva tarefas reais:
-ler uma conta, achar uma conversa, conferir um pagamento. Sabem rodar `docker compose`.
+ler uma conta, ver o extrato, conferir um pagamento. Sabem rodar `docker compose`.
 
 Desconfiam de dar acesso à conta bancária a uma IA e de integrações não oficiais. Querem ver o que o agente faz e
 aprovar o que mexe com dinheiro.
 
-Não é para quem quer um chatbot pronto sem configurar nada, nem para disparo em massa no WhatsApp.
+Não é para quem quer um chatbot pronto sem configurar nada.
 
 ### Positioning
 
 Categoria: conectores MCP de código aberto para serviços brasileiros.
 
-Não é um chatbot. Não é uma plataforma de automação. Não é um banco nem um meio de pagamento. Não é uma API
-oficial do WhatsApp.
+Não é um chatbot. Não é uma plataforma de automação. Não é um banco nem um meio de pagamento.
 
 Os grandes assistentes trazem conectores para serviços globais. Os serviços brasileiros ficam de fora ou
 dependem de integrações pagas e fechadas. Três Pinos ocupa esse espaço, aberto e auto-hospedado.
 
-- Feito para o Brasil: boleto, Pix, bancos brasileiros, WhatsApp.
+- Feito para o Brasil: boleto, Pix, bancos brasileiros.
 - Código aberto (MIT) e auto-hospedado: os dados ficam com quem roda.
-- Seguro por padrão: no WhatsApp, só lê, e só contatos salvos; pagamento só com aprovação.
+- Seguro por padrão: no banco, só lê; pagamento só com aprovação.
 - Funciona com qualquer cliente MCP.
 
 Território: a tomada. O ponto onde o agente se liga ao Brasil.
@@ -90,7 +89,7 @@ Síntese: a tomada brasileira para agentes de IA.
 
 Tom: prático, honesto, leve.
 
-Não pode ser: um banco, uma promessa de enriquecer, um produto oficial do WhatsApp ou da Meta.
+Não pode ser: um banco, uma promessa de enriquecer, um produto oficial de um banco ou de uma plataforma.
 
 Teste: se soa como anúncio de fintech, está errado.
 
@@ -98,10 +97,10 @@ Teste: se soa como anúncio de fintech, está errado.
 
 ### Identity
 
-Somos conectores de código aberto que ligam o seu agente de IA ao WhatsApp, ao boleto, ao Pix e ao seu banco.
+Somos conectores de código aberto que ligam o seu agente de IA ao boleto, ao Pix e ao seu banco.
 Você roda na sua máquina ou no seu servidor, e escolhe o que o agente pode ler e fazer.
 
-Lemos a conta que chegou no WhatsApp, conferimos o código e mostramos para você antes de qualquer pagamento.
+Lemos a conta que chegou, conferimos o código e mostramos para você antes de qualquer pagamento.
 Nada sai sem a sua aprovação.
 
 Essência: tudo que é brasileiro, ligado ao seu agente.
@@ -113,7 +112,7 @@ Título: **Três pinos, nenhum adaptador.** No topo do README e do site, sempre 
 Tagline: **A tomada brasileira para agentes de IA.** Sozinha, onde não cabe explicação.
 
 Descrição: **A tomada brasileira para agentes de IA: conectores MCP de código aberto, que você hospeda, para ler
-WhatsApp, boletos, Pix e a sua conta no Sicoob.** Embaixo do título, na descrição do GitHub e nas prévias de link.
+boletos, Pix e a sua conta no Sicoob.** Embaixo do título, na descrição do GitHub e nas prévias de link.
 Diz só o que existe: cada conector novo entra na lista quando funcionar.
 
 Alternativas:
@@ -123,13 +122,13 @@ Alternativas:
 
 Slogans:
 
-- Do WhatsApp ao boleto, sem gambiarra.
+- Do boleto ao banco, sem gambiarra.
 - Você hospeda. Você aprova.
 - Padrão brasileiro, código aberto.
 
 ### Message Pillars
 
-- **Brasil:** boleto, Pix, bancos e WhatsApp como eles funcionam aqui.
+- **Brasil:** boleto, Pix e bancos como eles funcionam aqui.
 - **Controle:** você hospeda, escolhe o que o agente lê e aprova cada pagamento.
 - **Aberto:** código MIT, sem cadastro e sem plataforma no meio.
 - **Prático:** um `docker compose up` e o agente já lê a primeira conta.
@@ -147,25 +146,25 @@ Slogans:
 - Fale como um colega técnico explica para outro.
 - Comece pelo que a pessoa consegue fazer, depois explique como.
 - Use frases curtas e verbos concretos: ler, conferir, agendar, aprovar.
-- Diga o limite junto com o recurso, como "lê só contatos salvos".
+- Diga o limite junto com o recurso, como "só lê, nunca movimenta dinheiro".
 - Use humor só na tomada e no padrão jabuticaba, nunca no dinheiro.
 - Não prometa segurança absoluta. Diga o que o código garante.
-- Avise que o WhatsApp via WAHA não é oficial.
+- Avise quando uma integração não é oficial e o que ela arrisca.
 - Escreva em português do Brasil. Nomes de ferramentas e código ficam em inglês.
 
 O que não somos:
 
 - Não somos um banco nem uma fintech.
-- Não somos um produto oficial do WhatsApp ou da Meta.
+- Não somos um produto oficial de nenhum banco ou plataforma.
 - Não somos uma plataforma de automação.
 - Não guardamos seus dados.
 
-| Dizemos                                      | Nunca dizemos                 |
-| -------------------------------------------- | ----------------------------- |
-| "O agente pede sua aprovação antes de pagar" | "Pagamentos 100% automáticos" |
-| "Só lê o WhatsApp, nunca envia"              | "Disparo em massa"            |
-| "Você hospeda"                               | "Nossa nuvem segura"          |
-| "Não é oficial do WhatsApp"                  | "Integração oficial"          |
+| Dizemos                                      | Nunca dizemos                      |
+| -------------------------------------------- | ---------------------------------- |
+| "O agente pede sua aprovação antes de pagar" | "Pagamentos 100% automáticos"      |
+| "Só lê a conta, nunca movimenta dinheiro"    | "Controle total da sua conta"      |
+| "Você hospeda"                               | "Nossa nuvem segura"               |
+| "Não é oficial"                              | "Integração oficial", quando não é |
 
 ## Visual
 

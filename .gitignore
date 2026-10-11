@@ -2,8 +2,6 @@ node_modules/
 .DS_Store
 .env
 .wrangler/
-# WhatsApp sessions saved by WAHA
-/sessions/
 # Real bills for local checks only; never committed.
 packages/boleto/corpus/
 

@@ -6,7 +6,7 @@
     <title>Três Pinos · A tomada brasileira para agentes de IA</title>
     <meta
       name="description"
-      content="A tomada brasileira para agentes de IA: conectores MCP de código aberto, que você hospeda, para ler WhatsApp, boletos, Pix e a sua conta no Sicoob."
+      content="A tomada brasileira para agentes de IA: conectores MCP de código aberto, que você hospeda, para ler boletos, Pix e a sua conta no Sicoob."
     />
     <meta name="theme-color" content="#111111" />
     <meta property="og:type" content="website" />
@@ -15,7 +15,7 @@
     <meta property="og:title" content="Três pinos, nenhum adaptador." />
     <meta
       property="og:description"
-      content="A tomada brasileira para agentes de IA: conectores MCP de código aberto, que você hospeda, para ler WhatsApp, boletos, Pix e a sua conta no Sicoob."
+      content="A tomada brasileira para agentes de IA: conectores MCP de código aberto, que você hospeda, para ler boletos, Pix e a sua conta no Sicoob."
     />
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
@@ -32,7 +32,7 @@
         <h1>Três pinos,<br />nenhum adaptador.</h1>
         <p class="lead">
           A tomada brasileira para agentes de IA: conectores MCP de código aberto, que você hospeda,
-          para ler WhatsApp, boletos, Pix e a sua conta no Sicoob.
+          para ler boletos, Pix e a sua conta no Sicoob.
         </p>
         <div class="actions">
           <a class="btn primary" href="#comecar">Começar</a>
@@ -51,77 +51,17 @@
           agentes de IA chegam prontos para o resto do mundo e travam nelas.
         </p>
         <p class="warning">
-          <strong>Aviso.</strong> O conector do WhatsApp usa o WhatsApp Web por meio do
-          <a href="https://waha.devlike.pro/">WAHA</a>, que não é oficial. Um número conectado assim
-          pode ser banido. Este projeto não tem relação com o WhatsApp nem com a Meta.
+          <strong>Sem WhatsApp, por enquanto.</strong> O conector do WhatsApp usava o
+          <a href="https://waha.devlike.pro/">WAHA</a>, que entra pelo WhatsApp Web sem ser oficial.
+          O número pessoal do autor foi bloqueado pelo WhatsApp enquanto estava ligado ao WAHA, com
+          o conector só lendo mensagens, sem nunca enviar. Como não dá para oferecer o conector sem
+          pôr o seu número em risco, ele saiu do projeto. Se você usa o WAHA no seu número, só ler
+          não evita um bloqueio.
         </p>
       </section>
 
       <section aria-labelledby="conectores">
         <h2 id="conectores">Conectores</h2>
-        <div class="sheet" id="whatsapp">
-          <table>
-            <caption>
-              whatsapp
-              <span>só lê, nunca envia</span>
-            </caption>
-            <thead>
-              <tr>
-                <th scope="col">Ferramenta</th>
-                <th scope="col">O que faz</th>
-                <th scope="col">Precisa de</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>list_chats<br />find_chat<br />read_chat</td>
-                <td>Lista, acha e lê conversas.</td>
-                <td>READ_SESSION</td>
-              </tr>
-              <tr>
-                <td>view_image</td>
-                <td>Vê imagens e figurinhas.</td>
-                <td>READ_SESSION</td>
-              </tr>
-              <tr>
-                <td>view_video</td>
-                <td>
-                  Vê quadros de vídeos e GIFs. Com <code>TRANSCRIBE_URL</code>, também a fala.
-                </td>
-                <td>READ_SESSION</td>
-              </tr>
-              <tr>
-                <td>read_pdf</td>
-                <td>Lê PDFs, inclusive com senha.</td>
-                <td>READ_SESSION</td>
-              </tr>
-              <tr>
-                <td>read_bill</td>
-                <td>
-                  Lê boleto e Pix, confere os dígitos e diz se quem mandou é um contato salvo.
-                </td>
-                <td>READ_SESSION</td>
-              </tr>
-              <tr>
-                <td>transcribe_audio</td>
-                <td>Transcreve áudios, com o Whisper na sua máquina ou pelo Groq.</td>
-                <td>TRANSCRIBE_URL</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <ul class="fine">
-          <li>
-            <strong>Só contatos salvos</strong> por padrão. Grupos com
-            <code>READ_GROUPS=true</code>.
-          </li>
-          <li>
-            <strong>Boletos</strong> também pela CLI
-            <a href="https://github.com/caiopizzol/tres-pinos/tree/main/packages/boleto"
-              ><code>packages/boleto</code></a
-            >, sem rede.
-          </li>
-        </ul>
         <div class="sheet" id="sicoob">
           <table>
             <caption>
@@ -139,12 +79,12 @@
               <tr>
                 <td>get_balance</td>
                 <td>Lê o saldo e o limite da conta corrente.</td>
-                <td>perfil sicoob</td>
+                <td>e-CPF A1</td>
               </tr>
               <tr>
                 <td>get_statement</td>
                 <td>Lê as transações de um mês. O Sicoob guarda só os últimos três.</td>
-                <td>perfil sicoob</td>
+                <td>e-CPF A1</td>
               </tr>
             </tbody>
           </table>
@@ -160,6 +100,12 @@
             <strong>Pagamentos são recusados</strong> antes de chegar ao Sicoob, mesmo que o
             certificado permita.
           </li>
+          <li>
+            <strong>Boletos e Pix</strong> pela CLI
+            <a href="https://github.com/caiopizzol/tres-pinos/tree/main/packages/boleto"
+              ><code>packages/boleto</code></a
+            >, sem rede.
+          </li>
         </ul>
       </section>
 
@@ -167,54 +113,40 @@
         <h2 id="comecar-titulo">Começar</h2>
         <ol class="steps">
           <li>
-            <h3>Suba os serviços</h3>
+            <h3>Prepare o certificado</h3>
             <p>
-              Precisa do <a href="https://docs.docker.com/get-docker/">Docker</a>. Gere cada senha e
-              chave do <code>.env</code> com <code>openssl rand -hex 32</code>.
-            </p>
-            <pre
-              tabindex="0"
-            ><span class="p">$ </span>git clone https://github.com/caiopizzol/tres-pinos
-<span class="p">$ </span>cd tres-pinos && cp .env.example .env   <span class="c"># preencha as senhas e chaves</span>
-<span class="p">$ </span>docker compose up -d</pre>
-          </li>
-          <li>
-            <h3>Conecte o seu número</h3>
-            <p>Leia o QR no painel do WAHA, em <code>http://127.0.0.1:3010/dashboard/</code>.</p>
-          </li>
-          <li>
-            <h3>Ligue o seu agente</h3>
-            <p>Na mesma máquina:</p>
-            <pre
-              tabindex="0"
-            ><span class="p">$ </span>export WHATSAPP_KEY=...   <span class="c"># a mesma do .env</span></pre>
-            <p class="label">Claude Code</p>
-            <pre
-              tabindex="0"
-            ><span class="p">$ </span>claude mcp add --transport http whatsapp http://127.0.0.1:3011/mcp \
-    --header "Authorization: Bearer $WHATSAPP_KEY"</pre>
-            <p class="label">Codex</p>
-            <pre
-              tabindex="0"
-            ><span class="p">$ </span>codex mcp add whatsapp --url http://127.0.0.1:3011/mcp \
-    --bearer-token-env-var WHATSAPP_KEY</pre>
-            <p class="label">Sicoob</p>
-            <p>
-              Inclua <code>sicoob</code> em <code>COMPOSE_PROFILES</code> e ligue o agente em
-              <code>http://127.0.0.1:3012/mcp</code>, com
-              <code>Authorization: Bearer $SICOOB_KEY</code>. O certificado e o resto estão em
+              Precisa do <a href="https://docs.docker.com/get-docker/">Docker</a>, de um app no
+              portal de desenvolvedores do Sicoob e do seu certificado e-CPF A1. Veja
               <a href="https://github.com/caiopizzol/tres-pinos/tree/main/connectors/sicoob"
                 >como configurar</a
               >.
             </p>
-            <p class="label">De outra máquina</p>
-            <p>
-              Por enquanto, só o WhatsApp: para apps na internet, com login, veja o
-              <a
-                href="https://github.com/caiopizzol/tres-pinos/blob/main/connectors/whatsapp/docs/remote.md"
-                >acesso pela internet</a
-              >.
-            </p>
+          </li>
+          <li>
+            <h3>Suba o conector</h3>
+            <p>Gere a chave do <code>.env</code> com <code>openssl rand -hex 32</code>.</p>
+            <pre
+              tabindex="0"
+            ><span class="p">$ </span>git clone https://github.com/caiopizzol/tres-pinos
+<span class="p">$ </span>cd tres-pinos && cp .env.example .env   <span class="c"># preencha as variáveis</span>
+<span class="p">$ </span>docker compose up -d</pre>
+          </li>
+          <li>
+            <h3>Ligue o seu agente</h3>
+            <p>Na mesma máquina; acesso pela internet ainda não existe.</p>
+            <pre
+              tabindex="0"
+            ><span class="p">$ </span>export SICOOB_KEY=...   <span class="c"># a mesma do .env</span></pre>
+            <p class="label">Claude Code</p>
+            <pre
+              tabindex="0"
+            ><span class="p">$ </span>claude mcp add --transport http sicoob http://127.0.0.1:3012/mcp \
+    --header "Authorization: Bearer $SICOOB_KEY"</pre>
+            <p class="label">Codex</p>
+            <pre
+              tabindex="0"
+            ><span class="p">$ </span>codex mcp add sicoob --url http://127.0.0.1:3012/mcp \
+    --bearer-token-env-var SICOOB_KEY</pre>
           </li>
         </ol>
       </section>
