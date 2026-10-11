@@ -116,18 +116,6 @@ h2 {
 .manifesto p:first-of-type {
   font-size: 17px;
 }
-.warning {
-  margin: 24px 0 0;
-  padding: 12px 16px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  font-size: 14px;
-  color: var(--muted);
-}
-.warning strong {
-  color: var(--text);
-  font-weight: 600;
-}
 
 .sheet {
   border: 1px solid var(--border);
