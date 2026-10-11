@@ -20,7 +20,7 @@ const read = (path) => {
   try {
     return readFileSync(path);
   } catch (error) {
-    throw new Error(error.code === "EACCES" ? `Can't read ${path}: give it to uid 1000 or make it readable` : `Can't read ${path}`);
+    throw new Error(error.code === "EACCES" ? `Can't read ${path}: give it to uid 1000 (see the README)` : `Can't read ${path}`);
   }
 };
 const cert = read(env.SICOOB_CERT_PATH);

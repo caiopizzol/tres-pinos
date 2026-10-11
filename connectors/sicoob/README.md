@@ -21,10 +21,11 @@ mkdir certificate &&
 ```
 
 A pasta fica fora do git. A chave só abre com a senha, que vai em `SICOOB_CERT_PASSWORD`. O conector roda
-como o usuário 1000 dentro do container; num Linux com outro usuário, ou num Mac, libere a leitura:
+como o usuário 1000 dentro do container. Se o seu usuário não for o 1000, passe os arquivos para ele, mantendo a
+chave legível só pelo dono:
 
 ```bash
-chmod 644 certificate/sicoob.key
+docker run --rm -v ./certificate:/c alpine chown 1000:1000 /c/sicoob.crt /c/sicoob.key
 ```
 
 ## Rodar
