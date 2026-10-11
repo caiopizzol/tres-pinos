@@ -9,8 +9,11 @@ const REQUESTS = [
   `^GET ${API}/conta-corrente/v4/extrato/([1-9]|1[0-2])/2\\d{3}\\?numeroContaCorrente=\\d{1,14}$`,
 ].map((pattern) => new RegExp(pattern));
 
+const guarded = new WeakSet();
+export const isReadOnly = (fetch) => guarded.has(fetch);
+
 export function readOnly(fetch) {
-  return (url, init = {}) => {
+  const guard = (url, init = {}) => {
     const method = (init.method ?? "GET").toUpperCase();
     // A body can repeat `scope`; only the one read-only scope passes.
     const scopes =
@@ -26,4 +29,6 @@ export function readOnly(fetch) {
       return res;
     });
   };
+  guarded.add(guard);
+  return guard;
 }
