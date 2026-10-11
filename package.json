@@ -8,6 +8,10 @@
 		"packages/*"
 	],
 	"scripts": {
+		"check": "vp check && bun run --filter '*' typecheck",
 		"test": "bun run --filter '*' test"
+	},
+	"devDependencies": {
+		"vite-plus": "1.1.0"
 	}
 }

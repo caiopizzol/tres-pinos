@@ -205,7 +205,7 @@ function readmeTools(markdown) {
 }
 function siteTools(html, id) {
   const table = html.split(`id="${id}"`)[1].split("</table>")[0];
-  return toolNames([...table.matchAll(/<tr><td>(.*?)<\/td>/g)].map((match) => match[1]));
+  return toolNames([...table.matchAll(/<tr>\s*<td>(.*?)<\/td>/g)].map((match) => match[1]));
 }
 const toolNames = (cells) => [...new Set(cells.join(" ").match(/\b[a-z]+(?:_[a-z]+)+\b/g))].sort();
 

@@ -26,7 +26,7 @@ const VIDEOS = {
   "fixture-mov.mov": { frames: 5, token: "29" },
   "fixture-mp4.mp4": { frames: 5, token: "43" },
   "fixture-mpeg2.mpg": { frames: 5, token: "23" },
-  "fixture-ts.ts": { frames: 5, token: "34" },
+  "fixture-ts.m2t": { frames: 5, token: "34" },
   "fixture-webm.webm": { frames: 5, token: "83" },
   "fixture-wmv.wmv": { frames: 5, token: "18" },
 };

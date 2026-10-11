@@ -59,7 +59,7 @@ export async function unlock(
 			);
 		} catch (error) {
 			// qpdf ends its rejection with ": invalid password"; the filename it names can contain the phrase too.
-			if (!/: invalid password$/.test(String(error))) throw error;
+			if (!String(error).endsWith(": invalid password")) throw error;
 		}
 	}
 	return null;
