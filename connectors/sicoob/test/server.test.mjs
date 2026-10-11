@@ -134,22 +134,26 @@ test("the README and the site name exactly the tools it offers", async () => {
   assert.deepEqual(siteTools(site, "sicoob"), tools, "site");
 });
 
-test("refuses to start with a short key, a missing setting, or a wrong certificate password", async () => {
-  for (const [settings, message] of [
-    [{ SICOOB_KEY: "short" }, /SICOOB_KEY needs at least 32 characters/],
-    [{ SICOOB_CLIENT_ID: "" }, /Set SICOOB_CLIENT_ID/],
-    [{ SICOOB_ACCOUNT: "12-3" }, /digits only/],
-    [
-      { SICOOB_CERT_PASSWORD: "wrong-password" },
-      /SICOOB_CERT_PASSWORD does not open SICOOB_CERT_KEY_PATH/,
-    ],
-  ]) {
-    const { child, stderr } = start(await freePort(), settings);
-    assert.equal(
-      await new Promise((resolve) => child.on("exit", resolve)),
-      1,
-      JSON.stringify(settings),
-    );
-    assert.match(stderr(), message);
-  }
-});
+test(
+  "refuses to start with a short key, a missing setting, or a wrong certificate password",
+  { timeout: 10_000 },
+  async () => {
+    for (const [settings, message] of [
+      [{ SICOOB_KEY: "short" }, /SICOOB_KEY needs at least 32 characters/],
+      [{ SICOOB_CLIENT_ID: "" }, /Set SICOOB_CLIENT_ID/],
+      [{ SICOOB_ACCOUNT: "12-3" }, /digits only/],
+      [
+        { SICOOB_CERT_PASSWORD: "wrong-password" },
+        /SICOOB_CERT_PASSWORD does not open SICOOB_CERT_KEY_PATH/,
+      ],
+    ]) {
+      const { child, stderr } = start(await freePort(), settings);
+      assert.equal(
+        await new Promise((resolve) => child.on("exit", resolve)),
+        1,
+        JSON.stringify(settings),
+      );
+      assert.match(stderr(), message);
+    }
+  },
+);

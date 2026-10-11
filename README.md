@@ -32,10 +32,12 @@ prontos para o resto do mundo e travam nas nossas jabuticabas.
 | [`sicoob`](connectors/sicoob) | Ler o saldo e o extrato da conta corrente. Nunca movimenta dinheiro |
 | [`inter`](connectors/inter)   | Ler o saldo e o extrato da conta PJ. Nunca movimenta dinheiro       |
 
-| Pacote                      | O que faz                                                                        |
-| --------------------------- | -------------------------------------------------------------------------------- |
-| [`boleto`](packages/boleto) | Lê os códigos de boleto e Pix de um PDF ou foto. Funciona como CLI               |
-| [`media`](packages/media)   | Converte imagens, vídeos, áudios e PDFs em algo que o agente consegue ver ou ler |
+| Pacote                      | O que faz                                                                          |
+| --------------------------- | ---------------------------------------------------------------------------------- |
+| [`boleto`](packages/boleto) | Lê os códigos de boleto e Pix de um PDF ou foto. Funciona como CLI                 |
+| [`media`](packages/media)   | Converte imagens, vídeos, áudios e PDFs em algo que o agente consegue ver ou ler   |
+| [`bank`](packages/bank)     | Certificado, bloqueio de pagamentos e centavos exatos, para os conectores de banco |
+| [`server`](packages/server) | Serve as ferramentas de um conector em `/mcp`, só para quem tem a chave            |
 
 ## Requisitos
 

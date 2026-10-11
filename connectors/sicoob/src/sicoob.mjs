@@ -1,11 +1,11 @@
 // Reads a Sicoob checking account through the official API: the balance and a month's statement. Sicoob
 // authenticates the app with the owner's e-CPF certificate (mutual TLS), then issues a token per scope.
-import https from "node:https";
+import { toCents } from "@tres-pinos/bank";
 
 export const TOKEN_URL =
   "https://auth.sicoob.com.br/auth/realms/cooperado/protocol/openid-connect/token";
 export const API_URL = "https://api.sicoob.com.br";
-const SCOPE = "cco_consulta";
+export const SCOPE = "cco_consulta";
 
 // A request Sicoob answered with an error status. It never carries Sicoob's message text, which can
 // include the account number: only the HTTP status and Sicoob's numeric code or OAuth error.
@@ -15,26 +15,6 @@ export class SicoobError extends Error {
     this.status = status;
     this.reason = reason;
   }
-}
-
-// A fetch-like request over node:https with the certificate. Redirects are not followed: a redirect would
-// carry the request, and the token request's credentials, to an address the guard never saw.
-export function certificateFetch({ cert, key, passphrase, ca }, timeout = 10_000) {
-  const agent = new https.Agent({ cert, key, passphrase, ca, keepAlive: true });
-  return (url, { method = "GET", headers = {}, body } = {}) =>
-    new Promise((resolve, reject) => {
-      const req = https.request(url, { method, headers, agent, timeout }, (res) => {
-        const chunks = [];
-        res.on("data", (chunk) => chunks.push(chunk));
-        res.on("end", () =>
-          resolve({ status: res.statusCode, text: Buffer.concat(chunks).toString("utf8") }),
-        );
-        res.on("error", reject);
-      });
-      req.on("timeout", () => req.destroy(new Error("Sicoob did not answer in time")));
-      req.on("error", reject);
-      req.end(body);
-    });
 }
 
 function json(text, context) {
@@ -57,16 +37,6 @@ function failure(context, { status, text }) {
       reason = body.error;
   } catch {}
   return new SicoobError(context, status, reason);
-}
-
-// Sicoob's decimal amount, such as "-12.3", as exact integer cents.
-export function toCents(value) {
-  const text = typeof value === "number" && Number.isFinite(value) ? String(value) : value;
-  const match = typeof text === "string" ? /^(-?)(\d{1,12})(?:\.(\d{1,2})0*)?$/.exec(text) : null;
-  if (!match) throw new Error("Sicoob returned an invalid amount");
-  const [, sign, units, fraction = ""] = match;
-  const cents = Number(units) * 100 + Number(fraction.padEnd(2, "0"));
-  return sign && cents !== 0 ? -cents : cents;
 }
 
 async function token({ clientId }, fetch) {

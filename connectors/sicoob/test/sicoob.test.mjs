@@ -7,16 +7,9 @@ import { createServer } from "node:https";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, before, test } from "node:test";
+import { certificateFetch } from "@tres-pinos/bank";
 import { readOnly } from "../src/guard.mjs";
-import {
-  API_URL,
-  certificateFetch,
-  getBalance,
-  getStatement,
-  SicoobError,
-  TOKEN_URL,
-  toCents,
-} from "../src/sicoob.mjs";
+import { API_URL, getBalance, getStatement, SicoobError, TOKEN_URL } from "../src/sicoob.mjs";
 import { buildServer } from "../src/tools.mjs";
 
 const PASSWORD = "test-password-123";
@@ -208,17 +201,4 @@ test("an error carries Sicoob's code and status, never its message text", async 
   assert.ok(error instanceof SicoobError);
   assert.equal(error.message, "Sicoob token request failed (HTTP 400): Sicoob code 10320");
   assert.doesNotMatch(error.message, /1234567/);
-});
-
-test("amounts become exact integer cents", () => {
-  for (const [value, cents] of [
-    ["12.3", 1230],
-    ["-0.01", -1],
-    ["1000", 100000],
-    [0.1, 10],
-    ["5.00", 500],
-  ])
-    assert.equal(toCents(value), cents, String(value));
-  for (const value of ["1.234", "abc", "", null, Number.NaN])
-    assert.throws(() => toCents(value), String(value));
 });
