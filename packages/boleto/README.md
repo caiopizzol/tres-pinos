@@ -1,7 +1,7 @@
 # Boleto
 
-Lê os códigos de boleto e Pix de um PDF ou da foto de uma conta. Os conectores usam como biblioteca, e você pode
-usar como CLI.
+Lê os códigos de boleto e Pix de um PDF ou da foto de uma conta. Os conectores usam como biblioteca; você pode
+usar como CLI. Nunca usa a rede.
 
 > [!IMPORTANT]
 > Um código lido só da imagem do código de barras fica `unconfirmed`: o código de barras de 44 dígitos tem um
@@ -20,7 +20,7 @@ bun run read conta.pdf --reference 2026-09-26   # data de referência para o ven
 bun run read conta.pdf --password-file -        # senhas pela entrada padrão, uma por linha
 ```
 
-Devolve JSON e nunca usa a rede:
+Devolve JSON, resumido aqui:
 
 ```json
 {
@@ -38,15 +38,14 @@ Devolve JSON e nunca usa a rede:
 | `confirmed` | Linha digitável com todos os dígitos verificadores certos, duas leituras que concordam, ou um Pix (CRC16) |
 | `unconfirmed` | Só a imagem do código de barras |
 
-`kind` é `boleto`, `arrecadacao` (contas de consumo e tributos) ou `pix`. Um PDF que nenhuma senha abre devolve
-`"locked": true`. PDFs com mais de 20 páginas são recusados. Saída: `0` com um código confirmado, `2` sem nenhum,
-`1` para argumentos inválidos ou arquivo ilegível.
+- `kind`: `boleto`, `arrecadacao` (contas de consumo e tributos) ou `pix`.
+- Um PDF que nenhuma senha abre devolve `"locked": true`. PDFs com mais de 20 páginas são recusados.
+- Código de saída: `0` com um código confirmado, `2` sem nenhum, `1` com argumento inválido ou arquivo ilegível.
 
 ## Desenvolvimento
 
 ```bash
-bun run test     # testes com contas sintéticas
-bun run corpus   # contas reais em corpus/ (fora do git), comparadas com corpus/expected.json
+bun run test                   # contas sintéticas, em Bun e em Node
+bun run corpus                 # as suas contas reais em corpus/, fora do git, contra corpus/expected.json
+bun scripts/make-fixtures.ts   # gera de novo as contas sintéticas de fixtures/
 ```
-
-`bun scripts/make-fixtures.ts` gera de novo as contas sintéticas de `fixtures/`.

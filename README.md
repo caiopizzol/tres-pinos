@@ -33,28 +33,28 @@ prontos para o resto do mundo e travam nas nossas jabuticabas.
 
 | Conector | O que o agente pode fazer |
 |---|---|
-| [`whatsapp`](connectors/whatsapp) | Ler conversas, ver imagens e vídeos, ler PDFs e boletos e transcrever áudios. Nunca envia mensagens |
+| [`whatsapp`](connectors/whatsapp) | Ler conversas, imagens, vídeos, PDFs e contas, e transcrever áudios. Nunca envia mensagens |
 
-| Pacote | Para que serve |
+| Pacote | O que faz |
 |---|---|
-| [`boleto`](packages/boleto) | Lê os códigos de boleto e Pix de um PDF ou foto. Usado pelos conectores e também como CLI |
+| [`boleto`](packages/boleto) | Lê os códigos de boleto e Pix de um PDF ou foto. Os conectores usam, e funciona como CLI |
 
 ## Requisitos
 
-- [Docker](https://docs.docker.com/get-docker/) para rodar os conectores
-- [Bun](https://bun.sh) 1.3+ para desenvolver
+- [Docker](https://docs.docker.com/get-docker/), para rodar
+- [Bun](https://bun.sh) 1.3+, para desenvolver
 
 ## Início rápido
 
 ```bash
-cp .env.example .env   # preencha os valores
+cp .env.example .env   # preencha as senhas e chaves
 docker compose up -d
 ```
 
-Depois, conecte o seu número ao WhatsApp e escolha o que o agente pode ler. Veja o
-[conector do WhatsApp](connectors/whatsapp).
+Leia o QR no painel do WAHA, em `http://127.0.0.1:3010/dashboard/`, para conectar o seu número. O que o agente
+pode ler se escolhe no `.env`; veja o [conector do WhatsApp](connectors/whatsapp).
 
-Para usar no Codex ou no Claude Code, na mesma máquina:
+Depois, ligue o seu agente na mesma máquina:
 
 ```bash
 export WHATSAPP_KEY=...   # a mesma do .env
