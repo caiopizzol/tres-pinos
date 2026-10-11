@@ -9,18 +9,31 @@ import { buildServer } from "./tools.mjs";
 
 // PORT is for tests; the image always listens on 8080.
 const env = process.env;
-const missing = ["SICOOB_KEY", "SICOOB_CLIENT_ID", "SICOOB_ACCOUNT", "SICOOB_CERT_PATH", "SICOOB_CERT_KEY_PATH", "SICOOB_CERT_PASSWORD"].filter((n) => !env[n]);
+const missing = [
+  "SICOOB_KEY",
+  "SICOOB_CLIENT_ID",
+  "SICOOB_ACCOUNT",
+  "SICOOB_CERT_PATH",
+  "SICOOB_CERT_KEY_PATH",
+  "SICOOB_CERT_PASSWORD",
+].filter((n) => !env[n]);
 if (missing.length) throw new Error(`Set ${missing.join(", ")}`);
 // The key is the only thing between the internet and the owner's account, so it must be long enough not to guess.
-if (env.SICOOB_KEY.length < 32) throw new Error("SICOOB_KEY needs at least 32 characters: openssl rand -hex 32");
-if (!/^\d{1,14}$/.test(env.SICOOB_ACCOUNT)) throw new Error("SICOOB_ACCOUNT is the account number, digits only");
+if (env.SICOOB_KEY.length < 32)
+  throw new Error("SICOOB_KEY needs at least 32 characters: openssl rand -hex 32");
+if (!/^\d{1,14}$/.test(env.SICOOB_ACCOUNT))
+  throw new Error("SICOOB_ACCOUNT is the account number, digits only");
 
 // The container runs as uid 1000, which can't read a key owned by anyone else with mode 600.
 const read = (path) => {
   try {
     return readFileSync(path);
   } catch (error) {
-    throw new Error(error.code === "EACCES" ? `Can't read ${path}: give it to uid 1000 (see the README)` : `Can't read ${path}`);
+    throw new Error(
+      error.code === "EACCES"
+        ? `Can't read ${path}: give it to uid 1000 (see the README)`
+        : `Can't read ${path}`,
+    );
   }
 };
 const cert = read(env.SICOOB_CERT_PATH);
@@ -46,7 +59,10 @@ async function handle(req, res) {
   if (req.method !== "POST") return res.writeHead(405, { Allow: "POST" }).end();
   try {
     const server = buildServer(config, fetch);
-    const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true });
+    const transport = new StreamableHTTPServerTransport({
+      sessionIdGenerator: undefined,
+      enableJsonResponse: true,
+    });
     res.on("close", () => server.close().catch(console.error));
     await server.connect(transport);
     await transport.handleRequest(req, res);

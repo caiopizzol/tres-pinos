@@ -27,16 +27,22 @@ Devolve JSON, resumido aqui:
   "type": "pdf",
   "locked": false,
   "codes": [
-    { "kind": "boleto", "line": "…", "amountCents": 18742, "dueDate": "2026-09-10", "status": "confirmed" },
+    {
+      "kind": "boleto",
+      "line": "…",
+      "amountCents": 18742,
+      "dueDate": "2026-09-10",
+      "status": "confirmed"
+    },
     { "kind": "pix", "payload": "…", "amountCents": null, "status": "confirmed" }
   ]
 }
 ```
 
-| `status` | Quando |
-|---|---|
-| `confirmed` | Linha digitável com todos os dígitos verificadores certos, duas leituras que concordam, ou um Pix (CRC16) |
-| `unconfirmed` | Só a imagem do código de barras |
+| `status`      | Quando                                                                                                    |
+| ------------- | --------------------------------------------------------------------------------------------------------- |
+| `confirmed`   | Linha digitável com todos os dígitos verificadores certos, duas leituras que concordam, ou um Pix (CRC16) |
+| `unconfirmed` | Só a imagem do código de barras                                                                           |
 
 - `kind`: `boleto`, `arrecadacao` (contas de consumo e tributos) ou `pix`.
 - Um PDF que nenhuma senha abre devolve `"locked": true`. PDFs com mais de 20 páginas são recusados.

@@ -10,11 +10,20 @@ await client.connect(clientSide);
 
 process.on("message", async ({ id, tools, name, args }) => {
   try {
-    if (tools) return process.send({ id, result: (await client.listTools()).tools.map((t) => t.name) });
+    if (tools)
+      return process.send({ id, result: (await client.listTools()).tools.map((t) => t.name) });
     const r = await client.callTool({ name, arguments: args });
     if (r.isError) return process.send({ id, error: r.content[0].text });
     const [first] = r.content;
-    process.send({ id, result: first.type !== "text" ? first : first.text.startsWith("Sent") ? first.text : JSON.parse(first.text) });
+    process.send({
+      id,
+      result:
+        first.type !== "text"
+          ? first
+          : first.text.startsWith("Sent")
+            ? first.text
+            : JSON.parse(first.text),
+    });
   } catch (e) {
     process.send({ id, error: e.message });
   }
