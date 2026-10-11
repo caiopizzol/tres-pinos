@@ -3,6 +3,9 @@
 !bun.lock
 !connectors/*/package.json
 !packages/*/package.json
-!connectors/whatsapp/src/**
 !connectors/sicoob/src/**
 !packages/boleto/src/**
+!packages/boleto/fixtures/**
+!packages/media/src/**
+!packages/media/scripts/**
+!packages/media/fixtures/**

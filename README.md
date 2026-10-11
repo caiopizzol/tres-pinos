@@ -7,7 +7,7 @@
 <p align="center">
   A tomada brasileira para agentes de IA: conectores MCP de código aberto,
   <br>
-  que você hospeda, para ler WhatsApp, boletos, Pix e a sua conta no Sicoob.
+  que você hospeda, para ler boletos, Pix e a sua conta no Sicoob.
 </p>
 
 <p align="center">
@@ -26,19 +26,28 @@ A tomada tem companhia: boleto, Pix, CPF para tudo e cliente que só fala por Wh
 prontos para o resto do mundo e travam nas nossas jabuticabas.
 
 > [!WARNING]
-> O conector do WhatsApp usa o WhatsApp Web por meio do [WAHA](https://waha.devlike.pro/), que não é oficial.
-> Um número conectado assim pode ser banido. Este projeto não tem relação com o WhatsApp nem com a Meta.
+> **Sem WhatsApp, por enquanto.** O conector do WhatsApp usava o [WAHA](https://waha.devlike.pro/), que entra pelo
+> WhatsApp Web sem ser oficial. O número pessoal do autor foi bloqueado pelo WhatsApp enquanto estava ligado ao
+> WAHA, com o conector só lendo mensagens, sem nunca enviar. Como não dá para oferecer o conector sem pôr o seu
+> número em risco, ele saiu do projeto. Se você usa o WAHA no seu número, só ler não evita um bloqueio.
+>
+> Estamos estudando um jeito de trazer o WhatsApp de volta sem pôr número nenhum em risco. Até lá, o foco é o banco
+> e as ferramentas: PDF, boleto e Pix.
+>
+> Se você já rodava o conector, atualize o repositório e rode `docker compose down --remove-orphans`, que remove o
+> WAHA sem subir nada. Depois apague a pasta `sessions/` e remova o aparelho em **Aparelhos conectados**, no
+> WhatsApp do celular.
 
 ## Conectores
 
-| Conector                          | O que o agente pode fazer                                                                  |
-| --------------------------------- | ------------------------------------------------------------------------------------------ |
-| [`whatsapp`](connectors/whatsapp) | Ler conversas, imagens, vídeos, PDFs e contas, e transcrever áudios. Nunca envia mensagens |
-| [`sicoob`](connectors/sicoob)     | Ler o saldo e o extrato da conta corrente. Nunca movimenta dinheiro                        |
+| Conector                      | O que o agente pode fazer                                           |
+| ----------------------------- | ------------------------------------------------------------------- |
+| [`sicoob`](connectors/sicoob) | Ler o saldo e o extrato da conta corrente. Nunca movimenta dinheiro |
 
-| Pacote                      | O que faz                                                                                |
-| --------------------------- | ---------------------------------------------------------------------------------------- |
-| [`boleto`](packages/boleto) | Lê os códigos de boleto e Pix de um PDF ou foto. Os conectores usam, e funciona como CLI |
+| Pacote                      | O que faz                                                                        |
+| --------------------------- | -------------------------------------------------------------------------------- |
+| [`boleto`](packages/boleto) | Lê os códigos de boleto e Pix de um PDF ou foto. Funciona como CLI               |
+| [`media`](packages/media)   | Converte imagens, vídeos, áudios e PDFs em algo que o agente consegue ver ou ler |
 
 ## Requisitos
 
@@ -47,20 +56,19 @@ prontos para o resto do mundo e travam nas nossas jabuticabas.
 
 ## Início rápido
 
+Prepare o certificado e o app do Sicoob como diz o [conector do Sicoob](connectors/sicoob). Depois:
+
 ```bash
-cp .env.example .env   # preencha as senhas e chaves
+cp .env.example .env   # preencha as variáveis
 docker compose up -d
 ```
 
-Leia o QR no painel do WAHA, em `http://127.0.0.1:3010/dashboard/`, para conectar o seu número. O que o agente
-pode ler se escolhe no `.env`; veja o [conector do WhatsApp](connectors/whatsapp).
-
-Depois, ligue o seu agente na mesma máquina:
+E ligue o seu agente na mesma máquina:
 
 ```bash
-export WHATSAPP_KEY=...   # a mesma do .env
-codex mcp add whatsapp --url http://127.0.0.1:3011/mcp --bearer-token-env-var WHATSAPP_KEY
-claude mcp add --transport http whatsapp http://127.0.0.1:3011/mcp --header "Authorization: Bearer $WHATSAPP_KEY"
+export SICOOB_KEY=...   # a mesma do .env
+codex mcp add sicoob --url http://127.0.0.1:3012/mcp --bearer-token-env-var SICOOB_KEY
+claude mcp add --transport http sicoob http://127.0.0.1:3012/mcp --header "Authorization: Bearer $SICOOB_KEY"
 ```
 
 ## Desenvolvimento

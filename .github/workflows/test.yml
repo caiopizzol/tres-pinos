@@ -23,18 +23,13 @@ jobs:
       - run: bun run check
       - run: bun run test
 
-  # The image the README runs, with every media fixture through its converters. Transcription needs a server,
-  # so it's checked by hand: see connectors/whatsapp/docs/checks.md.
+  # The image the README runs, and every media fixture through its converters. Transcription needs a server,
+  # so it's checked by hand: see packages/media.
   image:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - run: docker build -f connectors/whatsapp/Dockerfile -t whatsapp .
       - run: docker build -f connectors/sicoob/Dockerfile -t sicoob .
-      - run: >-
-          docker run --rm --entrypoint node
-          -v "$PWD/connectors/whatsapp/scripts:/app/connectors/whatsapp/scripts:ro"
-          -v "$PWD/connectors/whatsapp/fixtures:/app/connectors/whatsapp/fixtures:ro"
-          -v "$PWD/packages/boleto/fixtures:/app/packages/boleto/fixtures:ro"
-          whatsapp scripts/media.mjs
+      - run: docker build -f packages/media/Dockerfile -t media .
+      - run: docker run --rm media

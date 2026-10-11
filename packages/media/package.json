@@ -1,0 +1,11 @@
+{
+  "name": "@tres-pinos/media",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node scripts/check.mjs"
+  },
+  "dependencies": {
+    "@tres-pinos/boleto": "workspace:*"
+  }
+}
