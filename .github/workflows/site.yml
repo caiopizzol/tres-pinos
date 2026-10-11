@@ -21,6 +21,8 @@ concurrency:
 
 jobs:
   deploy:
+    # A manual run can start from any branch; only main reaches the live site.
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
