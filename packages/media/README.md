@@ -1,8 +1,8 @@
 # Media
 
 Converte o que chega de qualquer remetente em algo que o agente consegue ver ou ler: imagens em JPEG, vídeos em
-quadros, áudios em texto e PDFs em texto e imagens das páginas. Veio do conector do WhatsApp e fica aqui para os
-próximos conectores, como o de e-mail. Nenhum conector usa ainda.
+quadros, áudios em texto e PDFs em texto e imagens das páginas. Fica aqui para os próximos conectores, como o de
+e-mail. Nenhum conector usa ainda.
 
 ## Requisitos
 

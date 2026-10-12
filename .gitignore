@@ -5,8 +5,5 @@ node_modules/
 # Real bills for local checks only; never committed.
 packages/boleto/corpus/
 
-# WhatsApp sessions saved by WAHA, before it left the repo
-/sessions/
-
-# The bank certificates for the Sicoob and Inter connectors
+# The connectors' certificates and keys
 /certificate/
