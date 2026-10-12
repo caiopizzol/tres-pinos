@@ -88,6 +88,15 @@ bun run check
 bun run test
 ```
 
+Uma mudança num pacote publicado no npm leva um changeset, que diz a versão nova e o que mudou:
+
+```bash
+bunx changeset
+```
+
+Com changesets na `main`, um pull request "chore: release packages" fica aberto. Ao ser aceito, ele publica as
+versões novas.
+
 ## Licença
 
 [MIT](LICENSE)
