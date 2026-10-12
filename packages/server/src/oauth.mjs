@@ -346,7 +346,8 @@ ${wrong ? '<p style="color:#B42318">Chave errada.</p>' : ""}
 
   // Whether the Authorization header carries a live access token from this server.
   function verify(authorization) {
-    const token = /^Bearer (\S+)$/.exec(authorization ?? "")?.[1];
+    // The scheme is case-insensitive (RFC 9110, section 11.1).
+    const token = /^Bearer (\S+)$/i.exec(authorization ?? "")?.[1];
     if (!token) return false;
     const row = db
       .prepare(

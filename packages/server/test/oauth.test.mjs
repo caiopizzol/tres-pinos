@@ -124,6 +124,7 @@ test("a client signs in with the owner's key, uses its token, and refreshes once
   };
   const tokens = await (await exchange(server, fields)).json();
   assert.ok(server.oauth.verify(`Bearer ${tokens.access_token}`));
+  assert.ok(server.oauth.verify(`bearer ${tokens.access_token}`), "the scheme is case-insensitive");
   assert.ok(!server.oauth.verify(`Bearer ${tokens.refresh_token}`));
   assert.ok(!server.oauth.verify(`Bearer ${KEY}`), "the owner's key is not an OAuth token");
   assert.equal((await exchange(server, fields)).status, 400, "a code works once");
