@@ -1,11 +1,11 @@
-// Reads boleto and Pix codes from a bill with packages/boleto. It runs as its own process, so decoding
+// Reads boleto and Pix codes from a bill with @tres-pinos/boleto. It runs as its own process, so decoding
 // a large scan can't stall the connector, and the password goes through stdin, never an argument.
 import { execFile } from "node:child_process";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-const CLI = new URL("../../../packages/boleto/src/cli.ts", import.meta.url).pathname;
+const CLI = new URL(import.meta.resolve("@tres-pinos/boleto/cli")).pathname;
 
 export async function readBill(bytes, password) {
   const dir = await mkdtemp(join(tmpdir(), "bill-"));
