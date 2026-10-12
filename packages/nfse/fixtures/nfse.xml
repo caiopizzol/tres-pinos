@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A fictional NFS-e in the national layout 1.01. It validates against the official schema, but its signature is
+     a placeholder: the reader does not check signatures. -->
+<NFSe versao="1.01" xmlns="http://www.sped.fazenda.gov.br/nfse">
+  <infNFSe Id="NFS41069022200000000000191000000000000126090000000001">
+    <xLocEmi>Curitiba</xLocEmi>
+    <xLocPrestacao>Curitiba</xLocPrestacao>
+    <nNFSe>1</nNFSe>
+    <xTribNac>Desenvolvimento de programas de computador sob encomenda</xTribNac>
+    <verAplic>exemplo-1.0</verAplic>
+    <ambGer>2</ambGer>
+    <tpEmis>1</tpEmis>
+    <cStat>100</cStat>
+    <dhProc>2026-09-02T10:15:00-03:00</dhProc>
+    <nDFSe>1</nDFSe>
+    <emit>
+      <CNPJ>00000000000191</CNPJ>
+      <xNome>EMPRESA FICTICIA LTDA</xNome>
+      <enderNac>
+        <xLgr>Rua Exemplo</xLgr>
+        <nro>1</nro>
+        <xBairro>Centro</xBairro>
+        <cMun>4106902</cMun>
+        <UF>PR</UF>
+        <CEP>80000000</CEP>
+      </enderNac>
+    </emit>
+    <valores>
+      <vLiq>1450.50</vLiq>
+    </valores>
+    <DPS versao="1.01">
+      <infDPS Id="DPS410690220000000000019100001000000000000001">
+        <tpAmb>2</tpAmb>
+        <dhEmi>2026-09-02T10:00:00-03:00</dhEmi>
+        <verAplic>exemplo-1.0</verAplic>
+        <serie>1</serie>
+        <nDPS>1</nDPS>
+        <dCompet>2026-08-31</dCompet>
+        <tpEmit>1</tpEmit>
+        <cLocEmi>4106902</cLocEmi>
+        <prest>
+          <CNPJ>00000000000191</CNPJ>
+          <regTrib>
+            <opSimpNac>1</opSimpNac>
+            <regEspTrib>0</regEspTrib>
+          </regTrib>
+        </prest>
+        <toma>
+          <CPF>00000000191</CPF>
+          <xNome><![CDATA[FULANO & FILHOS]]></xNome>
+        </toma>
+        <serv>
+          <locPrest>
+            <cLocPrestacao>4106902</cLocPrestacao>
+          </locPrest>
+          <cServ>
+            <cTribNac>010101</cTribNac>
+            <xDescServ>Desenvolvimento de software &amp; manutenção</xDescServ>
+          </cServ>
+        </serv>
+        <valores>
+          <vServPrest>
+            <vServ>1500.50</vServ>
+          </vServPrest>
+          <trib>
+            <tribMun>
+              <tribISSQN>1</tribISSQN>
+              <tpRetISSQN>1</tpRetISSQN>
+            </tribMun>
+            <totTrib>
+              <indTotTrib>0</indTotTrib>
+            </totTrib>
+          </trib>
+        </valores>
+      </infDPS>
+    </DPS>
+  </infNFSe>
+  <Signature xmlns="http://www.w3.org/2000/09/xmldsig#">
+    <SignedInfo>
+      <CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
+      <SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"/>
+      <Reference URI="#NFS41069022200000000000191000000000000126090000000001">
+        <Transforms>
+          <Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
+          <Transform Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
+        </Transforms>
+        <DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/>
+        <DigestValue>AAAA</DigestValue>
+      </Reference>
+    </SignedInfo>
+    <SignatureValue>AAAA</SignatureValue>
+  </Signature>
+</NFSe>
