@@ -1,0 +1,17 @@
+{
+  "name": "@tres-pinos/nfse",
+  "private": true,
+  "bin": {
+    "nfse": "src/cli.mjs"
+  },
+  "type": "module",
+  "exports": {
+    ".": "./src/nfse.mjs"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  },
+  "dependencies": {
+    "@xmldom/xmldom": "0.9.12"
+  }
+}

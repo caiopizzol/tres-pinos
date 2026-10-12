@@ -49,6 +49,15 @@
         "@tres-pinos/boleto": "workspace:*",
       },
     },
+    "packages/nfse": {
+      "name": "@tres-pinos/nfse",
+      "bin": {
+        "nfse": "src/cli.mjs",
+      },
+      "dependencies": {
+        "@xmldom/xmldom": "0.9.12",
+      },
+    },
     "packages/server": {
       "name": "@tres-pinos/server",
       "dependencies": {
@@ -215,6 +224,8 @@
 
     "@tres-pinos/media": ["@tres-pinos/media@workspace:packages/media"],
 
+    "@tres-pinos/nfse": ["@tres-pinos/nfse@workspace:packages/nfse"],
+
     "@tres-pinos/server": ["@tres-pinos/server@workspace:packages/server"],
 
     "@tres-pinos/sicoob": ["@tres-pinos/sicoob@workspace:connectors/sicoob"],
@@ -304,6 +315,8 @@
     "@voidzero-dev/vite-plus-win32-arm64-msvc": ["@voidzero-dev/vite-plus-win32-arm64-msvc@1.1.0", "", { "os": "win32", "cpu": "arm64" }, "sha512-EXWz8Tt7skmI0fLMSq5zYcuHo6SCF0reG55qDB/NMvWVIAca6Dborq7D1HyKA8v6p39zOl8r07gR7yXuYv7eeQ=="],
 
     "@voidzero-dev/vite-plus-win32-x64-msvc": ["@voidzero-dev/vite-plus-win32-x64-msvc@1.1.0", "", { "os": "win32", "cpu": "x64" }, "sha512-K9k77Mj/TszFHKsZePKsyfsIPo8HbjKeJUxaSJ6YZKAmSh9QvDsMFe4i4/HALwyii/PR1EQ8N0iN1nf9cNimGQ=="],
+
+    "@xmldom/xmldom": ["@xmldom/xmldom@0.9.12", "", {}, "sha512-5AXjrcMClTryPe9LgZrygpB1lj7s0S9E0+W+AHaVKAVyHanafK86iPSvG5xHVSp/jC+VH1UXu0TAEmY279xH7A=="],
 
     "@yuku-codegen/binding-android-arm64": ["@yuku-codegen/binding-android-arm64@0.9.5", "", { "os": "android", "cpu": "arm64" }, "sha512-jrOY5WM+AaAqkv51fHP1x28ifto4WgcZVzodLUyMU1jMWn5Sq+VciRdk/n8E0Ey5w4p4cWWE+m5GfXWOYh7Kzw=="],
 
