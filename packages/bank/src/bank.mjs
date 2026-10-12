@@ -42,7 +42,7 @@ export const isReadOnly = (fetch) => guarded.has(fetch);
 
 // Lets through only a token request at `tokenUrl` for exactly `scope`, and requests whose "METHOD url" matches
 // one of `requests`. Anything else, such as a payment, is refused before the network, even if a later change
-// calls it by mistake.
+// calls it by mistake. Without `tokenUrl`, only the listed requests pass.
 export function readOnly(fetch, { tokenUrl, scope, requests }) {
   const guard = (url, init = {}) => {
     const method = (init.method ?? "GET").toUpperCase();

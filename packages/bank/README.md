@@ -1,7 +1,8 @@
 # Bank
 
 O que todo conector de banco usa para chegar à API oficial do banco. Os conectores do [Sicoob](../../connectors/sicoob)
-e do [Inter](../../connectors/inter) usam.
+e do [Inter](../../connectors/inter) usam, e também o da [NFS-e](../../connectors/nfse), que chega ao sistema nacional
+do mesmo jeito, com certificado.
 
 | Função             | O que faz                                                                                                                                      |
 | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |

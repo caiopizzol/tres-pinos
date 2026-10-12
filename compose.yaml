@@ -35,6 +35,24 @@ services:
     volumes:
       - ${INTER_CERT_DIR:-./certificate}:/certificate:ro
       - inter:/data
+  nfse:
+    build:
+      context: .
+      dockerfile: connectors/nfse/Dockerfile
+    restart: unless-stopped
+    profiles: [nfse]
+    environment:
+      NFSE_KEY: ${NFSE_KEY:-}
+      NFSE_CERT_PATH: /certificate/nfse.crt
+      NFSE_CERT_KEY_PATH: /certificate/nfse.key
+      NFSE_CERT_PASSWORD: ${NFSE_CERT_PASSWORD:-}
+      PUBLIC_URL: ${NFSE_PUBLIC_URL:-}
+    ports:
+      - 127.0.0.1:3014:8080
+    volumes:
+      - ${NFSE_CERT_DIR:-./certificate}:/certificate:ro
+      - nfse:/data
 
 volumes:
   inter:
+  nfse:

@@ -5,7 +5,9 @@
 !packages/*/package.json
 !connectors/sicoob/src/**
 !connectors/inter/src/**
+!connectors/nfse/src/**
 !packages/bank/src/**
+!packages/nfse/src/**
 !packages/server/src/**
 !packages/boleto/src/**
 !packages/boleto/fixtures/**

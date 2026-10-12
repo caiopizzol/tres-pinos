@@ -30,6 +30,19 @@ test("the guard lets out only the read-only token and the listed requests", asyn
     await assert.rejects(fetch(url, init), /Refused/, `${init.method} ${url}`);
 });
 
+test("without a token URL, the guard lets out only the listed requests", async () => {
+  const fetch = readOnly(async () => ({ status: 200, text: "" }), {
+    requests: [/^GET https:\/\/bank\.example\/balance$/],
+  });
+  await fetch("https://bank.example/balance");
+  for (const [url, init] of [
+    [undefined, { method: "POST" }],
+    ["https://bank.example/token", { method: "POST", body: "scope=read" }],
+    ["https://bank.example/balance", { method: "POST" }],
+  ])
+    await assert.rejects(fetch(url, init), /Refused/, `${init.method} ${url}`);
+});
+
 test("the guard refuses a redirect instead of following it", async () => {
   await assert.rejects(
     guarded({ status: 302, text: "" })("https://bank.example/balance"),

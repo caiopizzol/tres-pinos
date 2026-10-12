@@ -41,6 +41,7 @@ prontos para o resto do mundo e travam nas nossas jabuticabas.
 | ----------------------------- | ------------------------------------------------------------------- |
 | [`sicoob`](connectors/sicoob) | Ler o saldo e o extrato da conta corrente. Nunca movimenta dinheiro |
 | [`inter`](connectors/inter)   | Ler o saldo e o extrato da conta PJ. Nunca movimenta dinheiro       |
+| [`nfse`](connectors/nfse)     | Ler as notas fiscais de serviço da empresa. Nunca emite nem cancela |
 
 | Pacote                      | O que faz                                                                          |
 | --------------------------- | ---------------------------------------------------------------------------------- |
@@ -57,8 +58,8 @@ prontos para o resto do mundo e travam nas nossas jabuticabas.
 
 ## Início rápido
 
-Prepare o certificado do seu banco como diz o conector do [Sicoob](connectors/sicoob) ou do
-[Inter](connectors/inter). Depois:
+Prepare o certificado como diz cada conector: [Sicoob](connectors/sicoob), [Inter](connectors/inter) ou
+[NFS-e](connectors/nfse). Depois:
 
 ```bash
 cp .env.example .env   # escolha os conectores em COMPOSE_PROFILES e preencha as variáveis
@@ -71,6 +72,7 @@ E ligue o seu agente na mesma máquina, com a porta e a chave de cada conector:
 | -------- | --------------------------- | ------------ |
 | `sicoob` | `http://127.0.0.1:3012/mcp` | `SICOOB_KEY` |
 | `inter`  | `http://127.0.0.1:3013/mcp` | `INTER_KEY`  |
+| `nfse`   | `http://127.0.0.1:3014/mcp` | `NFSE_KEY`   |
 
 ```bash
 export SICOOB_KEY=...   # a mesma do .env
