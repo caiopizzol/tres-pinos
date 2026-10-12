@@ -1,6 +1,6 @@
 {
   "name": "@tres-pinos/nfse",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Lê uma NFS-e do padrão nacional e devolve os fatos em JSON",
   "keywords": [
     "brasil",
