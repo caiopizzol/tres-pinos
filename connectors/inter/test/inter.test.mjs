@@ -7,7 +7,7 @@ import { createServer } from "node:https";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, before, beforeEach, test } from "node:test";
-import { certificateFetch } from "@tres-pinos/bank";
+import { certificateFetch } from "@tres-pinos/api";
 import { readOnly } from "../src/guard.mjs";
 import { API_URL, InterError, interClient, TOKEN_URL } from "../src/inter.mjs";
 import { buildServer } from "../src/tools.mjs";

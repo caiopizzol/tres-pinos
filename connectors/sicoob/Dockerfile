@@ -7,7 +7,7 @@ COPY package.json bun.lock ./
 # Every workspace's package.json, which bun needs to match the lockfile.
 COPY --parents connectors/*/package.json packages/*/package.json ./
 RUN bun install --frozen-lockfile --production --filter @tres-pinos/sicoob && rm /usr/local/bin/bun
-COPY packages/bank/src packages/bank/src
+COPY packages/api/src packages/api/src
 COPY packages/server/src packages/server/src
 COPY connectors/sicoob/src connectors/sicoob/src
 WORKDIR /app/connectors/sicoob

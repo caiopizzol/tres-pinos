@@ -1,6 +1,6 @@
 // MCP server that gives an agent the tools in tools.mjs, behind INTER_KEY.
 import { createPrivateKey, X509Certificate } from "node:crypto";
-import { certificateFetch, readCertificate } from "@tres-pinos/bank";
+import { certificateFetch, readCertificate } from "@tres-pinos/api";
 import { serve } from "@tres-pinos/server";
 import { readOnly } from "./guard.mjs";
 import { interClient } from "./inter.mjs";

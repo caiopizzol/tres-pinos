@@ -7,7 +7,7 @@ COPY package.json bun.lock ./
 # Every workspace's package.json, which bun needs to match the lockfile.
 COPY --parents connectors/*/package.json packages/*/package.json ./
 RUN bun install --frozen-lockfile --production --filter @tres-pinos/inter && rm /usr/local/bin/bun
-COPY packages/bank/src packages/bank/src
+COPY packages/api/src packages/api/src
 COPY packages/server/src packages/server/src
 COPY connectors/inter/src connectors/inter/src
 # Sign-ins are kept here, on a volume; the folder belongs to node so a new volume does too.

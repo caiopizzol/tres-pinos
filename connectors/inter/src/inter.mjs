@@ -1,7 +1,7 @@
 // Reads a Banco Inter business account through the official Banking API: the balance and a month's statement.
 // Inter authenticates the integration with its certificate (mutual TLS) and client secret, then issues a token
 // per scope. It allows only about five tokens a minute, so a token is kept until shortly before it expires.
-import { toCents } from "@tres-pinos/bank";
+import { toCents } from "@tres-pinos/api";
 
 export const API_URL = "https://cdpj.partners.bancointer.com.br";
 export const TOKEN_URL = `${API_URL}/oauth/v2/token`;

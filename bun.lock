@@ -13,7 +13,7 @@
       "name": "@tres-pinos/inter",
       "dependencies": {
         "@modelcontextprotocol/sdk": "1.31.0",
-        "@tres-pinos/bank": "workspace:*",
+        "@tres-pinos/api": "workspace:*",
         "@tres-pinos/server": "workspace:*",
         "zod": "4.6.5",
       },
@@ -22,7 +22,7 @@
       "name": "@tres-pinos/nfse-connector",
       "dependencies": {
         "@modelcontextprotocol/sdk": "1.31.0",
-        "@tres-pinos/bank": "workspace:*",
+        "@tres-pinos/api": "workspace:*",
         "@tres-pinos/nfse": "workspace:*",
         "@tres-pinos/server": "workspace:*",
         "zod": "4.6.5",
@@ -32,13 +32,13 @@
       "name": "@tres-pinos/sicoob",
       "dependencies": {
         "@modelcontextprotocol/sdk": "1.31.0",
-        "@tres-pinos/bank": "workspace:*",
+        "@tres-pinos/api": "workspace:*",
         "@tres-pinos/server": "workspace:*",
         "zod": "4.6.5",
       },
     },
-    "packages/bank": {
-      "name": "@tres-pinos/bank",
+    "packages/api": {
+      "name": "@tres-pinos/api",
     },
     "packages/boleto": {
       "name": "@tres-pinos/boleto",
@@ -62,7 +62,7 @@
     },
     "packages/nfse": {
       "name": "@tres-pinos/nfse",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "bin": {
         "nfse": "src/cli.mjs",
       },
@@ -270,7 +270,7 @@
 
     "@testing-library/user-event": ["@testing-library/user-event@14.6.7", "", { "peerDependencies": { "@testing-library/dom": ">=7.21.4" } }, "sha512-MPCpX8bxe8zS+JmmTwLp8jd0dy1rAm60Te/SL8JrQM3qvQJcBOs1d7IefJMyZzqM3EWBrDn/LWDt1BCGu4ASfg=="],
 
-    "@tres-pinos/bank": ["@tres-pinos/bank@workspace:packages/bank"],
+    "@tres-pinos/api": ["@tres-pinos/api@workspace:packages/api"],
 
     "@tres-pinos/boleto": ["@tres-pinos/boleto@workspace:packages/boleto"],
 

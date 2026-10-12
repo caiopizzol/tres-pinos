@@ -43,13 +43,13 @@ prontos para o resto do mundo e travam nas nossas jabuticabas.
 | [`inter`](connectors/inter)   | Ler o saldo e o extrato da conta PJ. Nunca movimenta dinheiro       |
 | [`nfse`](connectors/nfse)     | Ler as notas fiscais de serviço da empresa. Nunca emite nem cancela |
 
-| Pacote                      | O que faz                                                                          |
-| --------------------------- | ---------------------------------------------------------------------------------- |
-| [`boleto`](packages/boleto) | Lê os códigos de boleto e Pix de um PDF ou foto. Funciona como CLI                 |
-| [`nfse`](packages/nfse)     | Lê uma NFS-e do padrão nacional e devolve os fatos em JSON. No npm, com CLI        |
-| [`media`](packages/media)   | Converte imagens, vídeos, áudios e PDFs em algo que o agente consegue ver ou ler   |
-| [`bank`](packages/bank)     | Certificado, bloqueio de pagamentos e centavos exatos, para os conectores de banco |
-| [`server`](packages/server) | Serve as ferramentas de um conector em `/mcp`, só para quem tem a chave            |
+| Pacote                      | O que faz                                                                        |
+| --------------------------- | -------------------------------------------------------------------------------- |
+| [`boleto`](packages/boleto) | Lê os códigos de boleto e Pix de um PDF ou foto. Funciona como CLI               |
+| [`nfse`](packages/nfse)     | Lê uma NFS-e do padrão nacional e devolve os fatos em JSON. No npm, com CLI      |
+| [`media`](packages/media)   | Converte imagens, vídeos, áudios e PDFs em algo que o agente consegue ver ou ler |
+| [`api`](packages/api)       | Certificado, bloqueio de pagamentos e centavos exatos, para os conectores        |
+| [`server`](packages/server) | Serve as ferramentas de um conector em `/mcp`, só para quem tem a chave          |
 
 ## Requisitos
 

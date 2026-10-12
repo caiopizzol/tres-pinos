@@ -1,5 +1,5 @@
-// What every bank connector needs to reach a bank's official API: the certificate, a guard that lets out only
-// the requests the connector was built to make, and exact amounts.
+// What a connector needs to reach an official API with a certificate: the certificate, a guard that lets out
+// only the requests the connector was built to make, and exact amounts.
 import { readFileSync } from "node:fs";
 import https from "node:https";
 
@@ -31,7 +31,7 @@ export function certificateFetch({ cert, key, passphrase, ca }, timeout = 10_000
         );
         res.on("error", reject);
       });
-      req.on("timeout", () => req.destroy(new Error("The bank did not answer in time")));
+      req.on("timeout", () => req.destroy(new Error("The API did not answer in time")));
       req.on("error", reject);
       req.end(body);
     });

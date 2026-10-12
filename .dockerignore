@@ -6,7 +6,7 @@
 !connectors/sicoob/src/**
 !connectors/inter/src/**
 !connectors/nfse/src/**
-!packages/bank/src/**
+!packages/api/src/**
 !packages/nfse/src/**
 !packages/server/src/**
 !packages/boleto/src/**

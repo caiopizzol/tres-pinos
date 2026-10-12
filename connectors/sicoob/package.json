@@ -7,7 +7,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.31.0",
-    "@tres-pinos/bank": "workspace:*",
+    "@tres-pinos/api": "workspace:*",
     "@tres-pinos/server": "workspace:*",
     "zod": "4.6.5"
   }
