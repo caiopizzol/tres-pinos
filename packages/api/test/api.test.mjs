@@ -1,8 +1,12 @@
 // What the connectors share, apart from the certificate request, which each connector's tests run against
 // its fake API.
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { test } from "node:test";
-import { isReadOnly, readOnly, toCents } from "../src/api.mjs";
+import { isReadOnly, readCertificate, readOnly, toCents } from "../src/api.mjs";
 
 const TOKEN_URL = "https://bank.example/token";
 const guarded = (reply) =>
@@ -62,4 +66,49 @@ test("amounts become exact integer cents", () => {
     assert.equal(toCents(value), cents, String(value));
   for (const value of ["1.234", 1.0000000001, "abc", "", null, Number.NaN])
     assert.throws(() => toCents(value), String(value));
+});
+
+test("reads a certificate and key only when the password opens the key and the two match", () => {
+  const dir = mkdtempSync(join(tmpdir(), "api-"));
+  const file = (name) => join(dir, name);
+  const pair = (name, password) =>
+    execFileSync(
+      "openssl",
+      ["req", "-x509", "-newkey", "rsa:2048", "-days", "1", "-subj", "/CN=test"]
+        .concat(password ? ["-passout", `pass:${password}`] : ["-nodes"])
+        .concat(["-keyout", file(`${name}.key`), "-out", file(`${name}.crt`)]),
+      { stdio: "ignore" },
+    );
+  try {
+    pair("locked", "test-password-123");
+    pair("open");
+    const env = (name, password, crt = name) => ({
+      X_CERT_PATH: file(`${crt}.crt`),
+      X_CERT_KEY_PATH: file(`${name}.key`),
+      X_CERT_PASSWORD: password,
+    });
+    assert.equal(
+      readCertificate(env("locked", "test-password-123"), "X").passphrase,
+      "test-password-123",
+    );
+    assert.equal(readCertificate(env("open", ""), "X").passphrase, undefined);
+    assert.throws(
+      () => readCertificate(env("locked", "wrong"), "X"),
+      /^Error: X_CERT_PASSWORD does not open X_CERT_KEY_PATH$/,
+    );
+    assert.throws(
+      () => readCertificate(env("locked", ""), "X"),
+      /X_CERT_PATH and X_CERT_KEY_PATH are not a matching certificate and key/,
+    );
+    assert.throws(
+      () => readCertificate(env("open", "", "locked"), "X"),
+      /X_CERT_PATH and X_CERT_KEY_PATH are not a matching certificate and key/,
+    );
+    assert.throws(
+      () => readCertificate({ ...env("open", ""), X_CERT_PATH: file("missing.crt") }, "X"),
+      /Can't read .*missing\.crt/,
+    );
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
