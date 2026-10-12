@@ -165,10 +165,17 @@
         <h2 id="comecar-titulo">Começar</h2>
         <ol class="steps">
           <li>
+            <h3>Baixe o repositório</h3>
+            <p>Precisa do <a href="https://docs.docker.com/get-docker/">Docker</a>.</p>
+            <pre
+              tabindex="0"
+            ><span class="p">$ </span>git clone https://github.com/caiopizzol/tres-pinos
+<span class="p">$ </span>cd tres-pinos && cp .env.example .env   <span class="c"># preencha as variáveis</span></pre>
+          </li>
+          <li>
             <h3>Prepare o certificado</h3>
             <p>
-              Precisa do <a href="https://docs.docker.com/get-docker/">Docker</a> e do certificado
-              de cada conector. Veja como configurar o
+              Veja como configurar o
               <a href="https://github.com/caiopizzol/tres-pinos/tree/main/connectors/sicoob"
                 >Sicoob</a
               >, o
@@ -183,11 +190,7 @@
           <li>
             <h3>Suba o conector</h3>
             <p>Gere a chave do <code>.env</code> com <code>openssl rand -hex 32</code>.</p>
-            <pre
-              tabindex="0"
-            ><span class="p">$ </span>git clone https://github.com/caiopizzol/tres-pinos
-<span class="p">$ </span>cd tres-pinos && cp .env.example .env   <span class="c"># preencha as variáveis</span>
-<span class="p">$ </span>docker compose up -d</pre>
+            <pre tabindex="0"><span class="p">$ </span>docker compose up -d</pre>
           </li>
           <li>
             <h3>Ligue o seu agente</h3>
