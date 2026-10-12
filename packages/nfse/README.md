@@ -1,5 +1,7 @@
 # NFS-e
 
+[![npm](https://img.shields.io/npm/v/@tres-pinos/nfse?color=1d1d1f)](https://www.npmjs.com/package/@tres-pinos/nfse)
+
 Lê uma NFS-e do padrão nacional (Sistema Nacional NFS-e, versões 1.00 e 1.01) e devolve os fatos em JSON, como CLI
 ou como biblioteca. Nunca usa a rede.
 
@@ -14,7 +16,15 @@ ou como biblioteca. Nunca usa a rede.
 ## Uso
 
 ```bash
-node src/cli.mjs read nota.xml
+npx @tres-pinos/nfse read nota.xml
+```
+
+Ou, como biblioteca:
+
+```js
+import { readNfse } from "@tres-pinos/nfse";
+
+const nfse = readNfse(xml);
 ```
 
 Devolve JSON, resumido aqui:

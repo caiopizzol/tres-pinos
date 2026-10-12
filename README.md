@@ -46,7 +46,7 @@ prontos para o resto do mundo e travam nas nossas jabuticabas.
 | Pacote                      | O que faz                                                                          |
 | --------------------------- | ---------------------------------------------------------------------------------- |
 | [`boleto`](packages/boleto) | Lê os códigos de boleto e Pix de um PDF ou foto. Funciona como CLI                 |
-| [`nfse`](packages/nfse)     | Lê uma NFS-e do padrão nacional e devolve os fatos em JSON. Funciona como CLI      |
+| [`nfse`](packages/nfse)     | Lê uma NFS-e do padrão nacional e devolve os fatos em JSON. No npm, com CLI        |
 | [`media`](packages/media)   | Converte imagens, vídeos, áudios e PDFs em algo que o agente consegue ver ou ler   |
 | [`bank`](packages/bank)     | Certificado, bloqueio de pagamentos e centavos exatos, para os conectores de banco |
 | [`server`](packages/server) | Serve as ferramentas de um conector em `/mcp`, só para quem tem a chave            |
