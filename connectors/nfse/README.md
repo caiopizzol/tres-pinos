@@ -25,6 +25,7 @@ usuário 1000 dentro do container. Se o seu usuário não for o 1000, passe os a
 legível só pelo dono:
 
 ```bash
+chmod 600 certificate/nfse.key
 docker run --rm -v ./certificate:/c alpine chown 1000:1000 /c/nfse.crt /c/nfse.key
 ```
 
