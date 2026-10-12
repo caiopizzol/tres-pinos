@@ -38,6 +38,18 @@ docker compose up -d
 
 Ligue o agente em `http://127.0.0.1:3013/mcp`, com o cabeçalho `Authorization: Bearer $INTER_KEY`.
 
+## Acesso pela internet
+
+Com `INTER_PUBLIC_URL`, o conector também aceita login: o app abre uma página do conector, você digita a
+`INTER_KEY` e ele recebe um acesso próprio, que expira. Publique a porta 3013 nesse endereço com HTTPS, por
+exemplo com um [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/).
+Os logins ficam no volume `inter`.
+
+```bash
+codex mcp add inter --url https://inter.seudominio.com/mcp
+codex mcp login inter
+```
+
 ## Configuração
 
 | Variável              | O que faz                                                    |
@@ -46,6 +58,7 @@ Ligue o agente em `http://127.0.0.1:3013/mcp`, com o cabeçalho `Authorization: 
 | `INTER_CLIENT_ID`     | O client ID da integração                                    |
 | `INTER_CLIENT_SECRET` | O client secret da integração                                |
 | `INTER_CERT_DIR`      | Pasta com `inter.crt` e `inter.key`. Padrão: `./certificate` |
+| `INTER_PUBLIC_URL`    | Endereço público com HTTPS, para entrar com login. Opcional  |
 
 ## Ferramentas
 

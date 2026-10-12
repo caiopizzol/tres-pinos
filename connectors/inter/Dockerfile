@@ -10,6 +10,8 @@ RUN bun install --frozen-lockfile --production --filter @tres-pinos/inter && rm 
 COPY packages/bank/src packages/bank/src
 COPY packages/server/src packages/server/src
 COPY connectors/inter/src connectors/inter/src
+# Sign-ins are kept here, on a volume; the folder belongs to node so a new volume does too.
+RUN mkdir /data && chown node:node /data
 WORKDIR /app/connectors/inter
 USER node
 CMD ["node", "src/server.mjs"]

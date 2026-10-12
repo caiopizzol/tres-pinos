@@ -35,4 +35,10 @@ serve({
   key: env.INTER_KEY,
   tools: () => buildServer(inter),
   port: Number(env.PORT ?? 8080),
+  publicUrl: env.PUBLIC_URL,
+  dataDir: env.DATA_DIR,
+  consent: {
+    title: "seu Banco Inter",
+    reach: "Ele vai poder ler o saldo e o extrato da conta. Nunca movimenta dinheiro.",
+  },
 });

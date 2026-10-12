@@ -29,7 +29,12 @@ services:
       INTER_CLIENT_SECRET: ${INTER_CLIENT_SECRET:-}
       INTER_CERT_PATH: /certificate/inter.crt
       INTER_CERT_KEY_PATH: /certificate/inter.key
+      PUBLIC_URL: ${INTER_PUBLIC_URL:-}
     ports:
       - 127.0.0.1:3013:8080
     volumes:
       - ${INTER_CERT_DIR:-./certificate}:/certificate:ro
+      - inter:/data
+
+volumes:
+  inter:
