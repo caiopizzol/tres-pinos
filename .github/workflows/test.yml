@@ -33,5 +33,8 @@ jobs:
       - run: docker build -f connectors/sicoob/Dockerfile -t sicoob .
       - run: docker build -f connectors/inter/Dockerfile -t inter .
       - run: docker build -f connectors/nfse/Dockerfile -t nfse .
+      # Without settings, each connector must stop asking for them, which shows its code and packages are all in.
+      - run: |
+          for c in sicoob inter nfse; do docker run --rm $c 2>&1 | grep "Error: Set "; done
       - run: docker build -f packages/media/Dockerfile -t media .
       - run: docker run --rm media
