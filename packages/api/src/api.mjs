@@ -1,11 +1,12 @@
 // What a connector needs to reach an official API with a certificate: the certificate, a guard that lets out
 // only the requests the connector was built to make, and exact amounts.
+import { createPrivateKey, X509Certificate } from "node:crypto";
 import { readFileSync } from "node:fs";
 import https from "node:https";
 
-// A certificate or key file. The container runs as uid 1000, which can't read a key owned by anyone else
-// with mode 600.
-export function readCertificate(path) {
+// A file of the certificate. The container runs as uid 1000, which can't read a key owned by anyone else with
+// mode 600.
+function read(path) {
   try {
     return readFileSync(path);
   } catch (error) {
@@ -15,6 +16,32 @@ export function readCertificate(path) {
         : `Can't read ${path}`,
     );
   }
+}
+
+// Reads the certificate and key a connector presents, from the settings that `prefix` names, such as SICOOB for
+// SICOOB_CERT_PATH, SICOOB_CERT_KEY_PATH and SICOOB_CERT_PASSWORD. A wrong password or a key from another
+// certificate would otherwise show up later as a vague TLS error.
+export function readCertificate(env, prefix) {
+  const cert = read(env[`${prefix}_CERT_PATH`]);
+  const key = read(env[`${prefix}_CERT_KEY_PATH`]);
+  const passphrase = env[`${prefix}_CERT_PASSWORD`] || undefined;
+  let privateKey;
+  if (passphrase) {
+    try {
+      privateKey = createPrivateKey({ key, passphrase });
+    } catch {
+      throw new Error(`${prefix}_CERT_PASSWORD does not open ${prefix}_CERT_KEY_PATH`);
+    }
+  }
+  try {
+    if (!new X509Certificate(cert).checkPrivateKey(privateKey ?? createPrivateKey(key)))
+      throw new Error();
+  } catch {
+    throw new Error(
+      `${prefix}_CERT_PATH and ${prefix}_CERT_KEY_PATH are not a matching certificate and key`,
+    );
+  }
+  return { cert, key, passphrase };
 }
 
 // A fetch-like request over node:https with the certificate. Redirects are not followed: a redirect would

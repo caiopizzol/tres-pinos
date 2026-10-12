@@ -14,26 +14,28 @@ const KEY = "k".repeat(32);
 const dir = mkdtempSync(join(tmpdir(), "sicoob-server-"));
 after(() => rmSync(dir, { recursive: true, force: true }));
 const file = (name) => join(dir, name);
-execFileSync(
-  "openssl",
-  [
-    "req",
-    "-x509",
-    "-newkey",
-    "rsa:2048",
-    "-passout",
-    "pass:test-password-123",
-    "-keyout",
-    file("key.pem"),
-    "-out",
-    file("cert.pem"),
-    "-days",
-    "1",
-    "-subj",
-    "/CN=FULANO DE TAL:00000000000",
-  ],
-  { stdio: "ignore" },
-);
+// Two certificates, so a certificate that doesn't match the key can be given.
+for (const name of ["", "other-"])
+  execFileSync(
+    "openssl",
+    [
+      "req",
+      "-x509",
+      "-newkey",
+      "rsa:2048",
+      "-passout",
+      "pass:test-password-123",
+      "-keyout",
+      file(`${name}key.pem`),
+      "-out",
+      file(`${name}cert.pem`),
+      "-days",
+      "1",
+      "-subj",
+      "/CN=FULANO DE TAL:00000000000",
+    ],
+    { stdio: "ignore" },
+  );
 const SETTINGS = {
   SICOOB_KEY: KEY,
   SICOOB_CLIENT_ID: "client-id",
@@ -135,7 +137,7 @@ test("the README and the site name exactly the tools it offers", async () => {
 });
 
 test(
-  "refuses to start with a short key, a missing setting, or a wrong certificate password",
+  "refuses to start with a short key, a missing setting, a wrong certificate password, or a certificate and key that don't match",
   { timeout: 10_000 },
   async () => {
     for (const [settings, message] of [
@@ -145,6 +147,10 @@ test(
       [
         { SICOOB_CERT_PASSWORD: "wrong-password" },
         /SICOOB_CERT_PASSWORD does not open SICOOB_CERT_KEY_PATH/,
+      ],
+      [
+        { SICOOB_CERT_PATH: file("other-cert.pem") },
+        /SICOOB_CERT_PATH and SICOOB_CERT_KEY_PATH are not a matching certificate and key/,
       ],
     ]) {
       const { child, stderr } = start(await freePort(), settings);
