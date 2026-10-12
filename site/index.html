@@ -108,6 +108,30 @@
             </tbody>
           </table>
         </div>
+        <div class="sheet" id="nfse">
+          <table>
+            <caption>
+              nfse
+              <span>só lê, nunca emite nem cancela notas</span>
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Ferramenta</th>
+                <th scope="col">O que faz</th>
+                <th scope="col">Precisa de</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>list_invoices</td>
+                <td>
+                  Lê as notas fiscais de serviço da empresa e os cancelamentos, no sistema nacional.
+                </td>
+                <td>e-CNPJ A1</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
         <ul class="fine">
           <li>
             <strong>Pela API oficial</strong> de cada banco: no Sicoob, com o seu certificado e-CPF
@@ -121,6 +145,12 @@
           <li>
             <strong>Pagamentos são recusados</strong> antes de chegar ao banco, mesmo que o
             certificado permita.
+          </li>
+          <li>
+            <strong>Notas fiscais de serviço</strong> pela distribuição oficial do sistema nacional,
+            com o certificado e-CNPJ A1 da empresa. Emitir e cancelar notas é recusado do mesmo
+            jeito. Como configurar a
+            <a href="https://github.com/caiopizzol/tres-pinos/tree/main/connectors/nfse">NFS-e</a>.
           </li>
           <li>
             <strong>Boletos e Pix</strong> pela CLI

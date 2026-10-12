@@ -17,6 +17,16 @@
         "zod": "4.6.5",
       },
     },
+    "connectors/nfse": {
+      "name": "@tres-pinos/nfse-connector",
+      "dependencies": {
+        "@modelcontextprotocol/sdk": "1.31.0",
+        "@tres-pinos/bank": "workspace:*",
+        "@tres-pinos/nfse": "workspace:*",
+        "@tres-pinos/server": "workspace:*",
+        "zod": "4.6.5",
+      },
+    },
     "connectors/sicoob": {
       "name": "@tres-pinos/sicoob",
       "dependencies": {
@@ -225,6 +235,8 @@
     "@tres-pinos/media": ["@tres-pinos/media@workspace:packages/media"],
 
     "@tres-pinos/nfse": ["@tres-pinos/nfse@workspace:packages/nfse"],
+
+    "@tres-pinos/nfse-connector": ["@tres-pinos/nfse-connector@workspace:connectors/nfse"],
 
     "@tres-pinos/server": ["@tres-pinos/server@workspace:packages/server"],
 

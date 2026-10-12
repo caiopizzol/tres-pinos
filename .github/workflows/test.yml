@@ -32,5 +32,6 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - run: docker build -f connectors/sicoob/Dockerfile -t sicoob .
       - run: docker build -f connectors/inter/Dockerfile -t inter .
+      - run: docker build -f connectors/nfse/Dockerfile -t nfse .
       - run: docker build -f packages/media/Dockerfile -t media .
       - run: docker run --rm media
