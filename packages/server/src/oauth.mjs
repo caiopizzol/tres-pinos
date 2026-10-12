@@ -7,6 +7,8 @@ import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 const CODE_MS = 5 * 60_000;
 const ACCESS_MS = 60 * 60_000;
 const REFRESH_MS = 30 * 86_400_000;
+// Registration is open to anyone, so clients that never signed in are kept for a day, and at most this many.
+const UNUSED_CLIENTS = 1000;
 const SCOPE = "mcp";
 
 // The hosted clients' callbacks: ChatGPT, Claude, and Grok Bot, which signs in through Cursor's.
@@ -119,17 +121,21 @@ export function createOAuth({
       );
     }
     // A client may list callbacks this server can't use (Grok Bot also sends https ones); keep the allowed ones.
-    const uris = Array.isArray(meta.redirect_uris) ? meta.redirect_uris.slice(0, 5) : [];
+    const uris = Array.isArray(meta?.redirect_uris) ? meta.redirect_uris.slice(0, 5) : [];
     const callbacks = uris.filter((u) => typeof u === "string" && allowedCallback(u));
     if (!callbacks.length)
       return oauthError(res, "invalid_redirect_uri", "None of the redirect_uris is allowed");
-    // Registration is open to anyone, so clients that never signed in are dropped after a day.
+    const unused = "select id from clients where id not in (select client_id from grants)";
+    db.prepare(`delete from clients where created_at < ? and id in (${unused})`).run(
+      now() - 86_400_000,
+    );
+    // A burst of registrations replaces the oldest unused ones instead of filling the disk.
     db.prepare(
-      "delete from clients where created_at < ? and id not in (select client_id from grants)",
-    ).run(now() - 86_400_000);
+      `delete from clients where id in (${unused} order by created_at desc limit -1 offset ?)`,
+    ).run(UNUSED_CLIENTS - 1);
     const id = random(16);
     const name =
-      typeof meta.client_name === "string" && meta.client_name.trim()
+      typeof meta?.client_name === "string" && meta.client_name.trim()
         ? meta.client_name.slice(0, 100)
         : "Cliente MCP";
     db.prepare("insert into clients values (?, ?, ?, ?)").run(

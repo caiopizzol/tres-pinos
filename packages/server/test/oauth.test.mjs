@@ -227,6 +227,35 @@ test("a code stays single-use across a restart", async () => {
   assert.equal((await exchange(first, fields)).status, 400);
 });
 
+test("a registration that isn't an object is refused, not a crash", async () => {
+  const server = await start();
+  for (const body of ["null", "[]", '"x"', "1"]) {
+    const res = await post(`${server.issuer}/register`, body);
+    assert.equal(res.status, 400, body);
+  }
+  assert.equal((await register(server)).status, 201, "still serving");
+});
+
+test("a burst of registrations keeps at most 1000 unused clients, and never one that signed in", async () => {
+  const server = await start();
+  const { client: signedIn, code } = await signIn(server);
+  const fields = {
+    grant_type: "authorization_code",
+    code,
+    client_id: signedIn.client_id,
+    redirect_uri: GROK,
+    code_verifier: verifier,
+  };
+  assert.equal((await exchange(server, fields)).status, 200);
+  for (let i = 0; i < 1005; i++) await register(server);
+  const count = (sql) => server.db.prepare(sql).get().n;
+  assert.equal(
+    count("select count(*) n from clients where id not in (select client_id from grants)"),
+    1000,
+  );
+  assert.equal(count(`select count(*) n from clients where id = '${signedIn.client_id}'`), 1);
+});
+
 test("an unknown client or unregistered callback is answered here, never redirected", async () => {
   const server = await start();
   const unknown = await fetch(
