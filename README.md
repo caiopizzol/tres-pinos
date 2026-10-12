@@ -25,6 +25,16 @@ imprensa chamou de padrão jabuticaba: aquilo que só dá aqui.
 A tomada tem companhia: boleto, Pix, CPF para tudo e cliente que só fala por WhatsApp. Os agentes de IA chegam
 prontos para o resto do mundo e travam nas nossas jabuticabas.
 
+> [!NOTE]
+> **E o Open Finance?** Regulado pelo [Banco Central](https://www.bcb.gov.br/estabilidadefinanceira/openfinance),
+> ele deixa uma instituição ler a sua conta em outro banco, com o seu consentimento, e os grandes bancos são
+> obrigados a participar. Mas só instituições autorizadas entram nele: para chegar ao seu agente, os seus dados
+> passam por uma delas. E a [API de pagamentos](https://openbanking-brasil.github.io/openapi/swagger-apis/payments/)
+> só inicia Pix. Boleto fica de fora.
+>
+> Os conectores de banco daqui usam a API do próprio banco, com o seu certificado, de um servidor seu, sem empresa
+> no meio. Essa API vai além do Pix: também paga boleto.
+
 ## Conectores
 
 | Conector                      | O que o agente pode fazer                                           |
