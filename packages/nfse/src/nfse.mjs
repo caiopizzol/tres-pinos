@@ -6,7 +6,7 @@ import { DOMParser } from "@xmldom/xmldom";
 const NS = "http://www.sped.fazenda.gov.br/nfse";
 const VERSIONS = ["1.00", "1.01"];
 // Larger than any invoice, small enough that a hostile file can't exhaust memory.
-const MAX_BYTES = 1_000_000;
+export const MAX_BYTES = 1_000_000;
 
 export class NfseError extends Error {}
 
@@ -39,8 +39,12 @@ function child(parent, name, optional = false) {
   return found[0] ?? null;
 }
 
+// A field's own text. A field that holds other elements is not a value.
 function text(parent, name, optional = false) {
-  const value = child(parent, name, optional)?.textContent.trim();
+  const element = child(parent, name, optional);
+  if (Array.from(element?.childNodes ?? []).some((node) => node.nodeType === 1))
+    throw new NfseError(`${name} holds elements instead of a value`);
+  const value = element?.textContent.trim();
   if (!optional && !value) throw new NfseError(`${name} is empty`);
   return value || null;
 }
@@ -53,14 +57,14 @@ function cents(parent, name) {
 }
 
 // Who a party is: a Brazilian CNPJ or CPF, a foreign tax ID (NIF), or the reason there is none (cNaoNIF).
+// The layout allows exactly one of them; two would make the party ambiguous.
 function identity(party) {
-  for (const kind of ["CNPJ", "CPF", "NIF"]) {
-    const value = text(party, kind, true);
-    if (value) return { idType: kind, id: value };
-  }
-  const reason = text(party, "cNaoNIF", true);
-  if (reason) return { idType: "none", noIdReason: reason };
-  throw new NfseError("A party has no CNPJ, CPF, NIF or cNaoNIF");
+  const given = ["CNPJ", "CPF", "NIF", "cNaoNIF"].filter((kind) => text(party, kind, true));
+  if (given.length !== 1)
+    throw new NfseError("A party needs exactly one of CNPJ, CPF, NIF or cNaoNIF");
+  const [kind] = given;
+  if (kind === "cNaoNIF") return { idType: "none", noIdReason: text(party, kind) };
+  return { idType: kind, id: text(party, kind) };
 }
 
 function party(element) {

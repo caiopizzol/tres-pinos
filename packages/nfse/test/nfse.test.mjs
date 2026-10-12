@@ -66,7 +66,12 @@ test("never guesses: a missing, repeated or malformed field fails", () => {
     [change('Id="NFS', 'Id="NF'), /50-digit access key/],
     [change('versao="1.01" xmlns', 'versao="2.00" xmlns'), /version 2.00 is not supported/],
     [change("http://www.sped.fazenda.gov.br/nfse", "http://example.com/nfse"), /national layout/],
-    [change("<CPF>00000000191</CPF>", ""), /no CNPJ, CPF, NIF or cNaoNIF/],
+    [change("<CPF>00000000191</CPF>", ""), /exactly one of CNPJ, CPF, NIF or cNaoNIF/],
+    [
+      change("<CPF>00000000191</CPF>", "<CNPJ>00000000000272</CNPJ><CPF>00000000191</CPF>"),
+      /exactly one of CNPJ, CPF, NIF or cNaoNIF/,
+    ],
+    [change("<vLiq>1450.50</vLiq>", "<vLiq><x>1450.50</x></vLiq>"), /vLiq holds elements/],
     [XML.slice(0, 400), /not well-formed/],
   ];
   // An NfseError, so the CLI shows its message instead of a stack trace.
@@ -106,7 +111,14 @@ test("the CLI prints JSON for an NFS-e, and only an error for anything else", ()
   );
   assert.equal(good.accessKey, "41069022200000000000191000000000000126090000000001");
   writeFileSync(join(dir, "bad.xml"), "<not-an-nfse/>");
+  // Over 1 MB: refused before the file is read.
+  writeFileSync(join(dir, "huge.xml"), Buffer.alloc(1_000_001, " "));
+  const huge = spawnSync(process.execPath, [cli, "read", join(dir, "huge.xml")], {
+    encoding: "utf8",
+  });
+  assert.match(huge.stderr, /larger than 1 MB/);
   for (const args of [
+    ["read", join(dir, "huge.xml")],
     ["read", join(dir, "bad.xml")],
     ["read", join(dir, "missing.xml")],
     ["read"],
