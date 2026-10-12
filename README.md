@@ -58,15 +58,20 @@ prontos para o resto do mundo e travam nas nossas jabuticabas.
 
 ## Início rápido
 
+```bash
+git clone https://github.com/caiopizzol/tres-pinos && cd tres-pinos
+cp .env.example .env   # escolha os conectores em COMPOSE_PROFILES e preencha as variáveis
+```
+
 Prepare o certificado como diz cada conector: [Sicoob](connectors/sicoob), [Inter](connectors/inter) ou
 [NFS-e](connectors/nfse). Depois:
 
 ```bash
-cp .env.example .env   # escolha os conectores em COMPOSE_PROFILES e preencha as variáveis
 docker compose up -d
 ```
 
-E ligue o seu agente na mesma máquina, com a porta e a chave de cada conector:
+E ligue o seu agente na mesma máquina, com a porta e a chave de cada conector. O [Inter](connectors/inter) e a
+[NFS-e](connectors/nfse) também aceitam login pela internet.
 
 | Conector | Endereço                    | Chave        |
 | -------- | --------------------------- | ------------ |
