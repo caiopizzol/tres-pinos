@@ -1,7 +1,7 @@
 # Server
 
-Serve as ferramentas MCP de um conector em `/mcp`. Os conectores do [Sicoob](../../connectors/sicoob) e do
-[Inter](../../connectors/inter) usam.
+Serve as ferramentas MCP de um conector em `/mcp`. Os conectores do [Sicoob](../../connectors/sicoob), do
+[Inter](../../connectors/inter) e da [NFS-e](../../connectors/nfse) usam.
 
 | Acesso | Para quem                                                                                         |
 | ------ | ------------------------------------------------------------------------------------------------- |
