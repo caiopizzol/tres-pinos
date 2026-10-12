@@ -1,6 +1,6 @@
 // Reads a Sicoob checking account through the official API: the balance and a month's statement. Sicoob
 // authenticates the app with the owner's e-CPF certificate (mutual TLS), then issues a token per scope.
-import { toCents } from "@tres-pinos/bank";
+import { toCents } from "@tres-pinos/api";
 
 export const TOKEN_URL =
   "https://auth.sicoob.com.br/auth/realms/cooperado/protocol/openid-connect/token";

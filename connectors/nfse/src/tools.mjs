@@ -1,7 +1,7 @@
 // The MCP tool: list the company's NFS-e from the national system. It never issues or cancels an invoice.
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { isReadOnly } from "@tres-pinos/bank";
+import { isReadOnly } from "@tres-pinos/api";
 import { AdnError } from "./adn.mjs";
 
 // The answer to a tool call. A failure carries only the ADN's status, never its message text.

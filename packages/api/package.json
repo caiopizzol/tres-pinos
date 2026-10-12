@@ -1,9 +1,9 @@
 {
-  "name": "@tres-pinos/bank",
+  "name": "@tres-pinos/api",
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/bank.mjs"
+    ".": "./src/api.mjs"
   },
   "scripts": {
     "test": "node --test test/*.test.mjs"

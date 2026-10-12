@@ -10,7 +10,7 @@ import { gzipSync } from "node:zlib";
 import { after, before, beforeEach, test } from "node:test";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
-import { certificateFetch } from "@tres-pinos/bank";
+import { certificateFetch } from "@tres-pinos/api";
 import { AdnError, adnClient, API_URL } from "../src/adn.mjs";
 import { readOnly } from "../src/guard.mjs";
 import { buildServer } from "../src/tools.mjs";
