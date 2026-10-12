@@ -62,11 +62,13 @@ Prepare o certificado como diz cada conector: [Sicoob](connectors/sicoob), [Inte
 [NFS-e](connectors/nfse). Depois:
 
 ```bash
+git clone https://github.com/caiopizzol/tres-pinos && cd tres-pinos
 cp .env.example .env   # escolha os conectores em COMPOSE_PROFILES e preencha as variáveis
 docker compose up -d
 ```
 
-E ligue o seu agente na mesma máquina, com a porta e a chave de cada conector:
+E ligue o seu agente na mesma máquina, com a porta e a chave de cada conector. O [Inter](connectors/inter) e a
+[NFS-e](connectors/nfse) também aceitam login pela internet.
 
 | Conector | Endereço                    | Chave        |
 | -------- | --------------------------- | ------------ |

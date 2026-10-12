@@ -167,10 +167,16 @@
           <li>
             <h3>Prepare o certificado</h3>
             <p>
-              Precisa do <a href="https://docs.docker.com/get-docker/">Docker</a>, de um app no
-              portal de desenvolvedores do Sicoob e do seu certificado e-CPF A1. Veja
+              Precisa do <a href="https://docs.docker.com/get-docker/">Docker</a> e do certificado
+              de cada conector. Veja como configurar o
               <a href="https://github.com/caiopizzol/tres-pinos/tree/main/connectors/sicoob"
-                >como configurar</a
+                >Sicoob</a
+              >, o
+              <a href="https://github.com/caiopizzol/tres-pinos/tree/main/connectors/inter"
+                >Inter</a
+              >
+              ou a
+              <a href="https://github.com/caiopizzol/tres-pinos/tree/main/connectors/nfse">NFS-e</a
               >.
             </p>
           </li>
@@ -185,7 +191,13 @@
           </li>
           <li>
             <h3>Ligue o seu agente</h3>
-            <p>Na mesma máquina; acesso pela internet ainda não existe.</p>
+            <p>
+              Na mesma máquina, com a chave. O Inter e a NFS-e também aceitam
+              <a
+                href="https://github.com/caiopizzol/tres-pinos/tree/main/connectors/inter#acesso-pela-internet"
+                >login pela internet</a
+              >.
+            </p>
             <pre
               tabindex="0"
             ><span class="p">$ </span>export SICOOB_KEY=...   <span class="c"># a mesma do .env</span></pre>

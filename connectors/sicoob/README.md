@@ -15,7 +15,7 @@ Converta o `.pfx` em um certificado e uma chave com senha, na pasta `certificate
 OpenSSL pede a senha do `.pfx` e depois, duas vezes, uma senha nova para a chave:
 
 ```bash
-mkdir certificate &&
+mkdir -p certificate &&
   openssl pkcs12 -legacy -in certificado.pfx -clcerts -nokeys | openssl x509 -out certificate/sicoob.crt &&
   openssl pkcs12 -legacy -in certificado.pfx -nocerts -noenc | openssl pkey -aes-256-cbc -out certificate/sicoob.key
 ```
