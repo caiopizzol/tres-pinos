@@ -1,7 +1,7 @@
 // The MCP tools: read the owner's Banco Inter business account. They never move money.
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { isReadOnly } from "@tres-pinos/bank";
+import { isReadOnly } from "@tres-pinos/api";
 import { InterError } from "./inter.mjs";
 
 // The answer to a tool call. A failure carries only Inter's status, never its message text.

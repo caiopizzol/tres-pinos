@@ -7,7 +7,7 @@ import { createServer } from "node:https";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, before, test } from "node:test";
-import { certificateFetch } from "@tres-pinos/bank";
+import { certificateFetch } from "@tres-pinos/api";
 import { readOnly } from "../src/guard.mjs";
 import { API_URL, getBalance, getStatement, SicoobError, TOKEN_URL } from "../src/sicoob.mjs";
 import { buildServer } from "../src/tools.mjs";

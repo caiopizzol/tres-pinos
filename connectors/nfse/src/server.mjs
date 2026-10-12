@@ -1,6 +1,6 @@
 // MCP server that gives an agent the tool in tools.mjs, behind NFSE_KEY.
 import { createPrivateKey, X509Certificate } from "node:crypto";
-import { certificateFetch, readCertificate } from "@tres-pinos/bank";
+import { certificateFetch, readCertificate } from "@tres-pinos/api";
 import { serve } from "@tres-pinos/server";
 import { adnClient } from "./adn.mjs";
 import { readOnly } from "./guard.mjs";

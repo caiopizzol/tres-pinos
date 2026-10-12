@@ -1,8 +1,8 @@
-// What the bank connectors share, apart from the certificate request, which each connector's tests run against
-// its fake bank.
+// What the connectors share, apart from the certificate request, which each connector's tests run against
+// its fake API.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { isReadOnly, readOnly, toCents } from "../src/bank.mjs";
+import { isReadOnly, readOnly, toCents } from "../src/api.mjs";
 
 const TOKEN_URL = "https://bank.example/token";
 const guarded = (reply) =>
