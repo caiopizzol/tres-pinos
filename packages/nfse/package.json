@@ -1,26 +1,9 @@
 {
   "name": "@tres-pinos/nfse",
-  "version": "0.1.1",
-  "description": "Lê uma NFS-e do padrão nacional e devolve os fatos em JSON",
-  "keywords": [
-    "brasil",
-    "nfs-e",
-    "nfse",
-    "nota-fiscal"
-  ],
-  "homepage": "https://github.com/caiopizzol/tres-pinos/tree/main/packages/nfse",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/caiopizzol/tres-pinos.git",
-    "directory": "packages/nfse"
-  },
+  "private": true,
   "bin": {
     "nfse": "src/cli.mjs"
   },
-  "files": [
-    "src"
-  ],
   "type": "module",
   "exports": {
     ".": "./src/nfse.mjs"
@@ -30,8 +13,5 @@
   },
   "dependencies": {
     "@xmldom/xmldom": "0.9.12"
-  },
-  "engines": {
-    "node": ">=22"
   }
 }
