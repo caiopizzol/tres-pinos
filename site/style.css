@@ -237,6 +237,9 @@ pre .p {
 pre .c {
   color: #8e8b84;
 }
+.steps .sheet {
+  margin-bottom: 16px;
+}
 .steps .label {
   font: 600 12px/1.4 var(--sans);
   color: var(--muted);

@@ -155,6 +155,48 @@
         </ul>
       </section>
 
+      <section aria-labelledby="skills">
+        <h2 id="skills">Skills</h2>
+        <div class="sheet">
+          <table>
+            <caption>
+              skills
+              <span>testadas no Claude Code e no Codex</span>
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Skill</th>
+                <th scope="col">O que o agente faz</th>
+                <th scope="col">Precisa de</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>ler-conta</td>
+                <td>
+                  Lê os códigos de boleto e Pix de uma conta em PDF ou foto, e confere os dígitos.
+                </td>
+                <td>o repositório</td>
+              </tr>
+              <tr>
+                <td>conciliar-extrato</td>
+                <td>
+                  Confere as entradas de um mês do Inter com as NFS-e emitidas e diz quais ficam sem
+                  nota.
+                </td>
+                <td>inter, nfse</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <ul class="fine">
+          <li>
+            <strong>Instruções que o seu agente segue</strong>: copie a pasta da skill, como diz o
+            <a href="https://github.com/caiopizzol/tres-pinos#skills">repositório</a>.
+          </li>
+        </ul>
+      </section>
+
       <section id="comecar" aria-labelledby="comecar-titulo">
         <h2 id="comecar-titulo">Começar</h2>
         <ol class="steps">
@@ -188,15 +230,47 @@
           </li>
           <li>
             <h3>Ligue o seu agente</h3>
-            <p>Na mesma máquina, com a chave do <code>.env</code>.</p>
+            <p>
+              Na mesma máquina, com a chave do <code>.env</code> no ambiente em que você abre o
+              agente. Os comandos guardam só o nome da variável.
+            </p>
+            <div class="sheet">
+              <table>
+                <thead>
+                  <tr>
+                    <th scope="col">Conector</th>
+                    <th scope="col">Porta</th>
+                    <th scope="col">Chave</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>sicoob</td>
+                    <td>3012</td>
+                    <td>SICOOB_KEY</td>
+                  </tr>
+                  <tr>
+                    <td>inter</td>
+                    <td>3013</td>
+                    <td>INTER_KEY</td>
+                  </tr>
+                  <tr>
+                    <td>nfse</td>
+                    <td>3014</td>
+                    <td>NFSE_KEY</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p>Para o Sicoob; para os outros, troque o nome, a porta e a chave.</p>
             <pre
               tabindex="0"
             ><span class="p">$ </span>export SICOOB_KEY=...   <span class="c"># a mesma do .env</span></pre>
             <p class="label">Claude Code</p>
             <pre
               tabindex="0"
-            ><span class="p">$ </span>claude mcp add --transport http sicoob http://127.0.0.1:3012/mcp \
-    --header "Authorization: Bearer $SICOOB_KEY"</pre>
+            ><span class="p">$ </span>claude mcp add --scope user --transport http sicoob http://127.0.0.1:3012/mcp \
+    --header 'Authorization: Bearer ${SICOOB_KEY}'</pre>
             <p class="label">Codex</p>
             <pre
               tabindex="0"
