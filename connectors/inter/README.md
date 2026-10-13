@@ -16,11 +16,10 @@ No fim, você terá `certificate/inter.crt`, `certificate/inter.key` e o client 
 2. Em **Identificação**, dê um nome e uma descrição, como "Consulta de extrato e saldo", e clique em **Continuar**.
 3. Em **Atividades**, marque só **Saldo e Extrato**, aceite os **Termos e condições** e clique em **Continuar**.
    Não abra **Configurações Avançadas**: ela descarta as marcações.
-4. Informe o código que chega por SMS.
-5. O Inter analisa o pedido e responde por e-mail, em até 30 dias úteis. Acompanhe em **Integrar > Minhas
-   Integrações**.
-6. Com a integração aprovada, baixe o certificado e a chave e copie o client ID e o client secret.
-   <!-- TODO: gravar a tela da integração aprovada e o nome dos botões. -->
+4. Informe o código que chega por SMS. O Inter avisa que vai analisar o pedido.
+5. Em **Integrar > Minhas Integrações**, abra a integração e clique em **Baixar chave e certificado**. Você recebe
+   um `.zip` com o certificado e a chave.
+6. Copie o client ID e o client secret. <!-- TODO: gravar onde o Inter mostra o client ID e o client secret. -->
 
 ![Criar a integração no Inter](criar-integracao.gif)
 

@@ -13,7 +13,7 @@ i=0
 for screen in "$@"; do
   i=$((i + 1))
   ffmpeg -v error -i "$screen" \
-    -vf "scale=960:540:force_original_aspect_ratio=decrease,pad=1000:580:(ow-iw)/2:(oh-ih)/2:color=#F3F4F8" \
+    -vf "scale=960:540:force_original_aspect_ratio=decrease,pad=1000:580:(ow-iw)/2:(oh-ih)/2:color=#F3F4F8,format=rgb24" \
     "$work/$(printf %02d "$i").png"
 done
 # Each screen is shown 2.5 s; the list repeats the last one, since the concat demuxer ignores the last duration.
