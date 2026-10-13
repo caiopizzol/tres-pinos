@@ -13,6 +13,7 @@
     "test": "bun run --filter '*' test"
   },
   "devDependencies": {
+    "playwright": "1.64.0",
     "vite-plus": "1.1.0"
   },
   "packageManager": "bun@1.3.14"
