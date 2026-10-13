@@ -87,8 +87,8 @@
             <h2>Ligar o banco e a NFS-e</h2>
             <pre tabindex="0"><span class="p">$ </span>mkdir tres-pinos && cd tres-pinos
 <span class="p">$ </span>curl -fsSLO https://github.com/caiopizzol/tres-pinos/releases/latest/download/compose.yaml
-<span class="p">$ </span>curl -fsSL https://github.com/caiopizzol/tres-pinos/releases/latest/download/env.example \
-    | sed 's/^COMPOSE_PROFILES=.*/COMPOSE_PROFILES=inter,nfse/' > .env
+<span class="p">$ </span>curl -fsSL https://github.com/caiopizzol/tres-pinos/releases/latest/download/env.example -o .env
+<span class="p">$ </span>sed -i.bak 's/^COMPOSE_PROFILES=.*/COMPOSE_PROFILES=inter,nfse/' .env
 <span class="p">$ </span>docker compose up -d   <span class="c"># depois de preencher o .env</span></pre>
           </div>
         </div>

@@ -69,3 +69,5 @@ jobs:
           cp .env.example env.example
           gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes
           gh release upload "$GITHUB_REF_NAME" compose.yaml env.example --clobber
+          # A draft is never releases/latest, so publish it; GitHub picks latest by version.
+          gh release edit "$GITHUB_REF_NAME" --draft=false
