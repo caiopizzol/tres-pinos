@@ -1,53 +1,62 @@
 # Inter
 
-Servidor MCP que deixa um agente de IA ler a sua conta PJ no Banco Inter, pela API oficial: saldo e extrato. Ele
-nunca movimenta dinheiro.
+O agente pode ler o saldo e o extrato da sua conta PJ no Banco Inter, pela API oficial. Qualquer outra chamada,
+como um pagamento, é recusada antes de chegar ao banco.
 
-## Requisitos
+## Antes de começar
 
 - Uma conta Inter Empresas. A [API do Inter não atende contas PF nem MEI](https://ajuda.inter.co/conta-digital-pessoa-juridica/o-inter-disponibiliza-alguma-api-para-minha-conta-digital-pj).
-- Uma integração criada no Internet Banking, em **Soluções para sua empresa > Nova Integração**, com o escopo
-  **Consultar extrato e saldo** (`extrato.read`). Só esse: o conector não precisa de nenhum outro.
+- O celular da conta, para o código por SMS.
 
-## Certificado
+No fim, você terá `certificate/inter.crt`, `certificate/inter.key` e o client ID e o client secret da integração.
 
-Ao criar a integração, o Inter entrega um certificado e uma chave. Copie os dois para a pasta `certificate/` da
-raiz do repositório:
+## No Inter
+
+1. No [Internet Banking](https://contadigital.inter.co/), abra **Integrar** e clique em **Nova Integração**.
+2. Em **Identificação**, dê um nome e uma descrição, como "Consulta de extrato e saldo", e clique em **Continuar**.
+3. Em **Atividades**, marque só **Saldo e Extrato**, aceite os **Termos e condições** e clique em **Continuar**.
+   Não abra **Configurações Avançadas**: ela descarta as marcações.
+4. Informe o código que chega por SMS.
+5. O Inter analisa o pedido e responde por e-mail, em até 30 dias úteis. Acompanhe em **Integrar > Minhas
+   Integrações**.
+6. Com a integração aprovada, baixe o certificado e a chave e copie o client ID e o client secret.
+   <!-- TODO: gravar a tela da integração aprovada e o nome dos botões. -->
+
+![Criar a integração no Inter](criar-integracao.gif)
+
+## No Três Pinos
+
+O Inter entrega o certificado e a chave como `Inter API_Certificado.crt` e `Inter API_Chave.key`. Copie os dois
+para a pasta `certificate/`, ao lado do `compose.yaml`:
 
 ```bash
 mkdir -p certificate
 cp "Inter API_Certificado.crt" certificate/inter.crt
 cp "Inter API_Chave.key" certificate/inter.key
-```
-
-A pasta fica fora do git. O conector roda como o usuário 1000 dentro do container. Se o seu usuário não for o
-1000, passe os arquivos para ele, mantendo a chave legível só pelo dono:
-
-```bash
 chmod 600 certificate/inter.key
 docker run --rm -v ./certificate:/c alpine chown 1000:1000 /c/inter.crt /c/inter.key
 ```
 
-## Rodar
-
-No `.env` da raiz do repositório, inclua `inter` em `COMPOSE_PROFILES` e preencha as variáveis abaixo. Depois:
+No `.env`, inclua `inter` em `COMPOSE_PROFILES` e preencha as variáveis de [Configuração](#configuração). Depois:
 
 ```bash
 docker compose up -d
 ```
 
-Ligue o agente em `http://127.0.0.1:3013/mcp`, com o cabeçalho `Authorization: Bearer $INTER_KEY`.
+## Ligar o agente
 
-## Acesso pela internet
+Na mesma máquina, ligue o agente em `http://127.0.0.1:3013/mcp`, com o cabeçalho
+`Authorization: Bearer $INTER_KEY`.
 
-Com `INTER_PUBLIC_URL`, o conector também aceita login: o app abre uma página do conector, você digita a
-`INTER_KEY` e ele recebe um acesso próprio, que expira. Publique a porta 3013 nesse endereço com HTTPS, por
-exemplo com um [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/).
-Os logins ficam no volume `inter`.
-
-Adicione `https://inter.seudominio.com/mcp` como conector MCP no seu app de IA. Apps que rodam na sua máquina
-entram direto; um app na nuvem precisa ter o endereço de retorno do login na lista do conector, em
+Pela internet, publique a porta 3013 com HTTPS, por exemplo com um
+[Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/), ponha o
+endereço em `INTER_PUBLIC_URL` e adicione `<endereço>/mcp` como conector MCP no seu app de IA. O app abre uma página
+do conector, onde você digita a `INTER_KEY`. Um app na nuvem precisa ter o endereço de retorno do login na lista de
 [`oauth.mjs`](../../packages/server/src/oauth.mjs).
+
+Depois, pergunte: "Qual é o saldo da minha conta no Inter?"
+
+![Entrar no conector](entrar.gif)
 
 ## Configuração
 
@@ -66,12 +75,5 @@ entram direto; um app na nuvem precisa ter o endereço de retorno do login na li
 | `get_balance`   | Saldo e limite, em centavos. Um limite que o Inter não informa vem como `null`        |
 | `get_statement` | As transações de um mês, em centavos. Um mês com mais de 10.000 transações é recusado |
 
-O conector só deixa sair as chamadas dessas duas ferramentas. Qualquer outra, como um pagamento, é recusada
-antes de chegar ao Inter, mesmo que a integração permita. O Inter aceita só uns cinco tokens por minuto; o
-conector usa o mesmo token por quase uma hora, então isso não limita as ferramentas.
-
-## Desenvolvimento
-
-```bash
-bun run test   # contra um Inter falso, com certificados gerados na hora
-```
+O Inter aceita só uns cinco tokens por minuto; o conector usa o mesmo token por quase uma hora, então isso não
+limita as ferramentas.
