@@ -45,7 +45,9 @@ Com `INTER_PUBLIC_URL`, o conector também aceita login: o app abre uma página 
 exemplo com um [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/).
 Os logins ficam no volume `inter`.
 
-Adicione `https://inter.seudominio.com/mcp` como conector MCP no seu app de IA.
+Adicione `https://inter.seudominio.com/mcp` como conector MCP no seu app de IA. Apps que rodam na sua máquina
+entram direto; um app na nuvem precisa ter o endereço de retorno do login na lista do conector, em
+[`oauth.mjs`](../../packages/server/src/oauth.mjs).
 
 ## Configuração
 
