@@ -12,9 +12,10 @@ trap 'rm -rf "$work"' EXIT
 i=0
 for screen in "$@"; do
   i=$((i + 1))
-  ffmpeg -v error -i "$screen" \
-    -vf "scale=960:540:force_original_aspect_ratio=decrease,pad=1000:580:(ow-iw)/2:(oh-ih)/2:color=#F3F4F8,format=rgb24" \
-    "$work/$(printf %02d "$i").png"
+  # Laid over the canvas color, so a screenshot with transparency doesn't turn black.
+  ffmpeg -v error -f lavfi -i "color=c=#F3F4F8:s=1000x580" -i "$screen" -filter_complex \
+    "[1]scale=960:540:force_original_aspect_ratio=decrease[s];[0][s]overlay=(W-w)/2:(H-h)/2:shortest=1,format=rgb24" \
+    -frames:v 1 "$work/$(printf %02d "$i").png"
 done
 # Each screen is shown 2.5 s; the list repeats the last one, since the concat demuxer ignores the last duration.
 for f in "$work"/*.png; do printf "file '%s'\nduration 2.5\n" "$f"; done >"$work/list.txt"
