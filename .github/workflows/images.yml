@@ -1,10 +1,11 @@
 name: images
 
 # A tag such as v0.1.0 publishes each connector's image to ghcr.io/caiopizzol/tres-pinos/<connector>, for amd64 and
-# arm64, under that version and `latest`, with a provenance attestation. compose.yaml pulls these images.
+# arm64, with a provenance attestation. `latest` moves only to the newest version, so an older tag, or a run that
+# finishes late, never replaces it. compose.yaml pulls these images.
 on:
   push:
-    tags: ["v*"]
+    tags: ["v[0-9]+.[0-9]+.[0-9]+"]
 
 permissions:
   contents: read
@@ -21,6 +22,10 @@ jobs:
     strategy:
       matrix:
         connector: [sicoob, inter, nfse]
+    # One release at a time per image, so a newer tag can't land between the check below and moving latest.
+    concurrency:
+      group: images-${{ matrix.connector }}
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
@@ -37,12 +42,22 @@ jobs:
           file: connectors/${{ matrix.connector }}/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: |
-            ghcr.io/caiopizzol/tres-pinos/${{ matrix.connector }}:${{ github.ref_name }}
-            ghcr.io/caiopizzol/tres-pinos/${{ matrix.connector }}:latest
+          tags: ghcr.io/caiopizzol/tres-pinos/${{ matrix.connector }}:${{ github.ref_name }}
           labels: org.opencontainers.image.source=https://github.com/caiopizzol/tres-pinos
       - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-name: ghcr.io/caiopizzol/tres-pinos/${{ matrix.connector }}
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
+      - name: Move latest, if this is the newest version
+        env:
+          IMAGE: ghcr.io/caiopizzol/tres-pinos/${{ matrix.connector }}
+          DIGEST: ${{ steps.push.outputs.digest }}
+        run: |
+          git fetch --quiet --tags origin
+          newest=$(git tag --list 'v*' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
+          if [ "$newest" = "$GITHUB_REF_NAME" ]; then
+            docker buildx imagetools create --tag "$IMAGE:latest" "$IMAGE@$DIGEST"
+          else
+            echo "latest stays: $newest is newer than $GITHUB_REF_NAME"
+          fi
