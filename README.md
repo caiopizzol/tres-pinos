@@ -15,6 +15,8 @@
   <a href="https://modelcontextprotocol.io"><img src="https://img.shields.io/badge/MCP-servidor-f7c831?labelColor=1d1d1f" alt="MCP"></a>
 </p>
 
+<img width="1200" height="720" alt="tres-pinos-equipe-readme" src="https://github.com/user-attachments/assets/0b12ff34-5608-40ba-80d4-4f1aaadd52ab" />
+
 ## Por que três pinos?
 
 Em 2011 o Brasil tornou obrigatória a sua própria tomada: três pinos redondos, o terra um pouco abaixo dos outros
