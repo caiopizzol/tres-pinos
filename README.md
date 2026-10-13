@@ -5,9 +5,9 @@
 <h1 align="center">Três pinos, nenhum adaptador.</h1>
 
 <p align="center">
-  Ferramentas e skills para os seus agentes de IA trabalharem numa empresa brasileira:
+  A tomada brasileira para agentes de IA: conectores MCP de código aberto,
   <br>
-  banco, nota fiscal e conta para pagar. Código aberto, num servidor seu 🇧🇷
+  que você hospeda, para o que só existe no Brasil 🇧🇷
 </p>
 
 <p align="center">
