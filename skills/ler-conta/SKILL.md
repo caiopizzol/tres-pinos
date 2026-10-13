@@ -1,6 +1,7 @@
 ---
 name: ler-conta
 description: Lê os códigos de pagamento de uma conta (boleto ou Pix) num PDF ou foto. Use quando o dono pedir para ler ou conferir uma conta.
+compatibility: Precisa do repositório do Três Pinos, do Node.js 22.18+ e, para PDFs, do Poppler e do qpdf.
 ---
 
 # Ler uma conta
