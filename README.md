@@ -52,9 +52,9 @@ Code e no Codex.
 Para instalar, copie a pasta da skill e diga ao agente onde está o repositório:
 
 ```bash
-export TRES_PINOS_DIR=~/tres-pinos
-cp -R skills/ler-conta ~/.claude/skills/   # Claude Code
-cp -R skills/ler-conta ~/.agents/skills/   # Codex
+export TRES_PINOS_DIR="$PWD"   # na pasta do repositório
+mkdir -p ~/.claude/skills && cp -R skills/ler-conta ~/.claude/skills/   # Claude Code
+mkdir -p ~/.agents/skills && cp -R skills/ler-conta ~/.agents/skills/   # Codex
 ```
 
 A `ler-conta` precisa do [Node.js](https://nodejs.org) 22.18+ e, para PDFs, do [Poppler](https://poppler.freedesktop.org)

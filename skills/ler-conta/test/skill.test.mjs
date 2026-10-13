@@ -2,20 +2,26 @@
 // and fields. A change to packages/boleto that would break the skill fails here.
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
-import { test } from "node:test";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { after, test } from "node:test";
 
 const REPO = new URL("../../../", import.meta.url).pathname;
 const skill = readFileSync(new URL("../SKILL.md", import.meta.url), "utf8");
 const fixture = (name) => `${REPO}packages/boleto/fixtures/${name}`;
 
-// Runs the reader exactly as the skill's commands do, with TRES_PINOS_DIR set to the repository.
+// Runs the reader exactly as the skill's commands do, with TRES_PINOS_DIR set to the repository. The password goes in
+// a file, as the skill says, never in the command.
 function read(file, password) {
-  const command = password === undefined ? commands[0] : commands[1];
-  const shell = command
-    .replace("conta.pdf", JSON.stringify(file))
-    .replace('"SENHA"', `'${password}'`);
-  const { status, stdout } = spawnSync("sh", ["-c", shell], {
+  let command = commands[password === undefined ? 0 : 1].replace("conta.pdf", JSON.stringify(file));
+  if (password !== undefined) {
+    const dir = mkdtempSync(join(tmpdir(), "ler-conta-"));
+    after(() => rmSync(dir, { recursive: true, force: true }));
+    writeFileSync(join(dir, "senha.txt"), `${password}\n`, { mode: 0o600 });
+    command = command.replace("senha.txt", JSON.stringify(join(dir, "senha.txt")));
+  }
+  const { status, stdout } = spawnSync("sh", ["-c", command], {
     env: { ...process.env, TRES_PINOS_DIR: REPO },
   });
   return { exit: status, result: status === 1 ? null : JSON.parse(stdout) };
@@ -47,7 +53,7 @@ test("a bill: exit 0, with the type, amount, due date, code and status the skill
   assert.match(pix.payload, /^000201/);
 });
 
-test("a locked PDF: locked, and it opens with the password through standard input", () => {
+test("a locked PDF: locked, and it opens with the password from a file", () => {
   assert.deepEqual(read(fixture("locked.pdf")), {
     exit: 2,
     result: { type: "pdf", locked: true, codes: [] },
