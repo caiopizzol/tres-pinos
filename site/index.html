@@ -94,14 +94,15 @@
             ><span class="p">$ </span>git clone https://github.com/caiopizzol/tres-pinos
 <span class="p">$ </span>cd tres-pinos && export TRES_PINOS_DIR="$PWD"
 <span class="p">$ </span>bun install --production --filter @tres-pinos/boleto
-<span class="p">$ </span>mkdir -p ~/.claude/skills && cp -R skills/ler-conta ~/.claude/skills/</pre>
+<span class="p">$ </span>mkdir -p ~/.claude/skills && cp -R skills/ler-conta ~/.claude/skills/   <span class="c"># Claude Code</span>
+<span class="p">$ </span>mkdir -p ~/.agents/skills && cp -R skills/ler-conta ~/.agents/skills/   <span class="c"># Codex</span></pre>
           </div>
           <div>
             <h2>Com certificado · ligar o banco e a NFS-e</h2>
             <pre
               tabindex="0"
-            ><span class="p">$ </span>cp .env.example .env   <span class="c"># COMPOSE_PROFILES=inter,nfse</span>
-<span class="p">$ </span>docker compose up -d</pre>
+            ><span class="p">$ </span>sed 's/^COMPOSE_PROFILES=.*/COMPOSE_PROFILES=inter,nfse/' .env.example > .env
+<span class="p">$ </span>docker compose up -d   <span class="c"># depois de preencher o .env</span></pre>
           </div>
         </div>
         <a class="more" href="https://github.com/caiopizzol/tres-pinos#início-rápido"
