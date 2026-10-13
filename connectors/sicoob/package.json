@@ -1,5 +1,5 @@
 {
-  "name": "@tres-pinos/sicoob",
+  "name": "@tres-pinos/sicoob-connector",
   "private": true,
   "type": "module",
   "scripts": {

@@ -9,7 +9,7 @@
       },
     },
     "connectors/inter": {
-      "name": "@tres-pinos/inter",
+      "name": "@tres-pinos/inter-connector",
       "dependencies": {
         "@modelcontextprotocol/sdk": "1.31.0",
         "@tres-pinos/api": "workspace:*",
@@ -34,7 +34,7 @@
       },
     },
     "connectors/sicoob": {
-      "name": "@tres-pinos/sicoob",
+      "name": "@tres-pinos/sicoob-connector",
       "dependencies": {
         "@modelcontextprotocol/sdk": "1.31.0",
         "@tres-pinos/api": "workspace:*",
@@ -245,7 +245,7 @@
 
     "@tres-pinos/boleto": ["@tres-pinos/boleto@workspace:packages/boleto"],
 
-    "@tres-pinos/inter": ["@tres-pinos/inter@workspace:connectors/inter"],
+    "@tres-pinos/inter-connector": ["@tres-pinos/inter-connector@workspace:connectors/inter"],
 
     "@tres-pinos/media": ["@tres-pinos/media@workspace:packages/media"],
 
@@ -255,7 +255,7 @@
 
     "@tres-pinos/server": ["@tres-pinos/server@workspace:packages/server"],
 
-    "@tres-pinos/sicoob": ["@tres-pinos/sicoob@workspace:connectors/sicoob"],
+    "@tres-pinos/sicoob-connector": ["@tres-pinos/sicoob-connector@workspace:connectors/sicoob"],
 
     "@tres-pinos/testing": ["@tres-pinos/testing@workspace:packages/testing"],
 
