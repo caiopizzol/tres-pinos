@@ -7,7 +7,7 @@
 <p align="center">
   A tomada brasileira para agentes de IA: conectores que dão acesso ao que só existe no Brasil,
   <br>
-  e skills que ensinam o que fazer com ele. Código aberto, você hospeda 🇧🇷
+  e skills que ensinam o que fazer com ele 🇧🇷
 </p>
 
 <p align="center">

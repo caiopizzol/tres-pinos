@@ -113,8 +113,8 @@ Título: **Três pinos, nenhum adaptador.** No topo do README e do site, sempre 
 Tagline: **A tomada brasileira para agentes de IA.** Sozinha, onde não cabe explicação.
 
 Descrição: **A tomada brasileira para agentes de IA: conectores que dão acesso ao que só existe no Brasil, e
-skills que ensinam o que fazer com ele. Código aberto, você hospeda.** Embaixo do título, na descrição do GitHub e
-nas prévias de link. Diz as duas metades, o acesso e o saber fazer, sem a sigla MCP.
+skills que ensinam o que fazer com ele.** Embaixo do título, na descrição do GitHub e nas prévias de link. Diz as
+duas metades, o acesso e o saber fazer, sem a sigla MCP.
 Não cita conectores: eles ficam só na tabela do README, que cresce sem mudar a descrição.
 
 Alternativas:
