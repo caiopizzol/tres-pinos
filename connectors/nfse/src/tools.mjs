@@ -2,18 +2,14 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { isReadOnly } from "@tres-pinos/api";
+import { toolAnswer } from "@tres-pinos/server";
 import { AdnError } from "./adn.mjs";
 
 // The answer to a tool call. A failure carries only the ADN's status, never its message text.
-async function answer(work) {
-  try {
-    const data = await work();
-    return { content: [{ type: "text", text: JSON.stringify(data) }] };
-  } catch (error) {
-    const detail = error instanceof AdnError ? `HTTP ${error.status}` : "unavailable";
-    return { isError: true, content: [{ type: "text", text: `NFS-e: ${detail}` }] };
-  }
-}
+const answer = (work) =>
+  toolAnswer("NFS-e", work, (error) =>
+    error instanceof AdnError ? `HTTP ${error.status}` : undefined,
+  );
 
 export function buildServer(adn) {
   // Without the guard, a bug could reach anything the e-CNPJ allows.

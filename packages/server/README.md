@@ -10,3 +10,6 @@ Serve as ferramentas MCP de um conector em `/mcp`. Os conectores do [Sicoob](../
 
 O login guarda os apps, códigos e tokens em `oauth.sqlite`, na pasta `dataDir`. Os tokens de acesso valem uma
 hora. Os de renovação valem 30 dias e servem uma vez só.
+
+Cada resposta de ferramenta passa por `toolAnswer`: o resultado vai em JSON, e uma falha leva só o que o conector
+diz do erro, como o status HTTP. O texto da mensagem da API nunca chega ao agente.

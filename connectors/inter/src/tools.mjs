@@ -2,18 +2,14 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { isReadOnly } from "@tres-pinos/api";
+import { toolAnswer } from "@tres-pinos/server";
 import { InterError } from "./inter.mjs";
 
 // The answer to a tool call. A failure carries only Inter's status, never its message text.
-async function answer(work) {
-  try {
-    const data = await work();
-    return { content: [{ type: "text", text: JSON.stringify(data) }] };
-  } catch (error) {
-    const detail = error instanceof InterError ? `HTTP ${error.status}` : "unavailable";
-    return { isError: true, content: [{ type: "text", text: `Inter: ${detail}` }] };
-  }
-}
+const answer = (work) =>
+  toolAnswer("Inter", work, (error) =>
+    error instanceof InterError ? `HTTP ${error.status}` : undefined,
+  );
 
 // `inter` is one interClient for the whole process, so every request shares its token.
 export function buildServer(inter) {

@@ -39,58 +39,68 @@ function failure(context, { status, text }) {
   return new SicoobError(context, status, reason);
 }
 
-async function token({ clientId }, fetch) {
-  const res = await fetch(TOKEN_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      grant_type: "client_credentials",
-      client_id: clientId,
-      scope: SCOPE,
-    }).toString(),
-  });
-  if (res.status !== 200) throw failure("token request", res);
-  const body = json(res.text, "token request");
-  if (typeof body.access_token !== "string" || !body.access_token)
-    throw new Error("Sicoob gave no access token");
-  if (body.scope !== SCOPE) throw new Error("Sicoob granted a different scope than requested");
-  return body.access_token;
-}
+// Reads the account. Sicoob issues a token per request, so none is kept.
+export function sicoobClient({ clientId, account }, fetch) {
+  async function token() {
+    const res = await fetch(TOKEN_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        grant_type: "client_credentials",
+        client_id: clientId,
+        scope: SCOPE,
+      }).toString(),
+    });
+    if (res.status !== 200) throw failure("token request", res);
+    const body = json(res.text, "token request");
+    if (typeof body.access_token !== "string" || !body.access_token)
+      throw new Error("Sicoob gave no access token");
+    if (body.scope !== SCOPE) throw new Error("Sicoob granted a different scope than requested");
+    return body.access_token;
+  }
 
-async function account(config, fetch, path, context) {
-  const query = new URLSearchParams({ numeroContaCorrente: config.account });
-  const res = await fetch(`${API_URL}/conta-corrente/v4${path}?${query}`, {
-    headers: {
-      Accept: "application/json",
-      Authorization: `Bearer ${await token(config, fetch)}`,
-      client_id: config.clientId,
+  async function get(path, context) {
+    const query = new URLSearchParams({ numeroContaCorrente: account });
+    const res = await fetch(`${API_URL}/conta-corrente/v4${path}?${query}`, {
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${await token()}`,
+        client_id: clientId,
+      },
+    });
+    if (res.status !== 200) throw failure(context, res);
+    const { resultado } = json(res.text, context);
+    if (typeof resultado !== "object" || resultado === null)
+      throw new Error(`Unexpected Sicoob ${context} response`);
+    return resultado;
+  }
+
+  return {
+    fetch,
+
+    async getBalance() {
+      const r = await get("/saldo", "balance request");
+      return { balanceCents: toCents(r.saldo), limitCents: toCents(r.saldoLimite) };
     },
-  });
-  if (res.status !== 200) throw failure(context, res);
-  const { resultado } = json(res.text, context);
-  if (typeof resultado !== "object" || resultado === null)
-    throw new Error(`Unexpected Sicoob ${context} response`);
-  return resultado;
-}
 
-export async function getBalance(config, fetch) {
-  const r = await account(config, fetch, "/saldo", "balance request");
-  return { balanceCents: toCents(r.saldo), limitCents: toCents(r.saldoLimite) };
-}
-
-export async function getStatement(config, fetch, year, month) {
-  const r = await account(config, fetch, `/extrato/${month}/${year}`, "statement request");
-  if (!Array.isArray(r.transacoes)) throw new Error("Sicoob's statement has no transactions list");
-  return r.transacoes.map((t) => {
-    if (![t?.transactionId, t?.data, t?.tipo, t?.descricao].every((v) => typeof v === "string")) {
-      throw new Error("Sicoob returned an invalid statement transaction");
-    }
-    return {
-      id: t.transactionId,
-      date: t.data,
-      type: t.tipo,
-      amountCents: toCents(t.valor),
-      description: t.descricao,
-    };
-  });
+    async getStatement(year, month) {
+      const r = await get(`/extrato/${month}/${year}`, "statement request");
+      if (!Array.isArray(r.transacoes))
+        throw new Error("Sicoob's statement has no transactions list");
+      return r.transacoes.map((t) => {
+        if (
+          ![t?.transactionId, t?.data, t?.tipo, t?.descricao].every((v) => typeof v === "string")
+        ) {
+          throw new Error("Sicoob returned an invalid statement transaction");
+        }
+        return {
+          id: t.transactionId,
+          date: t.data,
+          type: t.tipo,
+          amountCents: toCents(t.valor),
+          description: t.descricao,
+        };
+      });
+    },
+  };
 }
