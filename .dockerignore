@@ -3,6 +3,7 @@
 !bun.lock
 !connectors/*/package.json
 !packages/*/package.json
+!skills/*/package.json
 !connectors/sicoob/src/**
 !connectors/inter/src/**
 !connectors/nfse/src/**

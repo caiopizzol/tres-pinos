@@ -40,6 +40,27 @@ prontos para o resto do mundo e travam nas nossas jabuticabas.
 | [`inter`](connectors/inter)   | Ler o saldo e o extrato da conta PJ. Nunca movimenta dinheiro       |
 | [`nfse`](connectors/nfse)     | Ler as notas fiscais de serviço da empresa. Nunca emite nem cancela |
 
+## Skills
+
+Instruções que o seu agente segue, no formato aberto de [Agent Skills](https://agentskills.io). Testadas no Claude
+Code e no Codex.
+
+| Skill                           | O que o agente faz                                                                  |
+| ------------------------------- | ----------------------------------------------------------------------------------- |
+| [`ler-conta`](skills/ler-conta) | Lê os códigos de boleto e Pix de uma conta em PDF ou foto, e confere antes de pagar |
+
+Para instalar, copie a pasta da skill e diga ao agente onde está o repositório:
+
+```bash
+bun install --production --filter @tres-pinos/boleto   # na pasta do repositório
+export TRES_PINOS_DIR="$PWD"
+mkdir -p ~/.claude/skills && cp -R skills/ler-conta ~/.claude/skills/   # Claude Code
+mkdir -p ~/.agents/skills && cp -R skills/ler-conta ~/.agents/skills/   # Codex
+```
+
+A `ler-conta` precisa do [Node.js](https://nodejs.org) 22.18+, do [Bun](https://bun.sh) para instalar e, para PDFs,
+do [Poppler](https://poppler.freedesktop.org) e do [qpdf](https://qpdf.readthedocs.io).
+
 ## Início rápido
 
 Precisa do [Docker](https://docs.docker.com/get-docker/).

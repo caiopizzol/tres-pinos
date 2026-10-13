@@ -3,7 +3,8 @@
   "private": true,
   "workspaces": [
     "connectors/*",
-    "packages/*"
+    "packages/*",
+    "skills/*"
   ],
   "type": "module",
   "scripts": {
