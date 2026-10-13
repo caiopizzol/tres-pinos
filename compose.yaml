@@ -1,4 +1,5 @@
-# Each connector runs only when its profile is in COMPOSE_PROFILES, and checks its own settings.
+# Each connector runs only when its profile is in COMPOSE_PROFILES, and checks its own settings. It sees only its own
+# certificate and key, so one connector can't read another's; a missing file stops it instead of becoming a directory.
 services:
   sicoob:
     build:
@@ -16,7 +17,18 @@ services:
     ports:
       - 127.0.0.1:3012:8080
     volumes:
-      - ${SICOOB_CERT_DIR:-./certificate}:/certificate:ro
+      - type: bind
+        source: ${SICOOB_CERT_DIR:-./certificate}/sicoob.crt
+        target: /certificate/sicoob.crt
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${SICOOB_CERT_DIR:-./certificate}/sicoob.key
+        target: /certificate/sicoob.key
+        read_only: true
+        bind:
+          create_host_path: false
   inter:
     build:
       context: .
@@ -33,7 +45,18 @@ services:
     ports:
       - 127.0.0.1:3013:8080
     volumes:
-      - ${INTER_CERT_DIR:-./certificate}:/certificate:ro
+      - type: bind
+        source: ${INTER_CERT_DIR:-./certificate}/inter.crt
+        target: /certificate/inter.crt
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${INTER_CERT_DIR:-./certificate}/inter.key
+        target: /certificate/inter.key
+        read_only: true
+        bind:
+          create_host_path: false
       - inter:/data
   nfse:
     build:
@@ -50,7 +73,18 @@ services:
     ports:
       - 127.0.0.1:3014:8080
     volumes:
-      - ${NFSE_CERT_DIR:-./certificate}:/certificate:ro
+      - type: bind
+        source: ${NFSE_CERT_DIR:-./certificate}/nfse.crt
+        target: /certificate/nfse.crt
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${NFSE_CERT_DIR:-./certificate}/nfse.key
+        target: /certificate/nfse.key
+        read_only: true
+        bind:
+          create_host_path: false
       - nfse:/data
 
 volumes:
