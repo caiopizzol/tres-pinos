@@ -79,11 +79,15 @@ test("with PUBLIC_URL, an app signs in on the consent page and gets only the rea
     PUBLIC_URL: self,
     DATA_DIR: dataDir,
   }));
-  const { tools, consentPage } = await signInAndListTools(url);
+  const { tools, consentPage, server } = await signInAndListTools(url);
   assert.deepEqual(
     tools.map((t) => t.name),
     ["list_invoices"],
   );
+  assert.equal(server.title, "Três Pinos · NFS-e");
+  assert.deepEqual(server.icons, [
+    { src: `${url}/icon.png`, mimeType: "image/png", sizes: ["192x192"] },
+  ]);
   assert.match(consentPage, /sistema nacional da NFS-e/);
   assert.match(consentPage, /Nunca emite nem cancela notas/);
 });

@@ -1,6 +1,6 @@
 // MCP server that gives an agent the tools in tools.mjs, behind INTER_KEY.
 import { certificateFetch, readCertificate } from "@tres-pinos/api";
-import { serve } from "@tres-pinos/server";
+import { icons, serve } from "@tres-pinos/server";
 import { readOnly } from "./guard.mjs";
 import { interClient } from "./inter.mjs";
 import { buildServer } from "./tools.mjs";
@@ -23,7 +23,7 @@ const inter = interClient(
 serve({
   name: "INTER_KEY",
   key: env.INTER_KEY,
-  tools: () => buildServer(inter),
+  tools: () => buildServer(inter, icons(env.PUBLIC_URL)),
   port: Number(env.PORT ?? 8080),
   publicUrl: env.PUBLIC_URL,
   dataDir: env.DATA_DIR,

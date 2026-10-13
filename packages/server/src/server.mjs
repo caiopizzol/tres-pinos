@@ -1,11 +1,23 @@
 // Serves a connector's MCP tools on /mcp, to requests that carry its key. With `publicUrl`, remote clients that
 // reach it there can also sign in with OAuth instead (see oauth.mjs).
 import { timingSafeEqual } from "node:crypto";
-import { mkdirSync } from "node:fs";
+import { mkdirSync, readFileSync } from "node:fs";
 import { createServer } from "node:http";
 import { DatabaseSync } from "node:sqlite";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { createOAuth } from "./oauth.mjs";
+
+// The Três Pinos icon, public at /favicon.ico and /icon.png, for apps that show a connector's logo.
+const ICONS = {
+  "/favicon.ico": ["image/x-icon", readFileSync(new URL("icon/favicon.ico", import.meta.url))],
+  "/icon.png": ["image/png", readFileSync(new URL("icon/icon.png", import.meta.url))],
+};
+
+// The icon as MCP describes it, for a connector's McpServer; `publicUrl` makes it an address apps can fetch.
+export const icons = (publicUrl) =>
+  publicUrl
+    ? [{ src: new URL("/icon.png", publicUrl).href, mimeType: "image/png", sizes: ["192x192"] }]
+    : undefined;
 
 // `name` is the key's setting, such as SICOOB_KEY; `tools` builds a fresh McpServer for each request.
 // `consent` is the connector's title and what it reaches, for the sign-in page; `dataDir` keeps the sign-ins.
@@ -54,7 +66,14 @@ export function serve({ name, key, tools, port, publicUrl, dataDir = "/data", co
     // A malformed path, such as //[, makes URL parsing throw; answer it here instead of crashing the server.
     try {
       if (oauth && (await oauth.handle(req, res))) return;
-      if (new URL(req.url, "http://x").pathname !== "/mcp") return res.writeHead(404).end();
+      const path = new URL(req.url, "http://x").pathname;
+      if (ICONS[path] && req.method === "GET") {
+        const [type, body] = ICONS[path];
+        return res
+          .writeHead(200, { "Content-Type": type, "Cache-Control": "public, max-age=86400" })
+          .end(body);
+      }
+      if (path !== "/mcp") return res.writeHead(404).end();
     } catch (error) {
       console.error(error);
       if (!res.headersSent) res.writeHead(400).end();
