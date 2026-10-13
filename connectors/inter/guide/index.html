@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1280, height=720" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1280px;
+        height: 720px;
+        overflow: hidden;
+        background: #f3f4f8;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #f3f4f8;
+      }
+      .screen {
+        position: absolute;
+        left: 0;
+        top: 0;
+        opacity: 0;
+        transform-origin: 0 0;
+      }
+      .card {
+        position: absolute;
+        inset: 0;
+        border-radius: 14px;
+        overflow: hidden;
+        background: #ffffff;
+        box-shadow:
+          0 0 0 1px rgba(20, 24, 40, 0.06),
+          0 18px 48px rgba(20, 24, 40, 0.12);
+      }
+      .card img {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      .digit {
+        position: absolute;
+        width: 40px;
+        height: 46px;
+        background: #ffffff;
+        opacity: 0;
+      }
+      .digit i {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 14px;
+        height: 14px;
+        margin: -7px 0 0 -7px;
+        border-radius: 50%;
+        background: #1d1d1f;
+      }
+      #ripple {
+        position: absolute;
+        left: 0;
+        top: 0;
+        border: 3px solid #ff7a00;
+        border-radius: 50%;
+        opacity: 0;
+      }
+      #cursor {
+        position: absolute;
+        left: -8px;
+        top: -5px;
+        width: 40px;
+        height: 40px;
+        transform-origin: 8px 5px;
+        filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.3));
+      }
+      #cursor path {
+        fill: #ffffff;
+        stroke: #141414;
+        stroke-width: 1.4;
+        stroke-linejoin: round;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="17.2"
+      data-width="1280"
+      data-height="720"
+    >
+      <div class="screen" id="s0" style="width: 720px; height: 290px">
+        <div class="card"><img src="assets/01-menu-integrar.png" alt="" /></div>
+      </div>
+      <div class="screen" id="s1" style="width: 1450px; height: 540px">
+        <div class="card"><img src="assets/03-identificacao-preenchida.png" alt="" /></div>
+      </div>
+      <div class="screen" id="s2" style="width: 1410px; height: 628px">
+        <div class="card"><img src="assets/06-atividades.png" alt="" /></div>
+      </div>
+      <div class="screen" id="s3" style="width: 830px; height: 638px">
+        <div class="card">
+          <img src="assets/07-autenticacao-sms.png" alt="" />
+          <div class="digit" style="left: 260px; top: 317px"><i></i></div>
+          <div class="digit" style="left: 314px; top: 317px"><i></i></div>
+          <div class="digit" style="left: 368px; top: 317px"><i></i></div>
+          <div class="digit" style="left: 422px; top: 317px"><i></i></div>
+          <div class="digit" style="left: 476px; top: 317px"><i></i></div>
+          <div class="digit" style="left: 530px; top: 317px"><i></i></div>
+        </div>
+      </div>
+      <div class="screen" id="s4" style="width: 640px; height: 415px">
+        <div class="card"><img src="assets/08-solicitacao-enviada.png" alt="" /></div>
+      </div>
+      <div class="screen" id="s5" style="width: 635px; height: 678px">
+        <div class="card"><img src="assets/09-integracao-aprovada.png" alt="" /></div>
+      </div>
+      <div id="ripple"></div>
+      <svg id="cursor" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M5 3 L5 19 L9 15 L12 22 L15 20.5 L11.5 14 L18 14 Z" />
+      </svg>
+    </div>
+    <script>
+      (function () {
+        var W = 1280;
+        var H = 720;
+        var DURATION = 17.2;
+
+        // Each screen: its natural size, when it shows, and its clicks in its own pixels.
+        var SCREENS = [
+          {
+            w: 720,
+            h: 290,
+            start: 0,
+            end: 2.6,
+            clicks: [
+              [480, 55, 1.0],
+              [194, 186, 1.9],
+            ],
+          },
+          { w: 1450, h: 540, start: 2.6, end: 5.2, clicks: [[898, 516, 4.2]] },
+          {
+            w: 1410,
+            h: 628,
+            start: 5.2,
+            end: 9.4,
+            clicks: [
+              [308, 149, 6.2],
+              [44, 464, 7.2],
+              [884, 583, 8.4],
+            ],
+          },
+          { w: 830, h: 638, start: 9.4, end: 11.8, clicks: [[280, 340, 10.2]] },
+          { w: 640, h: 415, start: 11.8, end: 14.2, clicks: [[320, 311, 13.2]] },
+          { w: 635, h: 678, start: 14.2, end: 99, clicks: [[316, 533, 15.4]] },
+        ];
+        var DIGITS_FROM = 10.5;
+        var DIGIT_STEP = 0.15;
+
+        // Fit each screen inside the canvas, never upscaled past 1.4x.
+        SCREENS.forEach(function (s) {
+          s.scale = Math.min(1160 / s.w, 600 / s.h, 1.4);
+          s.x = (W - s.w * s.scale) / 2;
+          s.y = (H - s.h * s.scale) / 2;
+        });
+
+        // Every click in canvas pixels, in time order.
+        var CLICKS = [];
+        SCREENS.forEach(function (s) {
+          s.clicks.forEach(function (c) {
+            CLICKS.push({ x: s.x + c[0] * s.scale, y: s.y + c[1] * s.scale, t: c[2] });
+          });
+        });
+        var START = { x: 1180, y: 680 };
+
+        var els = SCREENS.map(function (_, i) {
+          return document.getElementById("s" + i);
+        });
+        var digits = document.querySelectorAll(".digit");
+        var cursor = document.getElementById("cursor");
+        var ripple = document.getElementById("ripple");
+        var easeOut = gsap.parseEase("power3.out");
+        var easeInOut = gsap.parseEase("power2.inOut");
+
+        function clamp01(u) {
+          return u < 0 ? 0 : u > 1 ? 1 : u;
+        }
+        function mix(a, b, u) {
+          return a + (b - a) * u;
+        }
+        // A slight arc, so the cursor moves like a hand, not a ruler.
+        function arc(p0, p1, u) {
+          var cx = (p0.x + p1.x) / 2 - (p1.y - p0.y) * 0.12;
+          var cy = (p0.y + p1.y) / 2 + (p1.x - p0.x) * 0.12;
+          var w = 1 - u;
+          return {
+            x: w * w * p0.x + 2 * w * u * cx + u * u * p1.x,
+            y: w * w * p0.y + 2 * w * u * cy + u * u * p1.y,
+          };
+        }
+
+        function cursorAt(t) {
+          var from = START;
+          var leave = 0.3;
+          for (var i = 0; i < CLICKS.length; i++) {
+            var c = CLICKS[i];
+            var arrive = c.t - 0.15;
+            if (t < leave) return from;
+            if (t < arrive) return arc(from, c, easeInOut(clamp01((t - leave) / (arrive - leave))));
+            if (t < c.t + 0.35 || i === CLICKS.length - 1) {
+              if (i === CLICKS.length - 1 || t < c.t + 0.35) return { x: c.x, y: c.y };
+            }
+            from = c;
+            leave = c.t + 0.35;
+          }
+          return from;
+        }
+
+        function lastClick(t) {
+          var hit = null;
+          CLICKS.forEach(function (c) {
+            if (t >= c.t) hit = c;
+          });
+          return hit;
+        }
+
+        function pressAt(since) {
+          if (since < 0 || since >= 0.28) return 0;
+          return since < 0.08 ? since / 0.08 : 1 - easeOut((since - 0.08) / 0.2);
+        }
+
+        function render(t) {
+          SCREENS.forEach(function (s, i) {
+            var fadeIn = i === 0 ? 1 : clamp01((t - s.start) / 0.35);
+            var fadeOut = 1 - clamp01((t - (s.end - 0.2)) / 0.35);
+            var shown = t < s.start ? 0 : Math.min(fadeIn, fadeOut);
+            var lift = 1 - easeOut(fadeIn);
+            els[i].style.opacity = shown.toFixed(3);
+            els[i].style.transform =
+              "translate(" +
+              s.x.toFixed(2) +
+              "px," +
+              (s.y + 10 * lift).toFixed(2) +
+              "px) scale(" +
+              (s.scale * (1 - 0.015 * lift)).toFixed(4) +
+              ")";
+          });
+
+          for (var d = 0; d < digits.length; d++) {
+            digits[d].style.opacity = t >= DIGITS_FROM + d * DIGIT_STEP ? "1" : "0";
+          }
+
+          var p = cursorAt(t);
+          var hit = lastClick(t);
+          var since = hit ? t - hit.t : 99;
+          cursor.style.transform =
+            "translate(" +
+            p.x.toFixed(2) +
+            "px," +
+            p.y.toFixed(2) +
+            "px) scale(" +
+            (1 - 0.15 * pressAt(since)).toFixed(3) +
+            ")";
+
+          var ring = since / 0.45;
+          ripple.style.opacity = ring < 1 ? (1 - ring).toFixed(3) : "0";
+          if (ring < 1) {
+            var r = 10 + 30 * easeOut(ring);
+            ripple.style.width = ripple.style.height = (2 * r).toFixed(2) + "px";
+            ripple.style.transform =
+              "translate(" + (hit.x - r).toFixed(2) + "px," + (hit.y - r).toFixed(2) + "px)";
+          }
+        }
+
+        var clock = { t: 0 };
+        var tl = gsap.timeline({ paused: true });
+        tl.to(
+          clock,
+          {
+            t: DURATION,
+            duration: DURATION,
+            ease: "none",
+            onUpdate: function () {
+              render(clock.t);
+            },
+          },
+          0,
+        );
+        render(0);
+        window.__timelines["main"] = tl;
+      })();
+    </script>
+  </body>
+</html>

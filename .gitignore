@@ -7,3 +7,4 @@ packages/boleto/corpus/
 
 # The connectors' certificates and keys
 /certificate/
+connectors/*/guide/.hyperframes/

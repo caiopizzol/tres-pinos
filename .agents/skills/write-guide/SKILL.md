@@ -27,7 +27,11 @@ The guide is `connectors/<connector>/README.md`, in Portuguese, with the section
    sh .agents/skills/write-guide/scripts/screens-to-gif.sh connectors/<connector>/<step>.gif <screen.png>...
    ```
 
-   The owner types every password and code. Stop and ask before anything that creates, accepts or downloads, and
-   never capture or repeat a key, secret, balance, CNPJ, account number or name.
+   Park the mouse outside the area you capture before each screenshot, or it ends up in the image. The owner types
+   every password and code. Stop and ask before anything that creates, accepts or downloads, and never capture or
+   repeat a key, secret, balance, CNPJ, account number or name.
+
+   To animate it, with a cursor clicking each step, see `connectors/inter/guide/`: a HyperFrames project over the
+   same screenshots. Copy it and change the clicks in `index.html`.
 
 5. Look at every frame of every GIF before using it. Run `bun run check` and the connector's tests.
