@@ -52,13 +52,14 @@ Code e no Codex.
 Para instalar, copie a pasta da skill e diga ao agente onde está o repositório:
 
 ```bash
-export TRES_PINOS_DIR="$PWD"   # na pasta do repositório
+bun install --production --filter @tres-pinos/boleto   # na pasta do repositório
+export TRES_PINOS_DIR="$PWD"
 mkdir -p ~/.claude/skills && cp -R skills/ler-conta ~/.claude/skills/   # Claude Code
 mkdir -p ~/.agents/skills && cp -R skills/ler-conta ~/.agents/skills/   # Codex
 ```
 
-A `ler-conta` precisa do [Node.js](https://nodejs.org) 22.18+ e, para PDFs, do [Poppler](https://poppler.freedesktop.org)
-e do [qpdf](https://qpdf.readthedocs.io).
+A `ler-conta` precisa do [Node.js](https://nodejs.org) 22.18+, do [Bun](https://bun.sh) para instalar e, para PDFs,
+do [Poppler](https://poppler.freedesktop.org) e do [qpdf](https://qpdf.readthedocs.io).
 
 ## Início rápido
 
