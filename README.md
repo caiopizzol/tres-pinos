@@ -56,8 +56,7 @@ Prepare o certificado como diz cada conector: [Sicoob](connectors/sicoob), [Inte
 docker compose up -d
 ```
 
-E ligue o seu agente na mesma máquina, com a porta e a chave de cada conector. O [Inter](connectors/inter) e a
-[NFS-e](connectors/nfse) também aceitam login pela internet.
+E ligue o seu agente na mesma máquina, com a porta e a chave de cada conector:
 
 | Conector | Endereço                    | Chave        |
 | -------- | --------------------------- | ------------ |

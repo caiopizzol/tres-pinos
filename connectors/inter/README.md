@@ -50,6 +50,9 @@ codex mcp add inter --url https://inter.seudominio.com/mcp
 codex mcp login inter
 ```
 
+> [!NOTE]
+> Até agora, só o Codex entrou assim. O claude.ai, o ChatGPT e outros apps na nuvem ainda não foram testados.
+
 ## Configuração
 
 | Variável              | O que faz                                                    |

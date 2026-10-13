@@ -8,6 +8,7 @@ import { createServer as createNetServer } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, before } from "node:test";
+import { UnauthorizedError } from "@modelcontextprotocol/sdk/client/auth.js";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 
@@ -127,17 +128,20 @@ const freePort = () =>
     });
   });
 
-// Runs a connector's server.mjs in its own process with `settings`, killed after the tests.
+// Runs a connector's server.mjs in its own process with `settings`, killed after the tests. `settings` can be a
+// function of the server's URL, for settings such as PUBLIC_URL that must name it.
 export function startServer(script, settings) {
   return freePort().then((port) => {
+    const url = `http://127.0.0.1:${port}`;
+    const env = typeof settings === "function" ? settings(url) : settings;
     const child = spawn(process.execPath, [script.pathname], {
-      env: { ...process.env, ...settings, PORT: String(port) },
+      env: { ...process.env, ...env, PORT: String(port) },
       stdio: ["ignore", "ignore", "pipe"],
     });
     let stderr = "";
     child.stderr.on("data", (chunk) => (stderr += chunk));
     after(() => child.kill());
-    return { child, url: `http://127.0.0.1:${port}`, stderr: () => stderr };
+    return { child, url, stderr: () => stderr };
   });
 }
 
@@ -181,6 +185,61 @@ export async function listTools(url) {
   const { tools } = await client.listTools();
   await client.close();
   return tools;
+}
+
+// Signs in to a server started with PUBLIC_URL as an MCP client would: it registers, the owner approves on the
+// consent page with the key, and the client gets a token. Returns the tools listed with that token, and the
+// consent page, which tells the owner what the connector reaches.
+export async function signInAndListTools(url) {
+  const saved = {};
+  let consentPage;
+  const auth = {
+    redirectUrl: "http://127.0.0.1:33418/callback",
+    clientMetadata: {
+      client_name: "Test client",
+      redirect_uris: ["http://127.0.0.1:33418/callback"],
+      grant_types: ["authorization_code", "refresh_token"],
+      response_types: ["code"],
+      token_endpoint_auth_method: "none",
+    },
+    clientInformation: () => saved.client,
+    saveClientInformation: (client) => (saved.client = client),
+    tokens: () => saved.tokens,
+    saveTokens: (tokens) => (saved.tokens = tokens),
+    saveCodeVerifier: (verifier) => (saved.verifier = verifier),
+    codeVerifier: () => saved.verifier,
+    // The owner's browser: open the consent page, enter the key, follow the page to the callback.
+    async redirectToAuthorization(authorizationUrl) {
+      const page = await fetch(authorizationUrl);
+      assert.equal(page.status, 200);
+      consentPage = await page.text();
+      const res = await fetch(new URL("/authorize", authorizationUrl), {
+        method: "POST",
+        headers: { Origin: authorizationUrl.origin },
+        body: new URLSearchParams({
+          query: authorizationUrl.search.slice(1),
+          key: KEY,
+          decision: "allow",
+        }),
+      });
+      const target = /content="0;url=([^"]+)"/.exec(await res.text())?.[1];
+      saved.callback = new URL(target.replace(/&#(\d+);/g, (_, c) => String.fromCharCode(c)));
+    },
+  };
+  const transport = () =>
+    new StreamableHTTPClientTransport(new URL(`${url}/mcp`), { authProvider: auth });
+  // The first try has no token, so the client discovers the server, registers and sends the owner to approve.
+  await assert.rejects(
+    new Client({ name: "test", version: "0" }).connect(transport()),
+    UnauthorizedError,
+  );
+  const signedIn = transport();
+  await signedIn.finishAuth(saved.callback.searchParams.get("code"));
+  const client = new Client({ name: "test", version: "0" });
+  await client.connect(signedIn);
+  const { tools } = await client.listTools();
+  await client.close();
+  return { tools, consentPage };
 }
 
 const toolNames = (cells) => [...new Set(cells.join(" ").match(/\b[a-z]+(?:_[a-z]+)+\b/g))].sort();
