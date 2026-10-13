@@ -11,4 +11,3 @@ desenvolvimento.
 | `refusesToStart` | Confere que o servidor se recusa a subir com cada configuração errada, com a mensagem esperada |
 | `listTools`      | As ferramentas que o servidor lista para quem tem a chave                                      |
 | `readmeTools`    | As ferramentas da tabela "Ferramentas" do README do conector                                   |
-| `siteTools`      | As ferramentas da tabela do conector no site                                                   |
