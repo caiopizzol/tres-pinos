@@ -67,7 +67,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           cp .env.example env.example
-          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes
+          # A new release starts as a draft, so releases/latest never points at one without its files.
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 ||
+            gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes --draft
           gh release upload "$GITHUB_REF_NAME" compose.yaml env.example --clobber
-          # A draft is never releases/latest, so publish it; GitHub picks latest by version.
+          # Publishes it once the files are there; GitHub picks latest by version.
           gh release edit "$GITHUB_REF_NAME" --draft=false
