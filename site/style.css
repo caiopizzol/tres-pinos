@@ -109,11 +109,6 @@ h2 {
 .visual {
   margin: 0 0 56px;
 }
-.visual > figcaption {
-  margin-top: 10px;
-  font-size: 12px;
-  color: var(--muted);
-}
 .app {
   display: grid;
   grid-template-columns: 200px minmax(0, 1fr);

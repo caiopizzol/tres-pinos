@@ -58,10 +58,6 @@
             </div>
           </div>
         </div>
-        <figcaption>
-          Ilustração. Hoje um único agente faz esse trabalho, com a skill conciliar-extrato e os
-          conectores inter e nfse. Os números são do mês fictício dos testes.
-        </figcaption>
       </figure>
 
       <section aria-label="Como eles trabalham">
@@ -88,20 +84,11 @@
       <section id="comecar" aria-label="Começar">
         <div class="paths">
           <div>
-            <h2>Sem certificado · ler uma conta</h2>
-            <pre
-              tabindex="0"
-            ><span class="p">$ </span>git clone https://github.com/caiopizzol/tres-pinos
-<span class="p">$ </span>cd tres-pinos && export TRES_PINOS_DIR="$PWD"
-<span class="p">$ </span>bun install --production --filter @tres-pinos/boleto
-<span class="p">$ </span>mkdir -p ~/.claude/skills && cp -R skills/ler-conta ~/.claude/skills/   <span class="c"># Claude Code</span>
-<span class="p">$ </span>mkdir -p ~/.agents/skills && cp -R skills/ler-conta ~/.agents/skills/   <span class="c"># Codex</span></pre>
-          </div>
-          <div>
-            <h2>Com certificado · ligar o banco e a NFS-e</h2>
-            <pre
-              tabindex="0"
-            ><span class="p">$ </span>sed 's/^COMPOSE_PROFILES=.*/COMPOSE_PROFILES=inter,nfse/' .env.example > .env
+            <h2>Ligar o banco e a NFS-e</h2>
+            <pre tabindex="0"><span class="p">$ </span>mkdir tres-pinos && cd tres-pinos
+<span class="p">$ </span>curl -fsSLO https://github.com/caiopizzol/tres-pinos/releases/latest/download/compose.yaml
+<span class="p">$ </span>curl -fsSL https://github.com/caiopizzol/tres-pinos/releases/latest/download/env.example \
+    | sed 's/^COMPOSE_PROFILES=.*/COMPOSE_PROFILES=inter,nfse/' > .env
 <span class="p">$ </span>docker compose up -d   <span class="c"># depois de preencher o .env</span></pre>
           </div>
         </div>

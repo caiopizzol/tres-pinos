@@ -69,9 +69,12 @@ do [Poppler](https://poppler.freedesktop.org) e do [qpdf](https://qpdf.readthedo
 Precisa do [Docker](https://docs.docker.com/get-docker/).
 
 ```bash
-git clone https://github.com/caiopizzol/tres-pinos && cd tres-pinos
-cp .env.example .env   # escolha os conectores em COMPOSE_PROFILES e preencha as variáveis
+mkdir tres-pinos && cd tres-pinos
+curl -fsSLO https://github.com/caiopizzol/tres-pinos/releases/latest/download/compose.yaml
+curl -fsSL https://github.com/caiopizzol/tres-pinos/releases/latest/download/env.example -o .env
 ```
+
+No `.env`, escolha os conectores em `COMPOSE_PROFILES` e preencha as variáveis.
 
 Prepare o certificado como diz cada conector: [Sicoob](connectors/sicoob), [Inter](connectors/inter) ou
 [NFS-e](connectors/nfse). Depois:

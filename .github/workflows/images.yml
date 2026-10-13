@@ -52,3 +52,20 @@ jobs:
           subject-name: ghcr.io/caiopizzol/tres-pinos/${{ matrix.connector }}
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
+
+  # Attaches compose.yaml and the example settings to the version's release, so the quick start downloads them from
+  # releases/latest without a clone. GitHub renames .env.example to default.env.example, so it goes up as env.example.
+  release:
+    needs: publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp .env.example env.example
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes
+          gh release upload "$GITHUB_REF_NAME" compose.yaml env.example --clobber
