@@ -1,7 +1,10 @@
 // The server over HTTP: runs the real server.mjs in its own process and lists its tools through an MCP client.
 // It never reaches the ADN: listing tools needs no request.
 import assert from "node:assert/strict";
-import { test } from "node:test";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { after, test } from "node:test";
 import {
   certificates,
   KEY,
@@ -10,6 +13,7 @@ import {
   readmeTools,
   refusesToStart,
   runningServer,
+  signInAndListTools,
   siteTools,
 } from "@tres-pinos/testing";
 
@@ -64,3 +68,22 @@ test(
       ],
     ]),
 );
+
+// With PUBLIC_URL, an app on the internet signs in with the owner's key instead of holding it. The sign-ins live
+// in DATA_DIR, here a folder deleted after the test.
+test("with PUBLIC_URL, an app signs in on the consent page and gets only the read tools", async () => {
+  const dataDir = mkdtempSync(join(tmpdir(), "nfse-data-"));
+  after(() => rmSync(dataDir, { recursive: true, force: true }));
+  const url = await runningServer(SERVER, (self) => ({
+    ...SETTINGS,
+    PUBLIC_URL: self,
+    DATA_DIR: dataDir,
+  }));
+  const { tools, consentPage } = await signInAndListTools(url);
+  assert.deepEqual(
+    tools.map((t) => t.name),
+    ["list_invoices"],
+  );
+  assert.match(consentPage, /sistema nacional da NFS-e/);
+  assert.match(consentPage, /Nunca emite nem cancela notas/);
+});

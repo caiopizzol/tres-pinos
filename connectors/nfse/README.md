@@ -44,6 +44,9 @@ Ligue o agente em `http://127.0.0.1:3014/mcp`, com o cabeçalho `Authorization: 
 Com `NFSE_PUBLIC_URL`, o conector também aceita login, como o do [Inter](../inter#acesso-pela-internet). Publique
 a porta 3014 nesse endereço com HTTPS. Os logins ficam no volume `nfse`.
 
+> [!NOTE]
+> Nenhum app entrou ainda pela internet neste conector. Os testes cobrem o login, mas não um app real.
+
 ## Configuração
 
 | Variável             | O que faz                                                   |
