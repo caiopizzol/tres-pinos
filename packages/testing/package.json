@@ -1,0 +1,11 @@
+{
+  "name": "@tres-pinos/testing",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/testing.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.31.0"
+  }
+}

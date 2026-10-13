@@ -1,71 +1,16 @@
 // The Inter client and its guard, against a fake Inter that, like the real one, accepts only a client
 // certificate signed by its CA. The certificates are made here, with fictional names.
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
-import { createServer } from "node:https";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { after, before, beforeEach, test } from "node:test";
+import { beforeEach, test } from "node:test";
 import { certificateFetch } from "@tres-pinos/api";
+import { certificates, fakeApi } from "@tres-pinos/testing";
 import { readOnly } from "../src/guard.mjs";
 import { API_URL, InterError, interClient, TOKEN_URL } from "../src/inter.mjs";
 import { buildServer } from "../src/tools.mjs";
 
-const dir = mkdtempSync(join(tmpdir(), "inter-"));
-after(() => rmSync(dir, { recursive: true, force: true }));
-const file = (name) => join(dir, name);
-const openssl = (...args) => execFileSync("openssl", args, { stdio: "ignore" });
-openssl(
-  "req",
-  "-x509",
-  "-newkey",
-  "rsa:2048",
-  "-nodes",
-  "-keyout",
-  file("ca.key"),
-  "-out",
-  file("ca.crt"),
-  "-days",
-  "1",
-  "-subj",
-  "/CN=test-ca",
-);
-for (const [name, subject] of [
-  ["server", "/CN=localhost"],
-  ["owner", "/CN=EMPRESA FICTICIA LTDA"],
-]) {
-  openssl(
-    "req",
-    "-newkey",
-    "rsa:2048",
-    "-nodes",
-    "-keyout",
-    file(`${name}.key`),
-    "-out",
-    file(`${name}.csr`),
-    "-subj",
-    subject,
-  );
-  openssl(
-    "x509",
-    "-req",
-    "-in",
-    file(`${name}.csr`),
-    "-CA",
-    file("ca.crt"),
-    "-CAkey",
-    file("ca.key"),
-    "-CAcreateserial",
-    "-out",
-    file(`${name}.crt`),
-    "-days",
-    "1",
-  );
-}
+const certs = certificates({ server: "/CN=localhost", owner: "/CN=EMPRESA FICTICIA LTDA" });
 
-// The fake answers like Inter for the token, balance and statement, and records each request.
-const requests = [];
+// The fake answers like Inter for the token, balance and statement, or with `reply` when it is set.
 let reply = null;
 let tokens = 0;
 const transaction = {
@@ -80,70 +25,46 @@ const transaction = {
   numeroDocumento: "0",
   detalhes: { cpfCnpjRecebedor: "00000000000" },
 };
-const fake = createServer(
-  {
-    key: readFileSync(file("server.key")),
-    cert: readFileSync(file("server.crt")),
-    ca: readFileSync(file("ca.crt")),
-    requestCert: true,
-    rejectUnauthorized: true,
-  },
-  async (req, res) => {
-    let body = "";
-    for await (const chunk of req) body += chunk;
-    requests.push({
-      method: req.method,
-      path: req.url,
-      body,
-      auth: req.headers.authorization,
-      client: req.socket.getPeerCertificate().subject.CN,
-    });
-    const send = (status, value) =>
-      res.writeHead(status, { "Content-Type": "application/json" }).end(JSON.stringify(value));
-    if (req.url === "/oauth/v2/token") {
-      tokens++;
-      return send(200, {
+const fake = fakeApi(certs, ({ path, body }) => {
+  if (path === "/oauth/v2/token") {
+    tokens++;
+    return [
+      200,
+      {
         access_token: `t${tokens}`,
         token_type: "Bearer",
         expires_in: 3600,
         scope: new URLSearchParams(body).get("scope"),
-      });
-    }
-    if (reply) return send(...reply);
-    if (req.url === "/banking/v2/saldo")
-      return send(200, {
+      },
+    ];
+  }
+  if (reply) return reply;
+  if (path === "/banking/v2/saldo")
+    return [
+      200,
+      {
         disponivel: 1234.5,
         limite: 500,
         bloqueadoCheque: 0,
         dataReferencia: "2026-09-02",
-      });
-    if (
-      req.url ===
-      "/banking/v2/extrato/completo?dataInicio=2026-02-01&dataFim=2026-02-28&tamanhoPagina=10000"
-    )
-      return send(200, { totalPaginas: 1, transacoes: [transaction] });
-    send(404, {});
-  },
-);
-let base;
-before(
-  () =>
-    new Promise((resolve) =>
-      fake.listen(0, "127.0.0.1", () =>
-        resolve((base = `https://localhost:${fake.address().port}`)),
-      ),
-    ),
-);
-after(() => fake.close());
+      },
+    ];
+  if (
+    path ===
+    "/banking/v2/extrato/completo?dataInicio=2026-02-01&dataFim=2026-02-28&tamanhoPagina=10000"
+  )
+    return [200, { totalPaginas: 1, transacoes: [transaction] }];
+  return [404, {}];
+});
+const { requests } = fake;
 beforeEach(() => {
   reply = null;
 });
 
 // The real client, pointed at the fake: Inter's URL is rewritten to it, and the fake's CA is trusted.
-const owner = { cert: readFileSync(file("owner.crt")), key: readFileSync(file("owner.key")) };
-function client(identity = owner) {
-  const real = certificateFetch({ ...identity, ca: readFileSync(file("ca.crt")) });
-  return (url, init) => real(url.replace(API_URL, base), init);
+function client(identity = certs.identity("owner")) {
+  const real = certificateFetch({ ...identity, ca: certs.read("ca.crt") });
+  return (url, init) => real(url.replace(API_URL, fake.url()), init);
 }
 const config = { clientId: "client-id", clientSecret: "client-secret" };
 
@@ -270,7 +191,7 @@ test("asks for exactly one calendar month, leap years included", async () => {
 
 test("Inter refuses a client with no certificate", async () => {
   await assert.rejects(
-    certificateFetch({ ca: readFileSync(file("ca.crt")) })(`${base}/oauth/v2/token`, {
+    certificateFetch({ ca: certs.read("ca.crt") })(`${fake.url()}/oauth/v2/token`, {
       method: "POST",
     }),
   );
