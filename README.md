@@ -88,11 +88,16 @@ E ligue o seu agente na mesma máquina, com a porta e a chave de cada conector:
 | `inter`  | `http://127.0.0.1:3013/mcp` | `INTER_KEY`  |
 | `nfse`   | `http://127.0.0.1:3014/mcp` | `NFSE_KEY`   |
 
+Os comandos guardam só o nome da variável, não a chave. Deixe a chave no ambiente em que você abre o agente, por
+exemplo no `~/.zshrc`. Para o Sicoob:
+
 ```bash
 export SICOOB_KEY=...   # a mesma do .env
 codex mcp add sicoob --url http://127.0.0.1:3012/mcp --bearer-token-env-var SICOOB_KEY
-claude mcp add --transport http sicoob http://127.0.0.1:3012/mcp --header "Authorization: Bearer $SICOOB_KEY"
+claude mcp add --scope user --transport http sicoob http://127.0.0.1:3012/mcp --header 'Authorization: Bearer ${SICOOB_KEY}'
 ```
+
+Para o Inter ou a NFS-e, troque o nome, a porta e a chave pelos da tabela.
 
 ## Desenvolvimento
 
