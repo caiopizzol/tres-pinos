@@ -7,7 +7,7 @@
 <p align="center">
   A tomada brasileira para agentes de IA: conectores MCP de código aberto,
   <br>
-  que você hospeda, para o que só existe no Brasil.
+  que você hospeda, para o que só existe no Brasil 🇧🇷
 </p>
 
 <p align="center">
