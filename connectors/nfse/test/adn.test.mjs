@@ -1,71 +1,21 @@
 // The ADN client and its guard, against a fake ADN that, like the real one, accepts only a client certificate
 // signed by its CA. The certificates are made here, with fictional names; the invoice is packages/nfse's fixture.
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
-import { createServer } from "node:https";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { readFileSync } from "node:fs";
 import { gzipSync } from "node:zlib";
-import { after, before, beforeEach, test } from "node:test";
+import { beforeEach, test } from "node:test";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { certificateFetch } from "@tres-pinos/api";
+import { certificates, fakeApi } from "@tres-pinos/testing";
 import { AdnError, adnClient, API_URL } from "../src/adn.mjs";
 import { readOnly } from "../src/guard.mjs";
 import { buildServer } from "../src/tools.mjs";
 
-const dir = mkdtempSync(join(tmpdir(), "nfse-"));
-after(() => rmSync(dir, { recursive: true, force: true }));
-const file = (name) => join(dir, name);
-const openssl = (...args) => execFileSync("openssl", args, { stdio: "ignore" });
-openssl(
-  "req",
-  "-x509",
-  "-newkey",
-  "rsa:2048",
-  "-nodes",
-  "-keyout",
-  file("ca.key"),
-  "-out",
-  file("ca.crt"),
-  "-days",
-  "1",
-  "-subj",
-  "/CN=test-ca",
-);
-for (const [name, subject] of [
-  ["server", "/CN=localhost"],
-  ["owner", "/CN=EMPRESA FICTICIA LTDA:00000000000191"],
-]) {
-  openssl(
-    "req",
-    "-newkey",
-    "rsa:2048",
-    "-nodes",
-    "-keyout",
-    file(`${name}.key`),
-    "-out",
-    file(`${name}.csr`),
-    "-subj",
-    subject,
-  );
-  openssl(
-    "x509",
-    "-req",
-    "-in",
-    file(`${name}.csr`),
-    "-CA",
-    file("ca.crt"),
-    "-CAkey",
-    file("ca.key"),
-    "-CAcreateserial",
-    "-out",
-    file(`${name}.crt`),
-    "-days",
-    "1",
-  );
-}
+const certs = certificates({
+  server: "/CN=localhost",
+  owner: "/CN=EMPRESA FICTICIA LTDA:00000000000191",
+});
 
 const XML = readFileSync(new URL("../../../packages/nfse/fixtures/nfse.xml", import.meta.url));
 const KEY = "41069022200000000000191000000000000126090000000001";
@@ -98,44 +48,18 @@ const NONE = [
   },
 ];
 
-// The fake answers each request with `reply`, and records it.
-const requests = [];
+// The fake answers each request with `reply`.
 let reply = null;
-const fake = createServer(
-  {
-    key: readFileSync(file("server.key")),
-    cert: readFileSync(file("server.crt")),
-    ca: readFileSync(file("ca.crt")),
-    requestCert: true,
-    rejectUnauthorized: true,
-  },
-  (req, res) => {
-    requests.push({ path: req.url, client: req.socket.getPeerCertificate().subject.CN });
-    const [status, body] = reply;
-    res
-      .writeHead(status, { "Content-Type": "application/json" })
-      .end(typeof body === "string" ? body : JSON.stringify(body));
-  },
-);
-let base;
-before(
-  () =>
-    new Promise((resolve) =>
-      fake.listen(0, "127.0.0.1", () =>
-        resolve((base = `https://localhost:${fake.address().port}`)),
-      ),
-    ),
-);
-after(() => fake.close());
+const fake = fakeApi(certs, () => reply);
+const { requests } = fake;
 beforeEach(() => {
   reply = NONE;
 });
 
 // The real client, pointed at the fake: the ADN's host is rewritten to it, and the fake's CA is trusted.
-const owner = { cert: readFileSync(file("owner.crt")), key: readFileSync(file("owner.key")) };
 function client() {
-  const real = certificateFetch({ ...owner, ca: readFileSync(file("ca.crt")) });
-  return (url, init) => real(url.replace(new URL(API_URL).origin, base), init);
+  const real = certificateFetch({ ...certs.identity("owner"), ca: certs.read("ca.crt") });
+  return (url, init) => real(url.replace(new URL(API_URL).origin, fake.url()), init);
 }
 const adn = () => adnClient(readOnly(client()));
 
@@ -168,7 +92,10 @@ test("lists a batch after an NSU, reading each NFS-e, with the company's e-CNPJ"
     done: false,
   });
   assert.deepEqual(requests.at(-1), {
+    method: "GET",
     path: "/contribuintes/DFe/4?lote=true",
+    body: "",
+    auth: undefined,
     client: "EMPRESA FICTICIA LTDA:00000000000191",
   });
 });
@@ -215,7 +142,7 @@ test("never guesses: a document it can't trust fails the whole batch", async () 
 });
 
 test("the ADN refuses a client with no certificate", async () => {
-  await assert.rejects(certificateFetch({ ca: readFileSync(file("ca.crt")) })(`${base}/DFe/0`));
+  await assert.rejects(certificateFetch({ ca: certs.read("ca.crt") })(`${fake.url()}/DFe/0`));
 });
 
 test("the guard lets out only the next batch, before the network", async () => {

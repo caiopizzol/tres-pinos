@@ -1,103 +1,33 @@
 // The Sicoob client and its guard, against a fake Sicoob that, like the real one, accepts only a client
 // certificate signed by its CA. The certificates are made here, with fictional names and numbers.
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
-import { createServer } from "node:https";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { after, before, test } from "node:test";
+import { test } from "node:test";
 import { certificateFetch } from "@tres-pinos/api";
+import { certificates, fakeApi } from "@tres-pinos/testing";
 import { readOnly } from "../src/guard.mjs";
 import { API_URL, getBalance, getStatement, SicoobError, TOKEN_URL } from "../src/sicoob.mjs";
 import { buildServer } from "../src/tools.mjs";
 
-const PASSWORD = "test-password-123";
-const dir = mkdtempSync(join(tmpdir(), "sicoob-"));
-after(() => rmSync(dir, { recursive: true, force: true }));
-const file = (name) => join(dir, name);
-const openssl = (...args) => execFileSync("openssl", args, { stdio: "ignore" });
-openssl(
-  "req",
-  "-x509",
-  "-newkey",
-  "rsa:2048",
-  "-nodes",
-  "-keyout",
-  file("ca.key"),
-  "-out",
-  file("ca.crt"),
-  "-days",
-  "1",
-  "-subj",
-  "/CN=test-ca",
+const certs = certificates(
+  { server: "/CN=localhost", owner: "/CN=FULANO DE TAL:00000000000" },
+  { locked: true },
 );
-for (const [name, subject, pass] of [
-  ["server", "/CN=localhost", null],
-  ["owner", "/CN=FULANO DE TAL:00000000000", PASSWORD],
-]) {
-  openssl(
-    "req",
-    "-newkey",
-    "rsa:2048",
-    ...(pass ? ["-passout", `pass:${pass}`] : ["-nodes"]),
-    "-keyout",
-    file(`${name}.key`),
-    "-out",
-    file(`${name}.csr`),
-    "-subj",
-    subject,
-  );
-  openssl(
-    "x509",
-    "-req",
-    "-in",
-    file(`${name}.csr`),
-    "-CA",
-    file("ca.crt"),
-    "-CAkey",
-    file("ca.key"),
-    "-CAcreateserial",
-    "-out",
-    file(`${name}.crt`),
-    "-days",
-    "1",
-  );
-}
 
-// The fake answers like Sicoob for the token, balance and statement, and records each request.
-const requests = [];
+// The fake answers like Sicoob for the token, balance and statement, or with `reply` when it is set.
 let reply = null;
-const fake = createServer(
-  {
-    key: readFileSync(file("server.key")),
-    cert: readFileSync(file("server.crt")),
-    ca: readFileSync(file("ca.crt")),
-    requestCert: true,
-    rejectUnauthorized: true,
-  },
-  async (req, res) => {
-    let body = "";
-    for await (const chunk of req) body += chunk;
-    requests.push({
-      method: req.method,
-      path: req.url,
-      body,
-      client: req.socket.getPeerCertificate().subject.CN,
-    });
-    const send = (status, value) =>
-      res.writeHead(status, { "Content-Type": "application/json" }).end(JSON.stringify(value));
-    if (reply) return send(...reply);
-    if (req.url === "/token")
-      return send(200, {
-        access_token: "t",
-        token_type: "Bearer",
-        scope: new URLSearchParams(body).get("scope"),
-      });
-    if (req.url.startsWith("/conta-corrente/v4/saldo?"))
-      return send(200, { resultado: { saldo: "1234.5", saldoLimite: 500 } });
-    if (req.url.startsWith("/conta-corrente/v4/extrato/9/2026?")) {
-      return send(200, {
+const fake = fakeApi(certs, ({ path, body }) => {
+  if (reply) return reply;
+  if (path === "/token")
+    return [
+      200,
+      { access_token: "t", token_type: "Bearer", scope: new URLSearchParams(body).get("scope") },
+    ];
+  if (path.startsWith("/conta-corrente/v4/saldo?"))
+    return [200, { resultado: { saldo: "1234.5", saldoLimite: 500 } }];
+  if (path.startsWith("/conta-corrente/v4/extrato/9/2026?"))
+    return [
+      200,
+      {
         resultado: {
           transacoes: [
             {
@@ -109,31 +39,17 @@ const fake = createServer(
             },
           ],
         },
-      });
-    }
-    send(404, {});
-  },
-);
-let base;
-before(
-  () =>
-    new Promise((resolve) =>
-      fake.listen(0, "127.0.0.1", () =>
-        resolve((base = `https://localhost:${fake.address().port}`)),
-      ),
-    ),
-);
-after(() => fake.close());
+      },
+    ];
+  return [404, {}];
+});
+const { requests } = fake;
 
 // The real client, pointed at the fake: Sicoob's URLs are rewritten to it, and the fake's CA is trusted.
-const owner = {
-  cert: readFileSync(file("owner.crt")),
-  key: readFileSync(file("owner.key")),
-  passphrase: PASSWORD,
-};
-function client(identity = owner) {
-  const real = certificateFetch({ ...identity, ca: readFileSync(file("ca.crt")) });
-  return (url, init) => real(url.replace(TOKEN_URL, `${base}/token`).replace(API_URL, base), init);
+function client(identity = certs.identity("owner")) {
+  const real = certificateFetch({ ...identity, ca: certs.read("ca.crt") });
+  return (url, init) =>
+    real(url.replace(TOKEN_URL, `${fake.url()}/token`).replace(API_URL, fake.url()), init);
 }
 const config = { clientId: "client-id", account: "1234567" };
 
@@ -153,7 +69,7 @@ test("reads the balance and a statement, presenting the owner's certificate", as
 
 test("Sicoob refuses a client with no certificate", async () => {
   await assert.rejects(
-    certificateFetch({ ca: readFileSync(file("ca.crt")) })(`${base}/token`, { method: "POST" }),
+    certificateFetch({ ca: certs.read("ca.crt") })(`${fake.url()}/token`, { method: "POST" }),
   );
 });
 

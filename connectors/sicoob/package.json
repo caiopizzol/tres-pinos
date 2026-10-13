@@ -10,5 +10,8 @@
     "@tres-pinos/api": "workspace:*",
     "@tres-pinos/server": "workspace:*",
     "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@tres-pinos/testing": "workspace:*"
   }
 }
