@@ -94,6 +94,9 @@ bun run check
 bun run test
 ```
 
+O `media` fica de fora do `bun run test`, porque precisa do ImageMagick e do ffmpeg. O CI o confere na imagem, como
+diz o [README dele](packages/media#desenvolvimento).
+
 ## Licença
 
 [MIT](LICENSE)

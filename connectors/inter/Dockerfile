@@ -6,7 +6,7 @@ WORKDIR /app
 COPY package.json bun.lock ./
 # Every workspace's package.json, which bun needs to match the lockfile.
 COPY --parents connectors/*/package.json packages/*/package.json ./
-RUN bun install --frozen-lockfile --production --filter @tres-pinos/inter && rm /usr/local/bin/bun
+RUN bun install --frozen-lockfile --production --filter @tres-pinos/inter-connector && rm /usr/local/bin/bun
 COPY packages/api/src packages/api/src
 COPY packages/server/src packages/server/src
 COPY connectors/inter/src connectors/inter/src

@@ -1,5 +1,5 @@
 {
-  "name": "@tres-pinos/inter",
+  "name": "@tres-pinos/inter-connector",
   "private": true,
   "type": "module",
   "scripts": {
