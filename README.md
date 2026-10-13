@@ -5,9 +5,9 @@
 <h1 align="center">Três pinos, nenhum adaptador.</h1>
 
 <p align="center">
-  A tomada brasileira para agentes de IA: conectores MCP de código aberto,
+  A tomada brasileira para agentes de IA: conectores que dão acesso ao que só existe no Brasil,
   <br>
-  que você hospeda, para o que só existe no Brasil 🇧🇷
+  e skills que ensinam o que fazer com ele. Código aberto, você hospeda 🇧🇷
 </p>
 
 <p align="center">

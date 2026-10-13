@@ -13,7 +13,8 @@ language: pt-BR
 ### Overview
 
 Três Pinos liga agentes de IA aos serviços que o brasileiro usa no dia a dia: boletos, Pix e bancos.
-São servidores MCP de código aberto que a pessoa hospeda onde quiser.
+São conectores, que dão ao agente o acesso, e skills, que ensinam o que fazer com ele. Código aberto, hospedado
+onde a pessoa quiser.
 
 Nasceu de um assistente pessoal que lia contas no WhatsApp e agendava pagamentos no Sicoob. O nome é a tomada de
 três pinos (NBR 14136), o padrão que só o Brasil adotou em larga escala.
@@ -36,7 +37,7 @@ Não é para quem quer um chatbot pronto sem configurar nada.
 
 ### Positioning
 
-Categoria: conectores MCP de código aberto para serviços brasileiros.
+Categoria: conectores e skills de código aberto para agentes de IA trabalharem com serviços brasileiros.
 
 Não é um chatbot. Não é uma plataforma de automação. Não é um banco nem um meio de pagamento.
 
@@ -111,8 +112,9 @@ Título: **Três pinos, nenhum adaptador.** No topo do README e do site, sempre 
 
 Tagline: **A tomada brasileira para agentes de IA.** Sozinha, onde não cabe explicação.
 
-Descrição: **A tomada brasileira para agentes de IA: conectores MCP de código aberto, que você hospeda, para o
-que só existe no Brasil.** Embaixo do título, na descrição do GitHub e nas prévias de link.
+Descrição: **A tomada brasileira para agentes de IA: conectores que dão acesso ao que só existe no Brasil, e
+skills que ensinam o que fazer com ele. Código aberto, você hospeda.** Embaixo do título, na descrição do GitHub e
+nas prévias de link. Diz as duas metades, o acesso e o saber fazer, sem a sigla MCP.
 Não cita conectores: eles ficam só na tabela do README, que cresce sem mudar a descrição.
 
 Alternativas:
