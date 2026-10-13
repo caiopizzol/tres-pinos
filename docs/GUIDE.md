@@ -51,4 +51,5 @@ docker compose up -d
 - Seja breve: uma frase por passo, sem repetir o que outra seção ou o README principal já diz.
 - Cada passo é verificável: diga o que a pessoa deve ver ao terminar.
 - Mostre só os dados de uma conta fictícia ou borrados. Nunca saldo, CNPJ, nome ou chave reais.
-- A seção `## Ferramentas` é lida pelos testes: mantenha o título e a tabela.
+- A seção `## Ferramentas` é lida pelos testes: mantenha o título e a tabela, com o nome de cada ferramenta entre
+  crases, como `` `get_balance` ``.

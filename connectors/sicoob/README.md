@@ -37,7 +37,7 @@ docker compose up -d
 ```
 
 Ligue o agente em `http://127.0.0.1:3012/mcp`, com o cabeçalho `Authorization: Bearer $SICOOB_KEY`. Ao
-contrário do [Inter](../inter#acesso-pela-internet), o Sicoob ainda não aceita login pela internet: só agentes na
+contrário do [Inter](../inter#ligar-o-agente), o Sicoob ainda não aceita login pela internet: só agentes na
 mesma máquina.
 
 ## Configuração

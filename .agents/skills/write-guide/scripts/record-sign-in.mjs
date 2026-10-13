@@ -15,9 +15,6 @@ const [connector, out] = process.argv.slice(2);
 if (!connector || !out) throw new Error("Usage: node record-sign-in.mjs <connector> <out.gif>");
 const NAME = connector.toUpperCase();
 const KEY = "k".repeat(32);
-const PORT = 3201;
-const URL_ = `http://127.0.0.1:${PORT}`;
-const CALLBACK = "http://127.0.0.1:33418/callback";
 const work = mkdtempSync(join(tmpdir(), "record-sign-in-"));
 
 // A fictional certificate and key, which every connector checks before it starts. The settings it needs besides them
@@ -43,6 +40,26 @@ execFileSync(
   ],
   { stdio: "ignore" },
 );
+// Two free ports: the connector's, and the AI app's return address, which the connector accepts on any loopback port.
+const freePort = () =>
+  new Promise((resolve) => {
+    const probe = createServer().listen(0, "127.0.0.1", () => {
+      const { port } = probe.address();
+      probe.close(() => resolve(port));
+    });
+  });
+const PORT = await freePort();
+const URL_ = `http://127.0.0.1:${PORT}`;
+const app = createServer((_, res) =>
+  res
+    .writeHead(200, { "Content-Type": "text/html; charset=utf-8" })
+    .end(
+      `<body style="font:16px/1.5 system-ui;color:#1D1D1F;background:#F6F5F1;display:grid;place-items:center;height:90vh;margin:0"><p><b>${connector}</b> conectado ✓</p>`,
+    ),
+);
+await new Promise((resolve) => app.listen(0, "127.0.0.1", resolve));
+const CALLBACK = `http://127.0.0.1:${app.address().port}/callback`;
+
 const env = {
   ...process.env,
   PORT: String(PORT),
@@ -61,15 +78,7 @@ const server = spawn(process.execPath, [`connectors/${connector}/src/server.mjs`
   stdio: "inherit",
 });
 
-// The AI app's return address. A real app shows its own screen; this one says the connector is linked.
-const app = createServer((_, res) =>
-  res
-    .writeHead(200, { "Content-Type": "text/html; charset=utf-8" })
-    .end(
-      `<body style="font:16px/1.5 system-ui;color:#1D1D1F;background:#F6F5F1;display:grid;place-items:center;height:90vh;margin:0"><p><b>${connector}</b> conectado ✓</p>`,
-    ),
-).listen(33418, "127.0.0.1");
-
+let browser;
 try {
   for (let i = 0; ; i++) {
     if (
@@ -105,7 +114,7 @@ try {
     resource: `${URL_}/mcp`,
   });
 
-  const browser = await chromium.launch();
+  browser = await chromium.launch();
   const size = { width: 640, height: 420 };
   const context = await browser.newContext({ viewport: size, recordVideo: { dir: work, size } });
   const page = await context.newPage();
@@ -120,7 +129,6 @@ try {
   await page.waitForTimeout(1200);
   const video = await page.video().path();
   await context.close();
-  await browser.close();
 
   execFileSync("ffmpeg", [
     "-v",
@@ -136,6 +144,7 @@ try {
   ]);
   console.log(out);
 } finally {
+  await browser?.close();
   server.kill();
   app.close();
   rmSync(work, { recursive: true, force: true });

@@ -17,7 +17,8 @@ The guide is `connectors/<connector>/README.md`, in Portuguese, with the section
    node .agents/skills/write-guide/scripts/record-sign-in.mjs <connector> connectors/<connector>/entrar.gif
    ```
 
-   It runs the real connector with fictional data and needs Playwright with Chromium, and ffmpeg.
+   It runs the real connector with fictional data. It needs ffmpeg, and Chromium for Playwright, installed once with
+   `bunx playwright install chromium`.
 
 4. For the service's own screens, such as a bank's, ask the owner to log in, then go through the steps in their
    browser and take a screenshot of each screen. Write the steps from the screenshots, and join them into a GIF:
