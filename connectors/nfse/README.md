@@ -42,10 +42,8 @@ Ligue o agente em `http://127.0.0.1:3014/mcp`, com o cabeçalho `Authorization: 
 ## Acesso pela internet
 
 Com `NFSE_PUBLIC_URL`, o conector também aceita login, como o do [Inter](../inter#acesso-pela-internet). Publique
-a porta 3014 nesse endereço com HTTPS. Os logins ficam no volume `nfse`.
-
-> [!NOTE]
-> Nenhum app entrou ainda pela internet neste conector. Os testes cobrem o login, mas não um app real.
+a porta 3014 nesse endereço com HTTPS e adicione `https://nfse.seudominio.com/mcp` como conector MCP no seu app de
+IA. Os logins ficam no volume `nfse`.
 
 ## Configuração
 

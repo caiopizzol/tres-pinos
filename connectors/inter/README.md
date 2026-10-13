@@ -45,13 +45,7 @@ Com `INTER_PUBLIC_URL`, o conector também aceita login: o app abre uma página 
 exemplo com um [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/).
 Os logins ficam no volume `inter`.
 
-```bash
-codex mcp add inter --url https://inter.seudominio.com/mcp
-codex mcp login inter
-```
-
-> [!NOTE]
-> Até agora, só o Codex entrou assim. O claude.ai, o ChatGPT e outros apps na nuvem ainda não foram testados.
+Adicione `https://inter.seudominio.com/mcp` como conector MCP no seu app de IA.
 
 ## Configuração
 
