@@ -79,11 +79,15 @@ test("with PUBLIC_URL, an app signs in on the consent page and gets only the rea
     PUBLIC_URL: self,
     DATA_DIR: dataDir,
   }));
-  const { tools, consentPage } = await signInAndListTools(url);
+  const { tools, consentPage, server } = await signInAndListTools(url);
   assert.deepEqual(
     tools.map((t) => t.name),
     ["get_balance", "get_statement"],
   );
+  assert.equal(server.title, "Três Pinos · Banco Inter");
+  assert.deepEqual(server.icons, [
+    { src: `${url}/icon.png`, mimeType: "image/png", sizes: ["192x192"] },
+  ]);
   assert.match(consentPage, /seu Banco Inter/);
   assert.match(consentPage, /Nunca movimenta dinheiro/);
 });

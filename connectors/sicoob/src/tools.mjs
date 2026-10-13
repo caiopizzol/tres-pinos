@@ -17,7 +17,12 @@ const answer = (work) =>
 export function buildServer(sicoob) {
   // Without the guard, a bug could reach anything the certificate allows, payments included.
   if (!isReadOnly(sicoob.fetch)) throw new Error("The tools need a fetch from readOnly");
-  const server = new McpServer({ name: "tres-pinos-sicoob", version: "0.1.0" });
+  const server = new McpServer({
+    name: "tres-pinos-sicoob",
+    title: "Três Pinos · Sicoob",
+    version: "0.1.0",
+    websiteUrl: "https://trespinos.dev",
+  });
   server.registerTool(
     "get_balance",
     {

@@ -10,7 +10,7 @@ import { UnauthorizedError } from "@modelcontextprotocol/sdk/client/auth.js";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { serve, toolAnswer } from "../src/server.mjs";
+import { icons, serve, toolAnswer } from "../src/server.mjs";
 
 const KEY = "k".repeat(32);
 const tools = () => {
@@ -171,6 +171,32 @@ test("a malformed path gets 400 and the server keeps running, with or without si
     assert.equal(await rawGet(url, "//["), "HTTP/1.1 400 Bad Request");
     assert.equal((await fetch(`${url}/elsewhere`)).status, 404, "still running");
   }
+});
+
+// Apps show a connector's logo from its address's favicon, or from the icon its MCP server declares.
+test("serves the Três Pinos icon without the key, and declares it at the public address", async () => {
+  for (const signIn of [true, false]) {
+    const url = await start({ signIn });
+    for (const [path, type, magic] of [
+      ["/favicon.ico", "image/x-icon", "00000100"],
+      ["/icon.png", "image/png", "89504e47"],
+    ]) {
+      const res = await fetch(`${url}${path}`);
+      assert.equal(res.status, 200, path);
+      assert.equal(res.headers.get("content-type"), type);
+      assert.equal(
+        Buffer.from(await res.arrayBuffer())
+          .subarray(0, 4)
+          .toString("hex"),
+        magic,
+      );
+      assert.equal((await fetch(`${url}${path}`, { method: "POST" })).status, 404, `POST ${path}`);
+    }
+  }
+  assert.deepEqual(icons("https://inter.example.com"), [
+    { src: "https://inter.example.com/icon.png", mimeType: "image/png", sizes: ["192x192"] },
+  ]);
+  assert.equal(icons(undefined), undefined);
 });
 
 test("refuses a key short enough to guess", () => {

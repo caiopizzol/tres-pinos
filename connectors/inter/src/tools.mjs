@@ -12,10 +12,16 @@ const answer = (work) =>
   );
 
 // `inter` is one interClient for the whole process, so every request shares its token.
-export function buildServer(inter) {
+export function buildServer(inter, icons) {
   // Without the guard, a bug could reach anything the integration allows, payments included.
   if (!isReadOnly(inter.fetch)) throw new Error("The tools need a fetch from readOnly");
-  const server = new McpServer({ name: "tres-pinos-inter", version: "0.1.0" });
+  const server = new McpServer({
+    name: "tres-pinos-inter",
+    title: "Três Pinos · Banco Inter",
+    version: "0.1.0",
+    websiteUrl: "https://trespinos.dev",
+    icons,
+  });
   server.registerTool(
     "get_balance",
     {

@@ -191,8 +191,8 @@ export async function listTools(url) {
 }
 
 // Signs in to a server started with PUBLIC_URL as an MCP client would: it registers, the owner approves on the
-// consent page with the key, and the client gets a token. Returns the tools listed with that token, and the
-// consent page, which tells the owner what the connector reaches.
+// consent page with the key, and the client gets a token. Returns the tools listed with that token, the consent
+// page, which tells the owner what the connector reaches, and the server's info, which carries its icon.
 export async function signInAndListTools(url) {
   const saved = {};
   let consentPage;
@@ -241,8 +241,9 @@ export async function signInAndListTools(url) {
   const client = new Client({ name: "test", version: "0" });
   await client.connect(signedIn);
   const { tools } = await client.listTools();
+  const server = client.getServerVersion();
   await client.close();
-  return { tools, consentPage };
+  return { tools, consentPage, server };
 }
 
 const toolNames = (cells) => [...new Set(cells.join(" ").match(/\b[a-z]+(?:_[a-z]+)+\b/g))].sort();

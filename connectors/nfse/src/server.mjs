@@ -1,6 +1,6 @@
 // MCP server that gives an agent the tool in tools.mjs, behind NFSE_KEY.
 import { certificateFetch, readCertificate } from "@tres-pinos/api";
-import { serve } from "@tres-pinos/server";
+import { icons, serve } from "@tres-pinos/server";
 import { adnClient } from "./adn.mjs";
 import { readOnly } from "./guard.mjs";
 import { buildServer } from "./tools.mjs";
@@ -16,7 +16,7 @@ const adn = adnClient(readOnly(certificateFetch(readCertificate(env, "NFSE"), 60
 serve({
   name: "NFSE_KEY",
   key: env.NFSE_KEY,
-  tools: () => buildServer(adn),
+  tools: () => buildServer(adn, icons(env.PUBLIC_URL)),
   port: Number(env.PORT ?? 8080),
   publicUrl: env.PUBLIC_URL,
   dataDir: env.DATA_DIR,

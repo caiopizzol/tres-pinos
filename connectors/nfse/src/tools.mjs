@@ -11,10 +11,16 @@ const answer = (work) =>
     error instanceof AdnError ? `HTTP ${error.status}` : undefined,
   );
 
-export function buildServer(adn) {
+export function buildServer(adn, icons) {
   // Without the guard, a bug could reach anything the e-CNPJ allows.
   if (!isReadOnly(adn.fetch)) throw new Error("The tools need a fetch from readOnly");
-  const server = new McpServer({ name: "tres-pinos-nfse", version: "0.1.0" });
+  const server = new McpServer({
+    name: "tres-pinos-nfse",
+    title: "Três Pinos · NFS-e",
+    version: "0.1.0",
+    websiteUrl: "https://trespinos.dev",
+    icons,
+  });
   server.registerTool(
     "list_invoices",
     {
