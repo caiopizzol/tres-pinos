@@ -2,6 +2,7 @@
 import { certificateFetch, readCertificate } from "@tres-pinos/api";
 import { serve } from "@tres-pinos/server";
 import { readOnly } from "./guard.mjs";
+import { sicoobClient } from "./sicoob.mjs";
 import { buildServer } from "./tools.mjs";
 
 // PORT is for tests; the image always listens on 8080.
@@ -18,11 +19,13 @@ if (missing.length) throw new Error(`Set ${missing.join(", ")}`);
 if (!/^\d{1,14}$/.test(env.SICOOB_ACCOUNT))
   throw new Error("SICOOB_ACCOUNT is the account number, digits only");
 
-const config = { clientId: env.SICOOB_CLIENT_ID, account: env.SICOOB_ACCOUNT };
-const fetch = readOnly(certificateFetch(readCertificate(env, "SICOOB")));
+const sicoob = sicoobClient(
+  { clientId: env.SICOOB_CLIENT_ID, account: env.SICOOB_ACCOUNT },
+  readOnly(certificateFetch(readCertificate(env, "SICOOB"))),
+);
 serve({
   name: "SICOOB_KEY",
   key: env.SICOOB_KEY,
-  tools: () => buildServer(config, fetch),
+  tools: () => buildServer(sicoob),
   port: Number(env.PORT ?? 8080),
 });

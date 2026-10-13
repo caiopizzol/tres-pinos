@@ -2,25 +2,21 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { isReadOnly } from "@tres-pinos/api";
-import { getBalance, getStatement, SicoobError } from "./sicoob.mjs";
+import { toolAnswer } from "@tres-pinos/server";
+import { SicoobError } from "./sicoob.mjs";
 
 // The answer to a tool call. A failure carries only Sicoob's status and code, never its message text.
-async function answer(work) {
-  try {
-    const data = await work();
-    return { content: [{ type: "text", text: JSON.stringify(data) }] };
-  } catch (error) {
-    const detail =
-      error instanceof SicoobError
-        ? `HTTP ${error.status}${error.reason ? `, ${error.reason}` : ""}`
-        : "unavailable";
-    return { isError: true, content: [{ type: "text", text: `Sicoob: ${detail}` }] };
-  }
-}
+const answer = (work) =>
+  toolAnswer("Sicoob", work, (error) =>
+    error instanceof SicoobError
+      ? `HTTP ${error.status}${error.reason ? `, ${error.reason}` : ""}`
+      : undefined,
+  );
 
-export function buildServer(config, fetch) {
+// `sicoob` is one sicoobClient for the whole process.
+export function buildServer(sicoob) {
   // Without the guard, a bug could reach anything the certificate allows, payments included.
-  if (!isReadOnly(fetch)) throw new Error("The tools need a fetch from readOnly");
+  if (!isReadOnly(sicoob.fetch)) throw new Error("The tools need a fetch from readOnly");
   const server = new McpServer({ name: "tres-pinos-sicoob", version: "0.1.0" });
   server.registerTool(
     "get_balance",
@@ -29,7 +25,7 @@ export function buildServer(config, fetch) {
         "The owner's Sicoob checking account balance and overdraft limit, in integer cents.",
       annotations: { readOnlyHint: true },
     },
-    () => answer(() => getBalance(config, fetch)),
+    () => answer(() => sicoob.getBalance()),
   );
   server.registerTool(
     "get_statement",
@@ -46,9 +42,7 @@ export function buildServer(config, fetch) {
     },
     ({ month }) => {
       const [year, number] = month.split("-").map(Number);
-      return answer(async () => ({
-        transactions: await getStatement(config, fetch, year, number),
-      }));
+      return answer(async () => ({ transactions: await sicoob.getStatement(year, number) }));
     },
   );
   return server;

@@ -5,7 +5,7 @@ import { test } from "node:test";
 import { certificateFetch } from "@tres-pinos/api";
 import { certificates, fakeApi } from "@tres-pinos/testing";
 import { readOnly } from "../src/guard.mjs";
-import { API_URL, getBalance, getStatement, SicoobError, TOKEN_URL } from "../src/sicoob.mjs";
+import { API_URL, SicoobError, sicoobClient, TOKEN_URL } from "../src/sicoob.mjs";
 import { buildServer } from "../src/tools.mjs";
 
 const certs = certificates(
@@ -54,9 +54,9 @@ function client(identity = certs.identity("owner")) {
 const config = { clientId: "client-id", account: "1234567" };
 
 test("reads the balance and a statement, presenting the owner's certificate", async () => {
-  const fetch = readOnly(client());
-  assert.deepEqual(await getBalance(config, fetch), { balanceCents: 123450, limitCents: 50000 });
-  assert.deepEqual(await getStatement(config, fetch, 2026, 9), [
+  const sicoob = sicoobClient(config, readOnly(client()));
+  assert.deepEqual(await sicoob.getBalance(), { balanceCents: 123450, limitCents: 50000 });
+  assert.deepEqual(await sicoob.getStatement(2026, 9), [
     { id: "a1", date: "2026-09-02", type: "DEBITO", amountCents: 1230, description: "PIX ENVIADO" },
   ]);
   assert.ok(requests.every((r) => r.client === "FULANO DE TAL:00000000000"));
@@ -106,13 +106,15 @@ test("the guard refuses a redirect instead of following it", async () => {
 });
 
 test("the tools won't run on a fetch the guard didn't wrap", () => {
-  assert.throws(() => buildServer(config, client()), /readOnly/);
-  buildServer(config, readOnly(client()));
+  assert.throws(() => buildServer(sicoobClient(config, client())), /readOnly/);
+  buildServer(sicoobClient(config, readOnly(client())));
 });
 
 test("an error carries Sicoob's code and status, never its message text", async () => {
   reply = [400, { mensagens: [{ codigo: "10320", mensagem: "Conta 1234567 sem permissão" }] }];
-  const error = await getBalance(config, readOnly(client())).catch((e) => e);
+  const error = await sicoobClient(config, readOnly(client()))
+    .getBalance()
+    .catch((e) => e);
   reply = null;
   assert.ok(error instanceof SicoobError);
   assert.equal(error.message, "Sicoob token request failed (HTTP 400): Sicoob code 10320");

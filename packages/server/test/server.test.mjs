@@ -10,7 +10,7 @@ import { UnauthorizedError } from "@modelcontextprotocol/sdk/client/auth.js";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { serve } from "../src/server.mjs";
+import { serve, toolAnswer } from "../src/server.mjs";
 
 const KEY = "k".repeat(32);
 const tools = () => {
@@ -177,5 +177,19 @@ test("refuses a key short enough to guess", () => {
   assert.throws(
     () => serve({ name: "TEST_KEY", key: "short", tools, port: 0 }),
     /TEST_KEY needs at least 32/,
+  );
+});
+
+test("a tool's answer carries its result, or only what the connector says about the error", async () => {
+  class ApiError extends Error {}
+  const describe = (error) => (error instanceof ApiError ? "HTTP 500" : undefined);
+  const text = async (work) => (await toolAnswer("Bank", work, describe)).content[0].text;
+  assert.equal(await text(() => ({ cents: 1 })), '{"cents":1}');
+  assert.equal(await text(() => Promise.reject(new ApiError("account 1234567"))), "Bank: HTTP 500");
+  assert.equal(await text(() => Promise.reject(new Error("account 1234567"))), "Bank: unavailable");
+  assert.equal((await toolAnswer("Bank", () => 1, describe)).isError, undefined);
+  assert.equal(
+    (await toolAnswer("Bank", () => Promise.reject(new Error()), describe)).isError,
+    true,
   );
 });

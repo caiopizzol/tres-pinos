@@ -65,3 +65,18 @@ export function serve({ name, key, tools, port, publicUrl, dataDir = "/data", co
     res.writeHead(401).end();
   }).listen(port);
 }
+
+// The answer to a tool call: `work`'s result as JSON. When it fails, the answer is `label` and only what
+// `describe` says about the error, such as an HTTP status; any other failure is "unavailable", so the API's message
+// text never reaches the agent.
+export async function toolAnswer(label, work, describe) {
+  try {
+    const data = await work();
+    return { content: [{ type: "text", text: JSON.stringify(data) }] };
+  } catch (error) {
+    return {
+      isError: true,
+      content: [{ type: "text", text: `${label}: ${describe(error) ?? "unavailable"}` }],
+    };
+  }
+}
