@@ -107,6 +107,7 @@ Precisa do [Bun](https://bun.sh) 1.3+.
 bun install
 bun run check
 bun run test
+docker compose up -d --build   # os conectores desta pasta, em vez das imagens publicadas
 ```
 
 ## Licença
