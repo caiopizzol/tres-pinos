@@ -1,6 +1,6 @@
 name: images
 
-# A tag such as v0.1.0 publishes each connector's image to ghcr.io/caiopizzol/tres-pinos-<connector>, for amd64 and
+# A tag such as v0.1.0 publishes each connector's image to ghcr.io/caiopizzol/tres-pinos/<connector>, for amd64 and
 # arm64, under that version and `latest`, with a provenance attestation. compose.yaml pulls these images.
 on:
   push:
@@ -38,11 +38,11 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ghcr.io/caiopizzol/tres-pinos-${{ matrix.connector }}:${{ github.ref_name }}
-            ghcr.io/caiopizzol/tres-pinos-${{ matrix.connector }}:latest
+            ghcr.io/caiopizzol/tres-pinos/${{ matrix.connector }}:${{ github.ref_name }}
+            ghcr.io/caiopizzol/tres-pinos/${{ matrix.connector }}:latest
           labels: org.opencontainers.image.source=https://github.com/caiopizzol/tres-pinos
       - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
-          subject-name: ghcr.io/caiopizzol/tres-pinos-${{ matrix.connector }}
+          subject-name: ghcr.io/caiopizzol/tres-pinos/${{ matrix.connector }}
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
