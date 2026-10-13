@@ -3,6 +3,10 @@ name: images
 # A tag such as v0.1.0 publishes each connector's image to ghcr.io/caiopizzol/tres-pinos/<connector>, for amd64 and
 # arm64, with a provenance attestation. `latest` moves only after all three are published, and only to the newest
 # version, so it never mixes releases or goes back to an older one. compose.yaml pulls these images.
+#
+# GitHub may create a new package as private, and only its settings page can make it public. After the first
+# release, check that each image pulls without signing in; if not, open the package's settings, Danger Zone, Change
+# visibility, Public. That can't be undone, and later releases keep it.
 on:
   push:
     tags: ["v[0-9]+.[0-9]+.[0-9]+"]
