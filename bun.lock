@@ -89,6 +89,9 @@
         "@modelcontextprotocol/sdk": "1.31.0",
       },
     },
+    "skills/ler-conta": {
+      "name": "@tres-pinos/ler-conta-skill",
+    },
   },
   "packages": {
     "@babel/code-frame": ["@babel/code-frame@7.29.7", "", { "dependencies": { "@babel/helper-validator-identifier": "^7.29.7", "js-tokens": "^4.0.0", "picocolors": "^1.1.1" } }, "sha512-Aup7aUOfpbAUg2ROOJN6Iw5f9DMBlzu0mIkm/malLQFN/YQgO48wCj0Kxa3sEHJvPVFg7siR+qRInwXd2qhQKw=="],
@@ -246,6 +249,8 @@
     "@tres-pinos/boleto": ["@tres-pinos/boleto@workspace:packages/boleto"],
 
     "@tres-pinos/inter-connector": ["@tres-pinos/inter-connector@workspace:connectors/inter"],
+
+    "@tres-pinos/ler-conta-skill": ["@tres-pinos/ler-conta-skill@workspace:skills/ler-conta"],
 
     "@tres-pinos/media": ["@tres-pinos/media@workspace:packages/media"],
 

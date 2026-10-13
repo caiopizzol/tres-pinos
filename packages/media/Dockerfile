@@ -12,7 +12,7 @@ COPY --from=oven/bun:1.3.14-alpine /usr/local/bin/bun /usr/local/bin/bun
 WORKDIR /app
 COPY package.json bun.lock ./
 # Every workspace's package.json, which bun needs to match the lockfile.
-COPY --parents connectors/*/package.json packages/*/package.json ./
+COPY --parents connectors/*/package.json packages/*/package.json skills/*/package.json ./
 RUN bun install --frozen-lockfile --production --filter @tres-pinos/media && rm /usr/local/bin/bun
 COPY packages/boleto/src packages/boleto/src
 COPY packages/boleto/fixtures packages/boleto/fixtures

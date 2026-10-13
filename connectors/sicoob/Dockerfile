@@ -5,7 +5,7 @@ COPY --from=oven/bun:1.3.14-alpine /usr/local/bin/bun /usr/local/bin/bun
 WORKDIR /app
 COPY package.json bun.lock ./
 # Every workspace's package.json, which bun needs to match the lockfile.
-COPY --parents connectors/*/package.json packages/*/package.json ./
+COPY --parents connectors/*/package.json packages/*/package.json skills/*/package.json ./
 RUN bun install --frozen-lockfile --production --filter @tres-pinos/sicoob-connector && rm /usr/local/bin/bun
 COPY packages/api/src packages/api/src
 COPY packages/server/src packages/server/src
