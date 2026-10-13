@@ -145,10 +145,13 @@ export function startServer(script, settings) {
   });
 }
 
-// Starts the server and waits until it answers.
+// Starts the server and waits until it answers. A server that exits first fails with what it printed, so a broken
+// start shows its error instead of a timeout.
 export async function runningServer(script, settings) {
-  const { url } = await startServer(script, settings);
-  for (let i = 0; i < 50; i++) {
+  const { child, url, stderr } = await startServer(script, settings);
+  const deadline = Date.now() + 20_000;
+  while (Date.now() < deadline) {
+    if (child.exitCode !== null) throw new Error(`The server exited:\n${stderr()}`);
     if (
       await fetch(`${url}/mcp`, { method: "POST" }).then(
         () => true,
@@ -158,7 +161,7 @@ export async function runningServer(script, settings) {
       return url;
     await new Promise((r) => setTimeout(r, 100));
   }
-  throw new Error("The server did not start");
+  throw new Error(`The server did not start in 20 seconds:\n${stderr()}`);
 }
 
 // Each pair of settings must stop the server before it starts, with a message that matches.
