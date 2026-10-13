@@ -1,7 +1,9 @@
-# Each connector runs only when its profile is in COMPOSE_PROFILES, and checks its own settings. It sees only its own
-# certificate and key, so one connector can't read another's; a missing file stops it instead of becoming a directory.
+# Each connector runs only when its profile is in COMPOSE_PROFILES, and checks its own settings. `docker compose up`
+# pulls its published image; `--build` builds it from this checkout instead. It sees only its own certificate and
+# key, so one connector can't read another's; a missing file stops it instead of becoming a directory.
 services:
   sicoob:
+    image: ghcr.io/caiopizzol/tres-pinos/sicoob:${TRES_PINOS_VERSION:-v0.1.0}
     build:
       context: .
       dockerfile: connectors/sicoob/Dockerfile
@@ -30,6 +32,7 @@ services:
         bind:
           create_host_path: false
   inter:
+    image: ghcr.io/caiopizzol/tres-pinos/inter:${TRES_PINOS_VERSION:-v0.1.0}
     build:
       context: .
       dockerfile: connectors/inter/Dockerfile
@@ -59,6 +62,7 @@ services:
           create_host_path: false
       - inter:/data
   nfse:
+    image: ghcr.io/caiopizzol/tres-pinos/nfse:${TRES_PINOS_VERSION:-v0.1.0}
     build:
       context: .
       dockerfile: connectors/nfse/Dockerfile
