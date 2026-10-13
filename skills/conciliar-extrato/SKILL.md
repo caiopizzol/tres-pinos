@@ -1,6 +1,7 @@
 ---
 name: conciliar-extrato
 description: Confere as entradas de um mês no extrato do Inter com as NFS-e emitidas pela empresa e lista as que ficam sem nota. Use quando o dono pedir para conciliar um mês ou conferir recebimentos.
+compatibility: Precisa dos conectores inter e nfse do Três Pinos, ligados ao agente.
 ---
 
 # Conciliar o extrato
