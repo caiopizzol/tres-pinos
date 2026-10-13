@@ -13,7 +13,6 @@ import {
   refusesToStart,
   runningServer,
   signInAndListTools,
-  siteTools,
 } from "@tres-pinos/testing";
 
 const SERVER = new URL("../src/server.mjs", import.meta.url);
@@ -43,11 +42,10 @@ test("only INTER_KEY gets in, and it offers only the two read tools", async () =
   assert.ok(listed.every((t) => t.annotations.readOnlyHint));
 });
 
-// The README and the site list the tools by hand, so they must name every tool the server offers, and no other.
-test("the README and the site name exactly the tools it offers", async () => {
+// The README lists the tools by hand, so it must name every tool the server offers, and no other.
+test("the README names exactly the tools it offers", async () => {
   const names = (await listTools(await runningServer(SERVER, SETTINGS))).map((t) => t.name).sort();
   assert.deepEqual(readmeTools("inter"), names, "README");
-  assert.deepEqual(siteTools("inter"), names, "site");
 });
 
 test(

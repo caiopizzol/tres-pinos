@@ -1,8 +1,8 @@
 name: site
 
-# Deploys site/ to Cloudflare with wrangler.jsonc. Pull requests already ran the tests, which check that the site
-# names every tool, so this only deploys. The token needs Workers Admin on the account, since the first run creates
-# the Worker, and Workers Routes Write on the trespinos.dev zone, for the custom domain.
+# Deploys site/ to Cloudflare with wrangler.jsonc. Pull requests already ran the checks, so this only deploys. The
+# token needs Workers Admin on the account, since the first run creates the Worker, and Workers Routes Write on the
+# trespinos.dev zone, for the custom domain.
 on:
   push:
     branches: [main]

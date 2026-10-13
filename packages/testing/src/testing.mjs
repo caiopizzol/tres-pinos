@@ -1,5 +1,5 @@
 // What the connectors' tests share: certificates, a fake API that accepts only a client certificate signed by its
-// CA, the real server in its own process, and the tool tables that the README and the site keep by hand.
+// CA, the real server in its own process, and the tool tables that the README keeps by hand.
 import assert from "node:assert/strict";
 import { execFileSync, spawn } from "node:child_process";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
@@ -261,11 +261,4 @@ export function readmeTools(connector) {
       .filter((line) => line.startsWith("| `"))
       .map((line) => line.split("|")[1]),
   );
-}
-
-// The tool names in the first column of the site's table with the connector's id.
-export function siteTools(connector) {
-  const html = readFileSync(new URL("../../../site/index.html", import.meta.url), "utf8");
-  const table = html.split(`id="${connector}"`)[1].split("</table>")[0];
-  return toolNames([...table.matchAll(/<tr>\s*<td>(.*?)<\/td>/g)].map((match) => match[1]));
 }

@@ -24,6 +24,7 @@
     <link rel="manifest" href="/site.webmanifest" />
     <link rel="preload" href="/fonts/inter.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="/style.css" />
+    <script type="module" src="/team.js"></script>
   </head>
   <body>
     <main>
@@ -40,244 +41,73 @@
         </div>
       </header>
 
-      <section class="manifesto" aria-labelledby="por-que">
-        <h2 id="por-que">Por que três pinos?</h2>
-        <p>
-          Em 2011 o Brasil tornou obrigatória a sua própria tomada. Quase nenhum outro país usa. A
-          imprensa chamou de padrão jabuticaba: aquilo que só dá aqui.
-        </p>
-        <p>
-          Boleto, Pix, CPF para tudo e cliente que só fala por WhatsApp também são jabuticabas. Os
-          agentes de IA chegam prontos para o resto do mundo e travam nelas.
-        </p>
-      </section>
+      <figure class="visual">
+        <div class="app" id="app">
+          <div class="bar"><i></i><i></i><i></i><span>Minha empresa</span></div>
+          <div class="roster" id="roster"></div>
+          <div class="chat">
+            <div class="chat-head">
+              <div class="stack" id="group-stack"></div>
+              <div><b>Fechamento</b> · Financeiro, Fiscal</div>
+              <div class="handoff" id="handoff"></div>
+            </div>
+            <div class="log" id="log"></div>
+            <div class="composer">
+              <span>Mensagem para a equipe</span>
+              <button type="button" class="replay" id="replay">↻ de novo</button>
+            </div>
+          </div>
+        </div>
+        <figcaption>
+          Ilustração. Hoje um único agente faz esse trabalho, com a skill conciliar-extrato e os
+          conectores inter e nfse. Os números são do mês fictício dos testes.
+        </figcaption>
+      </figure>
 
-      <section aria-labelledby="conectores">
-        <h2 id="conectores">Conectores</h2>
-        <div class="sheet" id="sicoob">
-          <table>
-            <caption>
-              sicoob
-              <span>só lê, nunca movimenta dinheiro</span>
-            </caption>
-            <thead>
-              <tr>
-                <th scope="col">Ferramenta</th>
-                <th scope="col">O que faz</th>
-                <th scope="col">Precisa de</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>get_balance</td>
-                <td>Lê o saldo e o limite da conta corrente.</td>
-                <td>e-CPF A1</td>
-              </tr>
-              <tr>
-                <td>get_statement</td>
-                <td>Lê as transações de um mês. O Sicoob guarda só os últimos três.</td>
-                <td>e-CPF A1</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="sheet" id="inter">
-          <table>
-            <caption>
-              inter
-              <span>só lê, nunca movimenta dinheiro</span>
-            </caption>
-            <thead>
-              <tr>
-                <th scope="col">Ferramenta</th>
-                <th scope="col">O que faz</th>
-                <th scope="col">Precisa de</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>get_balance</td>
-                <td>Lê o saldo e o limite da conta PJ.</td>
-                <td>Inter Empresas</td>
-              </tr>
-              <tr>
-                <td>get_statement</td>
-                <td>Lê as transações de um mês.</td>
-                <td>Inter Empresas</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="sheet" id="nfse">
-          <table>
-            <caption>
-              nfse
-              <span>só lê, nunca emite nem cancela notas</span>
-            </caption>
-            <thead>
-              <tr>
-                <th scope="col">Ferramenta</th>
-                <th scope="col">O que faz</th>
-                <th scope="col">Precisa de</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>list_invoices</td>
-                <td>
-                  Lê as notas fiscais de serviço da empresa e os cancelamentos, no sistema nacional.
-                </td>
-                <td>e-CNPJ A1</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <ul class="fine">
+      <section aria-label="Como eles trabalham">
+        <ul class="rules">
           <li>
-            <strong>Pela API oficial</strong> de cada banco: no Sicoob, com o seu certificado e-CPF
-            A1; no Inter, com o certificado da integração. Como configurar o
-            <a href="https://github.com/caiopizzol/tres-pinos/tree/main/connectors/sicoob"
-              >Sicoob</a
+            <b>Só leem.</b
+            ><span
+              >Pagar e emitir nota são recusados no conector, mesmo que o certificado permita.</span
             >
-            e o
-            <a href="https://github.com/caiopizzol/tres-pinos/tree/main/connectors/inter">Inter</a>.
           </li>
           <li>
-            <strong>Pagamentos são recusados</strong> antes de chegar ao banco, mesmo que o
-            certificado permita.
+            <b>No seu servidor.</b
+            ><span
+              >Com o seu certificado e a API oficial de cada sistema. Nenhuma empresa no meio.</span
+            >
           </li>
           <li>
-            <strong>Notas fiscais de serviço</strong> pela distribuição oficial do sistema nacional,
-            com o certificado e-CNPJ A1 da empresa. Emitir e cancelar notas é recusado do mesmo
-            jeito. Como configurar a
-            <a href="https://github.com/caiopizzol/tres-pinos/tree/main/connectors/nfse">NFS-e</a>.
+            <b>Você decide.</b
+            ><span>O agente lê, confere e sugere. Quem paga e quem emite é você.</span>
           </li>
         </ul>
       </section>
 
-      <section aria-labelledby="skills">
-        <h2 id="skills">Skills</h2>
-        <div class="sheet">
-          <table>
-            <caption>
-              skills
-              <span>testadas no Claude Code e no Codex</span>
-            </caption>
-            <thead>
-              <tr>
-                <th scope="col">Skill</th>
-                <th scope="col">O que o agente faz</th>
-                <th scope="col">Precisa de</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>ler-conta</td>
-                <td>
-                  Lê os códigos de boleto e Pix de uma conta em PDF ou foto, e confere os dígitos.
-                </td>
-                <td>o repositório</td>
-              </tr>
-              <tr>
-                <td>conciliar-extrato</td>
-                <td>
-                  Confere as entradas de um mês do Inter com as NFS-e emitidas e diz quais ficam sem
-                  nota.
-                </td>
-                <td>inter, nfse</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <ul class="fine">
-          <li>
-            <strong>Instruções que o seu agente segue</strong>: copie a pasta da skill, como diz o
-            <a href="https://github.com/caiopizzol/tres-pinos#skills">repositório</a>.
-          </li>
-        </ul>
-      </section>
-
-      <section id="comecar" aria-labelledby="comecar-titulo">
-        <h2 id="comecar-titulo">Começar</h2>
-        <ol class="steps">
-          <li>
-            <h3>Baixe o repositório</h3>
-            <p>Precisa do <a href="https://docs.docker.com/get-docker/">Docker</a>.</p>
+      <section id="comecar" aria-label="Começar">
+        <div class="paths">
+          <div>
+            <h2>Sem certificado · ler uma conta</h2>
             <pre
               tabindex="0"
             ><span class="p">$ </span>git clone https://github.com/caiopizzol/tres-pinos
-<span class="p">$ </span>cd tres-pinos && cp .env.example .env   <span class="c"># preencha as variáveis</span></pre>
-          </li>
-          <li>
-            <h3>Prepare o certificado</h3>
-            <p>
-              Veja como configurar o
-              <a href="https://github.com/caiopizzol/tres-pinos/tree/main/connectors/sicoob"
-                >Sicoob</a
-              >, o
-              <a href="https://github.com/caiopizzol/tres-pinos/tree/main/connectors/inter"
-                >Inter</a
-              >
-              ou a
-              <a href="https://github.com/caiopizzol/tres-pinos/tree/main/connectors/nfse">NFS-e</a
-              >.
-            </p>
-          </li>
-          <li>
-            <h3>Suba o conector</h3>
-            <p>Gere a chave do <code>.env</code> com <code>openssl rand -hex 32</code>.</p>
-            <pre tabindex="0"><span class="p">$ </span>docker compose up -d</pre>
-          </li>
-          <li>
-            <h3>Ligue o seu agente</h3>
-            <p>
-              Na mesma máquina, com a chave do <code>.env</code> no ambiente em que você abre o
-              agente. Os comandos guardam só o nome da variável.
-            </p>
-            <div class="sheet">
-              <table>
-                <thead>
-                  <tr>
-                    <th scope="col">Conector</th>
-                    <th scope="col">Porta</th>
-                    <th scope="col">Chave</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>sicoob</td>
-                    <td>3012</td>
-                    <td>SICOOB_KEY</td>
-                  </tr>
-                  <tr>
-                    <td>inter</td>
-                    <td>3013</td>
-                    <td>INTER_KEY</td>
-                  </tr>
-                  <tr>
-                    <td>nfse</td>
-                    <td>3014</td>
-                    <td>NFSE_KEY</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <p>Para o Sicoob; para os outros, troque o nome, a porta e a chave.</p>
+<span class="p">$ </span>cd tres-pinos && export TRES_PINOS_DIR="$PWD"
+<span class="p">$ </span>bun install --production --filter @tres-pinos/boleto
+<span class="p">$ </span>mkdir -p ~/.claude/skills && cp -R skills/ler-conta ~/.claude/skills/   <span class="c"># Claude Code</span>
+<span class="p">$ </span>mkdir -p ~/.agents/skills && cp -R skills/ler-conta ~/.agents/skills/   <span class="c"># Codex</span></pre>
+          </div>
+          <div>
+            <h2>Com certificado · ligar o banco e a NFS-e</h2>
             <pre
               tabindex="0"
-            ><span class="p">$ </span>export SICOOB_KEY=...   <span class="c"># a mesma do .env</span></pre>
-            <p class="label">Claude Code</p>
-            <pre
-              tabindex="0"
-            ><span class="p">$ </span>claude mcp add --scope user --transport http sicoob http://127.0.0.1:3012/mcp \
-    --header 'Authorization: Bearer ${SICOOB_KEY}'</pre>
-            <p class="label">Codex</p>
-            <pre
-              tabindex="0"
-            ><span class="p">$ </span>codex mcp add sicoob --url http://127.0.0.1:3012/mcp \
-    --bearer-token-env-var SICOOB_KEY</pre>
-          </li>
-        </ol>
+            ><span class="p">$ </span>sed 's/^COMPOSE_PROFILES=.*/COMPOSE_PROFILES=inter,nfse/' .env.example > .env
+<span class="p">$ </span>docker compose up -d   <span class="c"># depois de preencher o .env</span></pre>
+          </div>
+        </div>
+        <a class="more" href="https://github.com/caiopizzol/tres-pinos#início-rápido"
+          >Requisitos, certificados e como ligar o seu agente, no README →</a
+        >
       </section>
     </main>
 
