@@ -89,6 +89,15 @@
         "@modelcontextprotocol/sdk": "1.31.0",
       },
     },
+    "skills/conciliar-extrato": {
+      "name": "@tres-pinos/conciliar-extrato-skill",
+      "devDependencies": {
+        "@modelcontextprotocol/sdk": "1.31.0",
+        "@tres-pinos/inter-connector": "workspace:*",
+        "@tres-pinos/nfse-connector": "workspace:*",
+        "@tres-pinos/server": "workspace:*",
+      },
+    },
     "skills/ler-conta": {
       "name": "@tres-pinos/ler-conta-skill",
     },
@@ -247,6 +256,8 @@
     "@tres-pinos/api": ["@tres-pinos/api@workspace:packages/api"],
 
     "@tres-pinos/boleto": ["@tres-pinos/boleto@workspace:packages/boleto"],
+
+    "@tres-pinos/conciliar-extrato-skill": ["@tres-pinos/conciliar-extrato-skill@workspace:skills/conciliar-extrato"],
 
     "@tres-pinos/inter-connector": ["@tres-pinos/inter-connector@workspace:connectors/inter"],
 

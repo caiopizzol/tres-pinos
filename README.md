@@ -45,11 +45,14 @@ prontos para o resto do mundo e travam nas nossas jabuticabas.
 Instruções que o seu agente segue, no formato aberto de [Agent Skills](https://agentskills.io). Testadas no Claude
 Code e no Codex.
 
-| Skill                           | O que o agente faz                                                                  |
-| ------------------------------- | ----------------------------------------------------------------------------------- |
-| [`ler-conta`](skills/ler-conta) | Lê os códigos de boleto e Pix de uma conta em PDF ou foto, e confere antes de pagar |
+| Skill                                           | O que o agente faz                                                                                 |
+| ----------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| [`ler-conta`](skills/ler-conta)                 | Lê os códigos de boleto e Pix de uma conta em PDF ou foto, e confere antes de pagar                |
+| [`conciliar-extrato`](skills/conciliar-extrato) | Confere as entradas de um mês no extrato do Inter com as NFS-e emitidas e diz quais ficam sem nota |
 
-Para instalar, copie a pasta da skill e diga ao agente onde está o repositório:
+A `conciliar-extrato` usa os conectores `inter` e `nfse`: copie a pasta dela para `~/.claude/skills` ou
+`~/.agents/skills`.
+Para a `ler-conta`, copie a pasta e diga ao agente onde está o repositório:
 
 ```bash
 bun install --production --filter @tres-pinos/boleto   # na pasta do repositório
