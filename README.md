@@ -7,12 +7,11 @@
 <p align="center">
   A tomada brasileira para agentes de IA: conectores MCP de código aberto,
   <br>
-  que você hospeda, para ler boletos, Pix e a sua conta no Sicoob.
+  que você hospeda, para o que só existe no Brasil.
 </p>
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/licença-MIT-1d1d1f" alt="Licença MIT"></a>
-  <a href="https://bun.sh"><img src="https://img.shields.io/badge/bun-1.3+-1d1d1f" alt="Bun"></a>
   <a href="https://modelcontextprotocol.io"><img src="https://img.shields.io/badge/MCP-servidor-f7c831?labelColor=1d1d1f" alt="MCP"></a>
 </p>
 
@@ -27,13 +26,11 @@ prontos para o resto do mundo e travam nas nossas jabuticabas.
 
 > [!NOTE]
 > **E o Open Finance?** Regulado pelo [Banco Central](https://www.bcb.gov.br/estabilidadefinanceira/openfinance),
-> ele deixa uma instituição ler a sua conta em outro banco, com o seu consentimento, e os grandes bancos são
-> obrigados a participar. Mas só instituições autorizadas entram nele: para chegar ao seu agente, os seus dados
-> passam por uma delas. E a [API de pagamentos](https://openbanking-brasil.github.io/openapi/swagger-apis/payments/)
-> só inicia Pix. Boleto fica de fora.
+> ele deixa uma instituição ler a sua conta em outro banco, com o seu consentimento. Mas só instituições
+> autorizadas entram nele: para chegar ao seu agente, os seus dados passam por uma delas.
 >
-> Os conectores de banco daqui usam a API do próprio banco, com o seu certificado, de um servidor seu, sem empresa
-> no meio. Essa API vai além do Pix: também paga boleto.
+> Os conectores daqui usam a API oficial de cada sistema, com o seu certificado, de um servidor seu, sem empresa no
+> meio.
 
 ## Conectores
 
@@ -43,21 +40,9 @@ prontos para o resto do mundo e travam nas nossas jabuticabas.
 | [`inter`](connectors/inter)   | Ler o saldo e o extrato da conta PJ. Nunca movimenta dinheiro       |
 | [`nfse`](connectors/nfse)     | Ler as notas fiscais de serviço da empresa. Nunca emite nem cancela |
 
-| Pacote                        | O que faz                                                                        |
-| ----------------------------- | -------------------------------------------------------------------------------- |
-| [`boleto`](packages/boleto)   | Lê os códigos de boleto e Pix de um PDF ou foto. Funciona como CLI               |
-| [`nfse`](packages/nfse)       | Lê uma NFS-e do padrão nacional e devolve os fatos em JSON. Funciona como CLI    |
-| [`media`](packages/media)     | Converte imagens, vídeos, áudios e PDFs em algo que o agente consegue ver ou ler |
-| [`api`](packages/api)         | Certificado, bloqueio de pagamentos e centavos exatos, para os conectores        |
-| [`server`](packages/server)   | Serve as ferramentas de um conector em `/mcp`, só para quem tem a chave          |
-| [`testing`](packages/testing) | Certificados, API falsa e servidor de teste, para os testes dos conectores       |
-
-## Requisitos
-
-- [Docker](https://docs.docker.com/get-docker/), para rodar
-- [Bun](https://bun.sh) 1.3+, para desenvolver
-
 ## Início rápido
+
+Precisa do [Docker](https://docs.docker.com/get-docker/).
 
 ```bash
 git clone https://github.com/caiopizzol/tres-pinos && cd tres-pinos
@@ -88,14 +73,13 @@ claude mcp add --transport http sicoob http://127.0.0.1:3012/mcp --header "Autho
 
 ## Desenvolvimento
 
+Precisa do [Bun](https://bun.sh) 1.3+.
+
 ```bash
 bun install
 bun run check
 bun run test
 ```
-
-O `media` fica de fora do `bun run test`, porque precisa do ImageMagick e do ffmpeg. O CI o confere na imagem, como
-diz o [README dele](packages/media#desenvolvimento).
 
 ## Licença
 

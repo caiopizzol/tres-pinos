@@ -111,9 +111,9 @@ Título: **Três pinos, nenhum adaptador.** No topo do README e do site, sempre 
 
 Tagline: **A tomada brasileira para agentes de IA.** Sozinha, onde não cabe explicação.
 
-Descrição: **A tomada brasileira para agentes de IA: conectores MCP de código aberto, que você hospeda, para ler
-boletos, Pix e a sua conta no Sicoob.** Embaixo do título, na descrição do GitHub e nas prévias de link.
-Diz só o que existe: cada conector novo entra na lista quando funcionar.
+Descrição: **A tomada brasileira para agentes de IA: conectores MCP de código aberto, que você hospeda, para o
+que só existe no Brasil.** Embaixo do título, na descrição do GitHub e nas prévias de link.
+Não cita conectores: eles ficam só na tabela do README, que cresce sem mudar a descrição.
 
 Alternativas:
 

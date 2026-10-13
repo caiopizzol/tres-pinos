@@ -1,7 +1,7 @@
 # NFS-e
 
 Lê uma NFS-e do padrão nacional (Sistema Nacional NFS-e, versões 1.00 e 1.01) e devolve os fatos em JSON, como CLI
-ou como biblioteca. Nunca usa a rede.
+ou como biblioteca. Nunca usa a rede. O [conector da NFS-e](../../connectors/nfse) o usa para ler cada nota.
 
 > [!IMPORTANT]
 > Não confere a assinatura digital. Um campo que falta, se repete ou vem em formato errado faz a leitura falhar, em
