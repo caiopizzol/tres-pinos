@@ -28,8 +28,9 @@ Na raiz do repositório, depois de trocar uma captura em `assets/`:
 ```bash
 npx --yes hyperframes@0.8.154 check connectors/inter/guide
 npx --yes hyperframes@0.8.154 render connectors/inter/guide --format mp4 --fps 15 -o /tmp/criar-integracao.mp4
-ffmpeg -y -i /tmp/criar-integracao.mp4 -loop 0 connectors/inter/criar-integracao.gif \
-  -vf "fps=12,scale=800:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=96:stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle"
+ffmpeg -y -i /tmp/criar-integracao.mp4 \
+  -vf "fps=12,scale=800:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=96:stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle" \
+  -loop 0 connectors/inter/criar-integracao.gif
 ```
 
 Os cliques ficam em `SCREENS`, no `index.html`, em pixels de cada captura.
