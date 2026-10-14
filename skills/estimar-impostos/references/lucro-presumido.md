@@ -1,0 +1,17 @@
+# Lucro Presumido: IRPJ e CSLL de empresas de serviços
+
+Conferido no texto compilado do Planalto em 14/10/2026. Cada regra cita o artigo de onde vem; se a lei mudar, mude a
+regra e a data.
+
+| Regra                                | Valor                                                                                     | Fonte                                                                                                                                                                             |
+| ------------------------------------ | ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Período de apuração                  | trimestres encerrados em 31/3, 30/6, 30/9 e 31/12                                         | [Lei 9.430/1996, art. 1º](https://www.planalto.gov.br/ccivil_03/leis/l9430.htm)                                                                                                   |
+| Base do IRPJ                         | 32% da receita bruta, para "prestação de serviços em geral"                               | [Lei 9.249/1995, art. 15, § 1º, III, a](https://www.planalto.gov.br/ccivil_03/leis/l9249.htm); [Lei 9.430/1996, art. 25, I](https://www.planalto.gov.br/ccivil_03/leis/l9430.htm) |
+| Alíquota do IRPJ                     | 15% da base                                                                               | [Lei 9.249/1995, art. 3º](https://www.planalto.gov.br/ccivil_03/leis/l9249.htm)                                                                                                   |
+| Adicional do IRPJ                    | 10% da parte da base acima de R$ 20.000,00 por mês do período (R$ 60.000,00 no trimestre) | [Lei 9.249/1995, art. 3º, § 1º](https://www.planalto.gov.br/ccivil_03/leis/l9249.htm)                                                                                             |
+| Base da CSLL                         | 32% da receita bruta, para as mesmas atividades                                           | [Lei 9.249/1995, art. 20, I](https://www.planalto.gov.br/ccivil_03/leis/l9249.htm)                                                                                                |
+| Alíquota da CSLL                     | 9% da base                                                                                | [Lei 7.689/1988, art. 3º, III](https://www.planalto.gov.br/ccivil_03/leis/l7689.htm)                                                                                              |
+| Receita acima de R$ 5 milhões no ano | os percentuais de presunção sobem 10% sobre a parte da receita acima desse valor          | [LC 224/2025, art. 4º, § 4º, VII, e § 5º](https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp224.htm)                                                                              |
+
+Fora destas regras, e por isso fora da estimativa: atividades com outro percentual (comércio, transporte, serviços
+hospitalares), receitas que não são de serviços (financeiras, ganhos de capital) e impostos retidos.
