@@ -15,7 +15,8 @@ regra e a data.
 
 Fora destas regras, e por isso fora da estimativa:
 
-- atividades com outro percentual, como transporte (16%), comércio (8%) e serviços hospitalares
+- atividades com outro percentual, como transporte de passageiros (16%), transporte de carga e comércio (8%) e
+  serviços hospitalares
   ([Lei 9.249/1995, art. 15, § 1º](https://www.planalto.gov.br/ccivil_03/leis/l9249.htm));
 - serviços com receita anual de até R$ 120.000,00, que podem usar 16% no IRPJ, exceto profissões regulamentadas
   ([Lei 9.250/1995, art. 40](https://www.planalto.gov.br/ccivil_03/leis/l9250.htm));
