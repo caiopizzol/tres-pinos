@@ -9,6 +9,7 @@
     "@modelcontextprotocol/sdk": "1.31.0",
     "@tres-pinos/inter-connector": "workspace:*",
     "@tres-pinos/nfse-connector": "workspace:*",
-    "@tres-pinos/server": "workspace:*"
+    "@tres-pinos/server": "workspace:*",
+    "@tres-pinos/sicoob-connector": "workspace:*"
   }
 }

@@ -44,7 +44,9 @@ test("the skill has a name and a description, which Claude Code and Codex both n
 });
 
 test("the tools and fields the skill names are the ones the connectors give", async () => {
-  const { transactions } = await call(servers.inter, "get_statement", { month: MONTH });
+  const { transactions } = await call(servers.inter, "get_statement", {
+    month: MONTH,
+  });
   const credit = transactions.find((t) => t.type === "CREDITO");
   const documents = await allDocuments();
   const invoice = documents.find((d) => d.type === "NFSE");
@@ -67,6 +69,10 @@ test("the tools and fields the skill names are the ones the connectors give", as
   }
 });
 
+test("the skill names no bank: any connector with get_statement serves", () => {
+  assert.doesNotMatch(skill.split("---")[2], /\b(Inter|Sicoob|inter|sicoob)\b/);
+});
+
 test("the fictional month: the invoices come in two batches, with one cancelled and one from another company", async () => {
   const documents = await allDocuments();
   const invoices = documents.filter((d) => d.type === "NFSE");
@@ -80,7 +86,9 @@ test("the fictional month: the invoices come in two batches, with one cancelled 
     ["77"],
   );
   // The one credit the skill should match: a single invoice of the company with its net amount, within 120 days.
-  const { transactions } = await call(servers.inter, "get_statement", { month: MONTH });
+  const { transactions } = await call(servers.inter, "get_statement", {
+    month: MONTH,
+  });
   const credits = transactions.filter((t) => t.type === "CREDITO");
   assert.equal(credits.length, 6);
   const matches = credits.map(
@@ -94,4 +102,18 @@ test("the fictional month: the invoices come in two batches, with one cancelled 
       ).length,
   );
   assert.deepEqual(matches, [1, 2, 0, 0, 0, 0]);
+});
+
+test("the fictional month: the Sicoob account adds one credit with an invoice and one without", async () => {
+  const documents = await allDocuments();
+  const { transactions } = await call(servers.sicoob, "get_statement", {
+    month: MONTH,
+  });
+  const credits = transactions.filter((t) => t.type === "CREDITO");
+  assert.deepEqual(
+    credits.map((c) =>
+      documents.filter((d) => d.netAmountCents === c.amountCents).map((d) => d.number),
+    ),
+    [["6"], []],
+  );
 });
