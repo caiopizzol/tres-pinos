@@ -40,6 +40,7 @@ test("reads an unconditional discount, and only that one", () => {
   assert.equal(discount("<vDescIncond>100.25</vDescIncond>"), 10025);
   assert.equal(discount("<vDescCond>50.00</vDescCond>"), 0);
   assert.throws(() => discount("<vDescIncond>1.005</vDescIncond>"), /vDescIncond is not an amount/);
+  assert.throws(() => discount("<vDescIncond/>"), /vDescIncond is empty/);
 });
 
 test("reads a prefixed namespace, an absent recipient, and a foreign one without a tax ID", () => {
