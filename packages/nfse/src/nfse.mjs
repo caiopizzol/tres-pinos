@@ -84,6 +84,8 @@ export function readNfse(xml) {
   if (!accessKey) throw new NfseError("infNFSe has no 50-digit access key");
   const dps = child(child(inf, "DPS"), "infDPS");
   const service = child(dps, "serv");
+  const values = child(dps, "valores");
+  const discounts = child(values, "vDescCondIncond", true);
 
   return {
     version,
@@ -99,7 +101,10 @@ export function readNfse(xml) {
     recipient: party(child(dps, "toma", true)),
     serviceCode: text(child(service, "cServ"), "cTribNac"),
     description: text(child(service, "cServ"), "xDescServ"),
-    serviceAmountCents: cents(child(child(dps, "valores"), "vServPrest"), "vServ"),
+    serviceAmountCents: cents(child(values, "vServPrest"), "vServ"),
+    // Optional in the layout: absent means no unconditional discount, but present must be an amount.
+    unconditionalDiscountCents:
+      discounts && child(discounts, "vDescIncond", true) ? cents(discounts, "vDescIncond") : 0,
     netAmountCents: cents(child(inf, "valores"), "vLiq"),
   };
 }

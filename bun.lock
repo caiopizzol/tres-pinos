@@ -99,6 +99,14 @@
         "@tres-pinos/server": "workspace:*",
       },
     },
+    "skills/estimar-impostos": {
+      "name": "@tres-pinos/estimar-impostos-skill",
+      "devDependencies": {
+        "@modelcontextprotocol/sdk": "1.31.0",
+        "@tres-pinos/nfse-connector": "workspace:*",
+        "@tres-pinos/server": "workspace:*",
+      },
+    },
     "skills/ler-conta": {
       "name": "@tres-pinos/ler-conta-skill",
     },
@@ -259,6 +267,8 @@
     "@tres-pinos/boleto": ["@tres-pinos/boleto@workspace:packages/boleto"],
 
     "@tres-pinos/conciliar-extrato-skill": ["@tres-pinos/conciliar-extrato-skill@workspace:skills/conciliar-extrato"],
+
+    "@tres-pinos/estimar-impostos-skill": ["@tres-pinos/estimar-impostos-skill@workspace:skills/estimar-impostos"],
 
     "@tres-pinos/inter-connector": ["@tres-pinos/inter-connector@workspace:connectors/inter"],
 
