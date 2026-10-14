@@ -13,11 +13,12 @@ Use o conector `nfse` do Três Pinos. Se ele não estiver disponível, diga ao d
    `regime_tributario`. A Receita publica com cerca de um ano de atraso, então pergunte ao dono se a empresa ainda
    está no Lucro Presumido. Se não estiver, diga que esta skill ainda não cobre o regime dela e pare.
 2. Busque as notas com `list_invoices`, começando em `afterNsu` 0 e repetindo com `lastNsu` até `done` ser `true`.
-   Fique só com as notas em que `provider.id` é o CNPJ da empresa e cuja `competence` cai no trimestre. Uma nota
-   com um evento de cancelamento (mesma `accessKey`) não conta.
+   Fique só com as notas em que `provider.id` é o CNPJ da empresa, comparando só os dígitos. Uma nota com um evento
+   de cancelamento (mesma `accessKey`) não conta. Separe as do trimestre pela `competence`.
 3. Leia [references/lucro-presumido.md](references/lucro-presumido.md) e aplique as regras de lá sobre a soma dos
-   `serviceAmountCents`. Calcule rodando código, nunca de cabeça, em centavos inteiros. Se a receita do ano passar
-   de R$ 5.000.000,00, diga que esta skill ainda não calcula o aumento da presunção e pare.
+   `serviceAmountCents`. Calcule rodando código, nunca de cabeça, em centavos inteiros. Some também a receita do ano
+   até o fim do trimestre: se passar de R$ 5.000.000,00, diga que esta skill ainda não calcula o aumento da presunção
+   e pare.
 4. Mostre uma tabela com cada nota (número, competência, tomador, valor) e o total, depois a base, o IRPJ e a CSLL,
    cada um com a fonte da regra.
 
