@@ -14,7 +14,7 @@ const answer = (work) =>
   );
 
 // `sicoob` is one sicoobClient for the whole process.
-export function buildServer(sicoob) {
+export function buildServer(sicoob, icons) {
   // Without the guard, a bug could reach anything the certificate allows, payments included.
   if (!isReadOnly(sicoob.fetch)) throw new Error("The tools need a fetch from readOnly");
   const server = new McpServer({
@@ -22,6 +22,7 @@ export function buildServer(sicoob) {
     title: "Três Pinos · Sicoob",
     version: "0.1.0",
     websiteUrl: "https://trespinos.dev",
+    icons,
   });
   server.registerTool(
     "get_balance",

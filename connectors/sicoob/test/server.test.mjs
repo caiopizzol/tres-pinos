@@ -1,7 +1,10 @@
 // The server over HTTP: runs the real server.mjs in its own process and lists its tools through an MCP client.
 // It never reaches Sicoob: listing tools needs no bank call.
 import assert from "node:assert/strict";
-import { test } from "node:test";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { after, test } from "node:test";
 import {
   certificates,
   KEY,
@@ -10,6 +13,7 @@ import {
   readmeTools,
   refusesToStart,
   runningServer,
+  signInAndListTools,
 } from "@tres-pinos/testing";
 
 const SERVER = new URL("../src/server.mjs", import.meta.url);
@@ -67,3 +71,26 @@ test(
       ],
     ]),
 );
+
+// With PUBLIC_URL, an app on the internet signs in with the owner's key instead of holding it. The sign-ins live
+// in DATA_DIR, here a folder deleted after the test.
+test("with PUBLIC_URL, an app signs in on the consent page and gets only the read tools", async () => {
+  const dataDir = mkdtempSync(join(tmpdir(), "sicoob-data-"));
+  after(() => rmSync(dataDir, { recursive: true, force: true }));
+  const url = await runningServer(SERVER, (self) => ({
+    ...SETTINGS,
+    PUBLIC_URL: self,
+    DATA_DIR: dataDir,
+  }));
+  const { tools, consentPage, server } = await signInAndListTools(url);
+  assert.deepEqual(
+    tools.map((t) => t.name),
+    ["get_balance", "get_statement"],
+  );
+  assert.equal(server.title, "Três Pinos · Sicoob");
+  assert.deepEqual(server.icons, [
+    { src: `${url}/icon.png`, mimeType: "image/png", sizes: ["192x192"] },
+  ]);
+  assert.match(consentPage, /seu Sicoob/);
+  assert.match(consentPage, /Nunca movimenta dinheiro/);
+});

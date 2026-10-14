@@ -36,9 +36,18 @@ No `.env` da raiz do repositório, inclua `sicoob` em `COMPOSE_PROFILES` e preen
 docker compose up -d
 ```
 
-Ligue o agente em `http://127.0.0.1:3012/mcp`, com o cabeçalho `Authorization: Bearer $SICOOB_KEY`. Ao
-contrário do [Inter](../inter#ligar-o-agente), o Sicoob ainda não aceita login pela internet: só agentes na
-mesma máquina.
+## Ligar o agente
+
+Na mesma máquina, ligue o agente em `http://127.0.0.1:3012/mcp`, com o cabeçalho
+`Authorization: Bearer $SICOOB_KEY`.
+
+Pela internet, publique a porta 3012 com HTTPS, por exemplo com um
+[Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/), ponha o
+endereço em `SICOOB_PUBLIC_URL` e adicione `<endereço>/mcp` como conector MCP no seu app de IA. O app abre uma
+página do conector, onde você digita a `SICOOB_KEY`. Um app na nuvem precisa ter o endereço de retorno do login na
+lista de [`oauth.mjs`](../../packages/server/src/oauth.mjs).
+
+Depois, pergunte: "Qual é o saldo da minha conta no Sicoob?"
 
 ## Configuração
 
@@ -49,6 +58,7 @@ mesma máquina.
 | `SICOOB_ACCOUNT`       | Número da conta corrente, só dígitos                           |
 | `SICOOB_CERT_DIR`      | Pasta com `sicoob.crt` e `sicoob.key`. Padrão: `./certificate` |
 | `SICOOB_CERT_PASSWORD` | A senha de `sicoob.key`                                        |
+| `SICOOB_PUBLIC_URL`    | Endereço público com HTTPS, para entrar com login. Opcional    |
 
 ## Ferramentas
 
