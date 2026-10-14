@@ -83,6 +83,7 @@ test("lists a batch after an NSU, reading each NFS-e, with the company's e-CNPJ"
         serviceCode: "010101",
         description: "Desenvolvimento de software & manutenção",
         serviceAmountCents: 150050,
+        unconditionalDiscountCents: 0,
         netAmountCents: 145050,
       },
       // An event is listed, not read, so it never stops the listing.

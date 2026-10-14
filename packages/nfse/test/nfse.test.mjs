@@ -28,8 +28,18 @@ test("reads the facts of a national NFS-e", () => {
     serviceCode: "010101",
     description: "Desenvolvimento de software & manutenção",
     serviceAmountCents: 150050,
+    unconditionalDiscountCents: 0,
     netAmountCents: 145050,
   });
+});
+
+test("reads an unconditional discount, and only that one", () => {
+  const discount = (group) =>
+    readNfse(change("</vServPrest>", `</vServPrest><vDescCondIncond>${group}</vDescCondIncond>`))
+      .unconditionalDiscountCents;
+  assert.equal(discount("<vDescIncond>100.25</vDescIncond>"), 10025);
+  assert.equal(discount("<vDescCond>50.00</vDescCond>"), 0);
+  assert.throws(() => discount("<vDescIncond>1.005</vDescIncond>"), /vDescIncond is not an amount/);
 });
 
 test("reads a prefixed namespace, an absent recipient, and a foreign one without a tax ID", () => {

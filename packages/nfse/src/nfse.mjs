@@ -50,8 +50,10 @@ function text(parent, name, optional = false) {
 }
 
 // A decimal amount such as "1500.5" as exact integer cents; a fraction of a cent fails.
-function cents(parent, name) {
-  const match = /^(\d{1,13})(?:\.(\d{1,2}))?$/.exec(text(parent, name));
+function cents(parent, name, optional = false) {
+  const value = text(parent, name, optional);
+  if (value === null) return null;
+  const match = /^(\d{1,13})(?:\.(\d{1,2}))?$/.exec(value);
   if (!match) throw new NfseError(`${name} is not an amount in reais and cents`);
   return Number(match[1]) * 100 + Number((match[2] ?? "").padEnd(2, "0"));
 }
@@ -84,6 +86,8 @@ export function readNfse(xml) {
   if (!accessKey) throw new NfseError("infNFSe has no 50-digit access key");
   const dps = child(child(inf, "DPS"), "infDPS");
   const service = child(dps, "serv");
+  const values = child(dps, "valores");
+  const discounts = child(values, "vDescCondIncond", true);
 
   return {
     version,
@@ -99,7 +103,9 @@ export function readNfse(xml) {
     recipient: party(child(dps, "toma", true)),
     serviceCode: text(child(service, "cServ"), "cTribNac"),
     description: text(child(service, "cServ"), "xDescServ"),
-    serviceAmountCents: cents(child(child(dps, "valores"), "vServPrest"), "vServ"),
+    serviceAmountCents: cents(child(values, "vServPrest"), "vServ"),
+    // Optional in the layout; an invoice without it has no unconditional discount.
+    unconditionalDiscountCents: (discounts && cents(discounts, "vDescIncond", true)) ?? 0,
     netAmountCents: cents(child(inf, "valores"), "vLiq"),
   };
 }

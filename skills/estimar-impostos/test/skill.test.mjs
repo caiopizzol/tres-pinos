@@ -56,6 +56,7 @@ test("the tools and fields the skill names are the ones the connector gives", as
     competence: "competence" in invoice,
     accessKey: "accessKey" in invoice && "accessKey" in cancellation,
     serviceAmountCents: "serviceAmountCents" in invoice,
+    unconditionalDiscountCents: "unconditionalDiscountCents" in invoice,
   };
   for (const [name, given] of Object.entries(named)) {
     assert.ok(skill.includes(`\`${name}\``), `SKILL.md names ${name}`);
@@ -76,7 +77,10 @@ test("the fictional quarter adds up to the revenue, IRPJ and CSLL the skill's ru
       !cancelled.has(d.accessKey),
   );
   assert.deepEqual(counted.map((d) => d.number).sort(), ["1", "2", "3"]);
-  const revenue = counted.reduce((sum, d) => sum + d.serviceAmountCents, 0);
+  const revenue = counted.reduce(
+    (sum, d) => sum + d.serviceAmountCents - d.unconditionalDiscountCents,
+    0,
+  );
   const base = Math.round(revenue * 0.32);
   const irpj = Math.round(base * 0.15) + Math.round(Math.max(0, base - 6_000_000) * 0.1);
   const csll = Math.round(base * 0.09);

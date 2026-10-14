@@ -9,16 +9,16 @@ import { buildServer as nfseTools } from "../../../connectors/nfse/src/tools.mjs
 
 export const COMPANY = "00000000000191";
 export const KEY = "k".repeat(32);
-// What the skill should find for the second quarter of 2026: R$ 250.000,00 of revenue, so the presumed base
-// (R$ 80.000,00) goes past R$ 60.000,00 and the IRPJ additional applies.
-export const QUARTER = { revenueCents: 25_000_000, irpjCents: 1_400_000, csllCents: 720_000 };
+// What the skill should find for the second quarter of 2026: R$ 250.000,00 of services less a R$ 10.000,00
+// unconditional discount, so the presumed base (R$ 76.800,00) goes past R$ 60.000,00 and the IRPJ additional applies.
+export const QUARTER = { revenueCents: 24_000_000, irpjCents: 1_320_000, csllCents: 691_200 };
 
 const FIXTURE = readFileSync(
   new URL("../../../packages/nfse/fixtures/nfse.xml", import.meta.url),
   "utf8",
 );
 // An NFS-e from the fixture, with its own number, dates, provider, recipient and amount.
-function invoice({ number, issued, competence, provider = COMPANY, recipient, amount }) {
+function invoice({ number, issued, competence, provider = COMPANY, recipient, amount, discount }) {
   const accessKey = `4106902${provider}${String(number).padStart(29, "0")}`;
   const xml = FIXTURE.replaceAll("41069022200000000000191000000000000126090000000001", accessKey)
     .replace("<nNFSe>1</nNFSe>", `<nNFSe>${number}</nNFSe>`)
@@ -31,7 +31,16 @@ function invoice({ number, issued, competence, provider = COMPANY, recipient, am
     .replace(/<prest>\s*<CNPJ>\d+<\/CNPJ>/, `<prest><CNPJ>${provider}</CNPJ>`)
     .replace("<![CDATA[FULANO & FILHOS]]>", `<![CDATA[${recipient}]]>`)
     .replace("<vServ>1500.50</vServ>", `<vServ>${amount}</vServ>`)
-    .replace("<vLiq>1450.50</vLiq>", `<vLiq>${amount}</vLiq>`);
+    .replace(
+      "<vLiq>1450.50</vLiq>",
+      `<vLiq>${(Number(amount) - Number(discount ?? 0)).toFixed(2)}</vLiq>`,
+    )
+    .replace(
+      "</vServPrest>",
+      discount
+        ? `</vServPrest><vDescCondIncond><vDescIncond>${discount}</vDescIncond></vDescCondIncond>`
+        : "</vServPrest>",
+    );
   return { accessKey, xml };
 }
 
@@ -67,6 +76,7 @@ export const INVOICES = [
     competence: "2026-05-12",
     recipient: "CLIENTE DOIS LTDA",
     amount: "80000.00",
+    discount: "10000.00",
   }),
   cancelled,
   // Issued after the quarter, but its competence is June: it counts.
