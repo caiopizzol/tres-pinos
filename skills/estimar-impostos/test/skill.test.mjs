@@ -86,3 +86,21 @@ test("the fictional quarter adds up to the revenue, IRPJ and CSLL the skill's ru
   const csll = Math.round(base * 0.09);
   assert.deepEqual({ revenueCents: revenue, irpjCents: irpj, csllCents: csll }, QUARTER);
 });
+
+test("the fictional third quarter passes the proportional quarterly limit, with the year under R$ 5 million", async () => {
+  const documents = await allDocuments();
+  const cancelled = new Set(documents.filter((d) => d.type !== "NFSE").map((d) => d.accessKey));
+  const revenue = (from, to) =>
+    documents
+      .filter(
+        (d) =>
+          d.type === "NFSE" &&
+          d.provider.id === COMPANY &&
+          d.competence >= from &&
+          d.competence <= to &&
+          !cancelled.has(d.accessKey),
+      )
+      .reduce((sum, d) => sum + d.serviceAmountCents - d.unconditionalDiscountCents, 0);
+  assert.ok(revenue("2026-07-01", "2026-09-30") > 125_000_000);
+  assert.ok(revenue("2026-01-01", "2026-09-30") < 500_000_000);
+});

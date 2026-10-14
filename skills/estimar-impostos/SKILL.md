@@ -22,9 +22,9 @@ Use o conector `nfse` do Três Pinos. Se ele não estiver disponível, diga ao d
    Fique só com as notas em que `provider.id` é o CNPJ da empresa, comparando só os dígitos. Uma nota com um evento
    de cancelamento (mesma `accessKey`) não conta. Separe as do trimestre pela `competence`.
 3. Leia [references/lucro-presumido.md](references/lucro-presumido.md) e aplique as regras de lá sobre a receita: a soma
-   dos `serviceAmountCents` menos os `unconditionalDiscountCents`. Calcule rodando código, nunca de cabeça, em centavos inteiros. Some também a receita das notas
-   do ano até o fim do trimestre: se passar de R$ 5.000.000,00, diga que esta skill ainda não calcula o aumento da
-   presunção e pare.
+   dos `serviceAmountCents` menos os `unconditionalDiscountCents`. Calcule rodando código, nunca de cabeça, em centavos inteiros. Pare, dizendo que esta skill ainda não calcula o
+   aumento da presunção, se a receita das notas passar do limite proporcional da LC 224/2025: R$ 1.250.000,00 no
+   trimestre, ou R$ 1.250.000,00 vezes o número de trimestres somando o ano até o fim do trimestre.
 4. Mostre uma tabela com cada nota (número, competência, tomador, valor, desconto incondicionado) e o total, depois a base, o IRPJ e a CSLL,
    cada um com a fonte da regra.
 

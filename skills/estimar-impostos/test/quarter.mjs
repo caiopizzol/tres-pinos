@@ -95,6 +95,15 @@ export const INVOICES = [
     recipient: "CLIENTE CINCO LTDA",
     amount: "90000.00",
   }),
+  // The third quarter passes the proportional limit of LC 224/2025 (R$ 1.250.000,00) while the year stays under
+  // R$ 5 million: the skill must stop.
+  invoice({
+    number: 6,
+    issued: "2026-08-20",
+    competence: "2026-08-20",
+    recipient: "CLIENTE SEIS LTDA",
+    amount: "1300000.00",
+  }),
   // Another company's invoice, for a service the company bought: it doesn't count.
   invoice({
     number: 77,
