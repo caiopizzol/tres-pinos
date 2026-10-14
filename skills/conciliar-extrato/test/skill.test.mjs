@@ -2,10 +2,14 @@
 // it names exist, and the fictional month an agent is tested on reads as the skill expects. A change to a connector
 // that would break the skill fails here.
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { after, test } from "node:test";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+import { CLIENT_INVOICES, RECEIPTS, writeDocuments } from "./documents.mjs";
 import { COMPANY, KEY, MONTH, start } from "./month.mjs";
 
 const skill = readFileSync(new URL("../SKILL.md", import.meta.url), "utf8");
@@ -101,11 +105,38 @@ test("the fictional month: the invoices come in two batches, with one cancelled 
     month: MONTH,
   });
   const credits = transactions.filter((t) => t.type === "CREDITO");
-  assert.equal(credits.length, 6);
+  assert.equal(credits.length, 8);
   assert.deepEqual(
     credits.map((credit) => eligible(documents, credit).length),
-    [1, 2, 0, 0, 0, 0],
+    [1, 2, 0, 0, 0, 0, 0, 0],
   );
+});
+
+// The two payments from abroad: no note has their amount, but each equals a receipt, whose dollars lead to an
+// invoice. INV-0007's note cites it; INV-0010 has none, so that credit is missing a note.
+test("the fictional month: payments from abroad lead through a receipt and an invoice to a note, or to none", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "documentos-"));
+  after(() => rmSync(dir, { recursive: true, force: true }));
+  writeDocuments(dir);
+  const text = (file) => execFileSync("pdftotext", [join(dir, file), "-"], { encoding: "utf8" });
+  const documents = await allDocuments();
+  const { transactions } = await call(servers.inter, "get_statement", { month: MONTH });
+  const abroad = transactions.filter((t) => t.description.includes("PLATAFORMA"));
+  const cents = (brl) => Math.round(Number(brl.replaceAll(",", "")) * 100);
+  const chain = abroad.map((credit) => {
+    const receipt = RECEIPTS.find((r) => cents(r.brl) === credit.amountCents);
+    assert.match(text(receipt.file), new RegExp(`Total enviado: BRL ${receipt.brl}`));
+    const invoice = CLIENT_INVOICES.find((i) => i.usd === receipt.usd);
+    assert.match(text(`${invoice.number}.pdf`), new RegExp(`Total: USD ${invoice.usd}`));
+    const notes = documents.filter(
+      (d) => d.type === "NFSE" && d.description.includes(invoice.number),
+    );
+    return [invoice.number, notes.map((d) => d.number)];
+  });
+  assert.deepEqual(chain, [
+    ["INV-0007", ["8"]],
+    ["INV-0010", []],
+  ]);
 });
 
 test("the fictional month: the Sicoob account adds one credit with an invoice and one without", async () => {
