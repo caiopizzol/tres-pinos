@@ -1,6 +1,6 @@
 // MCP server that gives an agent the tools in tools.mjs, behind SICOOB_KEY.
 import { certificateFetch, readCertificate } from "@tres-pinos/api";
-import { serve } from "@tres-pinos/server";
+import { icons, serve } from "@tres-pinos/server";
 import { readOnly } from "./guard.mjs";
 import { sicoobClient } from "./sicoob.mjs";
 import { buildServer } from "./tools.mjs";
@@ -26,6 +26,12 @@ const sicoob = sicoobClient(
 serve({
   name: "SICOOB_KEY",
   key: env.SICOOB_KEY,
-  tools: () => buildServer(sicoob),
+  tools: () => buildServer(sicoob, icons(env.PUBLIC_URL)),
   port: Number(env.PORT ?? 8080),
+  publicUrl: env.PUBLIC_URL,
+  dataDir: env.DATA_DIR,
+  consent: {
+    title: "seu Sicoob",
+    reach: "Ele vai poder ler o saldo e o extrato da conta corrente. Nunca movimenta dinheiro.",
+  },
 });

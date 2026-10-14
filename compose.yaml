@@ -16,6 +16,7 @@ services:
       SICOOB_CERT_PATH: /certificate/sicoob.crt
       SICOOB_CERT_KEY_PATH: /certificate/sicoob.key
       SICOOB_CERT_PASSWORD: ${SICOOB_CERT_PASSWORD:-}
+      PUBLIC_URL: ${SICOOB_PUBLIC_URL:-}
     ports:
       - 127.0.0.1:3012:8080
     volumes:
@@ -31,6 +32,7 @@ services:
         read_only: true
         bind:
           create_host_path: false
+      - sicoob:/data
   inter:
     image: ghcr.io/caiopizzol/tres-pinos/inter:${TRES_PINOS_VERSION:-v0.1.2}
     build:
@@ -92,5 +94,6 @@ services:
       - nfse:/data
 
 volumes:
+  sicoob:
   inter:
   nfse:

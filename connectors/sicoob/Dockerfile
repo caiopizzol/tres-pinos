@@ -10,6 +10,8 @@ RUN bun install --frozen-lockfile --production --filter @tres-pinos/sicoob-conne
 COPY packages/api/src packages/api/src
 COPY packages/server/src packages/server/src
 COPY connectors/sicoob/src connectors/sicoob/src
+# Sign-ins are kept here, on a volume; the folder belongs to node so a new volume does too.
+RUN mkdir /data && chown node:node /data
 WORKDIR /app/connectors/sicoob
 USER node
 CMD ["node", "src/server.mjs"]
