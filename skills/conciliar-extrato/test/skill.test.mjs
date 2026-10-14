@@ -26,6 +26,17 @@ async function call(url, name, args) {
   return JSON.parse(result.content[0].text);
 }
 
+// The company's notes, not cancelled, with the credit's amount and issued within 120 days of it: what the skill suggests.
+const eligible = (documents, credit) =>
+  documents.filter(
+    (d) =>
+      d.type === "NFSE" &&
+      d.provider.id === COMPANY &&
+      d.netAmountCents === credit.amountCents &&
+      !documents.some((e) => e.type !== "NFSE" && e.accessKey === d.accessKey) &&
+      Math.abs(Date.parse(d.dpsIssuedAt) - Date.parse(credit.date)) <= 120 * 86_400_000,
+  );
+
 // Every document, following lastNsu until done, as the skill says.
 async function allDocuments() {
   const documents = [];
@@ -44,7 +55,9 @@ test("the skill has a name and a description, which Claude Code and Codex both n
 });
 
 test("the tools and fields the skill names are the ones the connectors give", async () => {
-  const { transactions } = await call(servers.inter, "get_statement", { month: MONTH });
+  const { transactions } = await call(servers.inter, "get_statement", {
+    month: MONTH,
+  });
   const credit = transactions.find((t) => t.type === "CREDITO");
   const documents = await allDocuments();
   const invoice = documents.find((d) => d.type === "NFSE");
@@ -67,6 +80,10 @@ test("the tools and fields the skill names are the ones the connectors give", as
   }
 });
 
+test("the skill names no bank: any connector with get_statement serves", () => {
+  assert.doesNotMatch(skill.split("---")[2], /\b(Inter|Sicoob|inter|sicoob)\b/);
+});
+
 test("the fictional month: the invoices come in two batches, with one cancelled and one from another company", async () => {
   const documents = await allDocuments();
   const invoices = documents.filter((d) => d.type === "NFSE");
@@ -80,18 +97,25 @@ test("the fictional month: the invoices come in two batches, with one cancelled 
     ["77"],
   );
   // The one credit the skill should match: a single invoice of the company with its net amount, within 120 days.
-  const { transactions } = await call(servers.inter, "get_statement", { month: MONTH });
+  const { transactions } = await call(servers.inter, "get_statement", {
+    month: MONTH,
+  });
   const credits = transactions.filter((t) => t.type === "CREDITO");
   assert.equal(credits.length, 6);
-  const matches = credits.map(
-    (credit) =>
-      invoices.filter(
-        (d) =>
-          d.provider.id === COMPANY &&
-          d.netAmountCents === credit.amountCents &&
-          !documents.some((e) => e.type !== "NFSE" && e.accessKey === d.accessKey) &&
-          Math.abs(Date.parse(d.dpsIssuedAt) - Date.parse(credit.date)) <= 120 * 86_400_000,
-      ).length,
+  assert.deepEqual(
+    credits.map((credit) => eligible(documents, credit).length),
+    [1, 2, 0, 0, 0, 0],
   );
-  assert.deepEqual(matches, [1, 2, 0, 0, 0, 0]);
+});
+
+test("the fictional month: the Sicoob account adds one credit with an invoice and one without", async () => {
+  const documents = await allDocuments();
+  const { transactions } = await call(servers.sicoob, "get_statement", {
+    month: MONTH,
+  });
+  const credits = transactions.filter((t) => t.type === "CREDITO");
+  assert.deepEqual(
+    credits.map((c) => eligible(documents, c).map((d) => d.number)),
+    [["6"], []],
+  );
 });

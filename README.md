@@ -47,11 +47,11 @@ prontos para o resto do mundo e travam nas nossas jabuticabas.
 Instruções que o seu agente segue, no formato aberto de [Agent Skills](https://agentskills.io). Testadas no Claude
 Code e no Codex.
 
-| Skill                                           | O que o agente faz                                                                                 |
-| ----------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| [`ler-conta`](skills/ler-conta)                 | Lê os códigos de boleto e Pix de uma conta em PDF ou foto, e confere antes de pagar                |
-| [`conciliar-extrato`](skills/conciliar-extrato) | Confere as entradas de um mês no extrato do Inter com as NFS-e emitidas e diz quais ficam sem nota |
-| [`estimar-impostos`](skills/estimar-impostos)   | Estima o IRPJ e a CSLL de um trimestre no Lucro Presumido, a partir das NFS-e emitidas             |
+| Skill                                           | O que o agente faz                                                                                   |
+| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| [`ler-conta`](skills/ler-conta)                 | Lê os códigos de boleto e Pix de uma conta em PDF ou foto, e confere antes de pagar                  |
+| [`conciliar-extrato`](skills/conciliar-extrato) | Confere as entradas de um mês nas contas da empresa com as NFS-e emitidas e diz quais ficam sem nota |
+| [`estimar-impostos`](skills/estimar-impostos)   | Estima o IRPJ e a CSLL de um trimestre no Lucro Presumido, a partir das NFS-e emitidas               |
 
 Como instalar cada uma está na pasta dela.
 

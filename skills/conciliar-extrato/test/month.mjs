@@ -1,5 +1,5 @@
-// A fictional month for the skill: the real Inter and NFS-e connectors, each behind its key, reading a fake bank and
-// a fake national system instead of the real ones. Run it to point Claude Code or Codex at it:
+// A fictional month for the skill: the real Inter, Sicoob and NFS-e connectors, each behind its key, reading fake banks
+// and a fake national system instead of the real ones. Run it to point Claude Code or Codex at it:
 // `node skills/conciliar-extrato/test/month.mjs`.
 import { readFileSync } from "node:fs";
 import { gzipSync } from "node:zlib";
@@ -7,6 +7,13 @@ import { serve } from "@tres-pinos/server";
 import { readOnly as interGuard } from "../../../connectors/inter/src/guard.mjs";
 import { API_URL as INTER_URL, interClient } from "../../../connectors/inter/src/inter.mjs";
 import { buildServer as interTools } from "../../../connectors/inter/src/tools.mjs";
+import { readOnly as sicoobGuard } from "../../../connectors/sicoob/src/guard.mjs";
+import {
+  API_URL as SICOOB_URL,
+  sicoobClient,
+  TOKEN_URL as SICOOB_TOKEN_URL,
+} from "../../../connectors/sicoob/src/sicoob.mjs";
+import { buildServer as sicoobTools } from "../../../connectors/sicoob/src/tools.mjs";
 import { adnClient } from "../../../connectors/nfse/src/adn.mjs";
 import { readOnly as adnGuard } from "../../../connectors/nfse/src/guard.mjs";
 import { buildServer as nfseTools } from "../../../connectors/nfse/src/tools.mjs";
@@ -39,6 +46,31 @@ export const TRANSACTIONS = [
     ...credit("d1", "2026-09-06", "1450.50", "PIX ENVIADO - FORNECEDOR"),
     tipoOperacao: "D",
     titulo: "Pix enviado",
+  },
+];
+
+// The company's second account, at Sicoob. One credit has an invoice and one doesn't.
+export const SICOOB_TRANSACTIONS = [
+  {
+    transactionId: "s1",
+    data: "2026-09-18",
+    tipo: "CREDITO",
+    valor: "640.00",
+    descricao: "PIX RECEBIDO - CLIENTE SEIS LTDA",
+  },
+  {
+    transactionId: "s2",
+    data: "2026-09-22",
+    tipo: "CREDITO",
+    valor: "75.00",
+    descricao: "PIX RECEBIDO - CLIENTE SETE LTDA",
+  },
+  {
+    transactionId: "s3",
+    data: "2026-09-23",
+    tipo: "DEBITO",
+    valor: "640.00",
+    descricao: "PIX EMITIDO - FORNECEDOR",
   },
 ];
 
@@ -123,6 +155,13 @@ export const INVOICES = [
     service: "500.00",
   }),
   invoice({
+    number: 6,
+    issued: "2026-09-16",
+    competence: "2026-09-16",
+    recipient: "CLIENTE SEIS LTDA",
+    service: "640.00",
+  }),
+  invoice({
     number: 5,
     issued: "2026-03-01",
     competence: "2026-03-01",
@@ -152,11 +191,25 @@ const answer = (status, body) => Promise.resolve({ status, text: JSON.stringify(
 // Inter: the token, and September's statement.
 function bank(url) {
   if (url === `${INTER_URL}/oauth/v2/token`)
-    return answer(200, { access_token: "t", expires_in: 3600, scope: "extrato.read" });
+    return answer(200, {
+      access_token: "t",
+      expires_in: 3600,
+      scope: "extrato.read",
+    });
   if (url.startsWith(`${INTER_URL}/banking/v2/extrato/completo?dataInicio=${MONTH}-01&`))
     return answer(200, { totalPaginas: 1, transacoes: TRANSACTIONS });
   if (url.startsWith(`${INTER_URL}/banking/v2/extrato/completo?`))
     return answer(200, { totalPaginas: 0, transacoes: [] });
+  return answer(404, {});
+}
+
+// Sicoob: the token, and September's statement.
+function sicoobBank(url) {
+  if (url === SICOOB_TOKEN_URL) return answer(200, { access_token: "t", scope: "cco_consulta" });
+  if (url.startsWith(`${SICOOB_URL}/conta-corrente/v4/extrato/9/2026?`))
+    return answer(200, { resultado: { transacoes: SICOOB_TRANSACTIONS } });
+  if (url.startsWith(`${SICOOB_URL}/conta-corrente/v4/extrato/`))
+    return answer(200, { resultado: { transacoes: [] } });
   return answer(404, {});
 }
 
@@ -165,16 +218,36 @@ function adn(url) {
   const after = Number(/\/DFe\/(\d+)\?lote=true$/.exec(url)?.[1]);
   const batch = records.filter((r) => r.NSU > after).slice(0, 50);
   if (!batch.length) return answer(404, { StatusProcessamento: "NENHUM_DOCUMENTO_LOCALIZADO" });
-  return answer(200, { StatusProcessamento: "DOCUMENTOS_LOCALIZADOS", LoteDFe: batch });
+  return answer(200, {
+    StatusProcessamento: "DOCUMENTOS_LOCALIZADOS",
+    LoteDFe: batch,
+  });
 }
 
-// Starts both connectors and returns their MCP URLs.
-export function start({ interPort = 0, nfsePort = 0 } = {}) {
+// Starts the three connectors and returns their MCP URLs.
+export function start({ interPort = 0, sicoobPort = 0, nfsePort = 0 } = {}) {
   const inter = interClient({ clientId: "id", clientSecret: "secret" }, interGuard(bank));
+  const sicoob = sicoobClient({ clientId: "id", account: "1234567" }, sicoobGuard(sicoobBank));
   const nfse = adnClient(adnGuard(adn));
   const servers = [
-    serve({ name: "INTER_KEY", key: KEY, tools: () => interTools(inter), port: interPort }),
-    serve({ name: "NFSE_KEY", key: KEY, tools: () => nfseTools(nfse), port: nfsePort }),
+    serve({
+      name: "INTER_KEY",
+      key: KEY,
+      tools: () => interTools(inter),
+      port: interPort,
+    }),
+    serve({
+      name: "SICOOB_KEY",
+      key: KEY,
+      tools: () => sicoobTools(sicoob),
+      port: sicoobPort,
+    }),
+    serve({
+      name: "NFSE_KEY",
+      key: KEY,
+      tools: () => nfseTools(nfse),
+      port: nfsePort,
+    }),
   ];
   return Promise.all(
     servers.map(
@@ -185,12 +258,17 @@ export function start({ interPort = 0, nfsePort = 0 } = {}) {
     ),
   ).then(() => ({
     inter: `http://127.0.0.1:${servers[0].address().port}/mcp`,
-    nfse: `http://127.0.0.1:${servers[1].address().port}/mcp`,
+    sicoob: `http://127.0.0.1:${servers[1].address().port}/mcp`,
+    nfse: `http://127.0.0.1:${servers[2].address().port}/mcp`,
     close: () => servers.forEach((server) => server.close()),
   }));
 }
 
 if (import.meta.main) {
-  const { inter, nfse } = await start({ interPort: 3113, nfsePort: 3114 });
-  console.log(`inter ${inter}\nnfse ${nfse}`);
+  const { inter, sicoob, nfse } = await start({
+    interPort: 3113,
+    sicoobPort: 3112,
+    nfsePort: 3114,
+  });
+  console.log(`inter ${inter}\nsicoob ${sicoob}\nnfse ${nfse}`);
 }
