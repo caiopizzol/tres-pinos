@@ -3,8 +3,8 @@
 Confere as entradas de um mês nas contas da empresa com as NFS-e que ela emitiu e diz quais ficam sem nota. Só
 sugere: quem decide é você.
 
-Usa o conector [`nfse`](../../connectors/nfse) e um conector de banco, como o [`inter`](../../connectors/inter) ou o
-[`sicoob`](../../connectors/sicoob), ligados ao seu agente. Só entram contas da empresa (PJ): se o agente não souber
+Usa o conector [`nfse`](../../connectors/nfse) e os conectores de todas as contas da empresa, como o
+[`inter`](../../connectors/inter) e o [`sicoob`](../../connectors/sicoob), ligados ao seu agente. Só entram contas da empresa (PJ): se o agente não souber
 de quem é uma conta, ele pergunta.
 Na pasta do repositório, copie a pasta para o seu agente:
 

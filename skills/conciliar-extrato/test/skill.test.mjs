@@ -26,6 +26,17 @@ async function call(url, name, args) {
   return JSON.parse(result.content[0].text);
 }
 
+// The company's notes, not cancelled, with the credit's amount and issued within 120 days of it: what the skill suggests.
+const eligible = (documents, credit) =>
+  documents.filter(
+    (d) =>
+      d.type === "NFSE" &&
+      d.provider.id === COMPANY &&
+      d.netAmountCents === credit.amountCents &&
+      !documents.some((e) => e.type !== "NFSE" && e.accessKey === d.accessKey) &&
+      Math.abs(Date.parse(d.dpsIssuedAt) - Date.parse(credit.date)) <= 120 * 86_400_000,
+  );
+
 // Every document, following lastNsu until done, as the skill says.
 async function allDocuments() {
   const documents = [];
@@ -91,17 +102,10 @@ test("the fictional month: the invoices come in two batches, with one cancelled 
   });
   const credits = transactions.filter((t) => t.type === "CREDITO");
   assert.equal(credits.length, 6);
-  const matches = credits.map(
-    (credit) =>
-      invoices.filter(
-        (d) =>
-          d.provider.id === COMPANY &&
-          d.netAmountCents === credit.amountCents &&
-          !documents.some((e) => e.type !== "NFSE" && e.accessKey === d.accessKey) &&
-          Math.abs(Date.parse(d.dpsIssuedAt) - Date.parse(credit.date)) <= 120 * 86_400_000,
-      ).length,
+  assert.deepEqual(
+    credits.map((credit) => eligible(documents, credit).length),
+    [1, 2, 0, 0, 0, 0],
   );
-  assert.deepEqual(matches, [1, 2, 0, 0, 0, 0]);
 });
 
 test("the fictional month: the Sicoob account adds one credit with an invoice and one without", async () => {
@@ -111,9 +115,7 @@ test("the fictional month: the Sicoob account adds one credit with an invoice an
   });
   const credits = transactions.filter((t) => t.type === "CREDITO");
   assert.deepEqual(
-    credits.map((c) =>
-      documents.filter((d) => d.netAmountCents === c.amountCents).map((d) => d.number),
-    ),
+    credits.map((c) => eligible(documents, c).map((d) => d.number)),
     [["6"], []],
   );
 });

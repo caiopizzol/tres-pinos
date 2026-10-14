@@ -1,7 +1,7 @@
 ---
 name: conciliar-extrato
 description: Confere as entradas de um mês nas contas da empresa com as NFS-e que ela emitiu e lista as que ficam sem nota. Use quando o dono pedir para conciliar um mês ou conferir recebimentos.
-compatibility: Precisa do conector nfse do Três Pinos e de um conector de banco com get_statement, como o inter ou o sicoob, ligados ao agente.
+compatibility: Precisa do conector nfse do Três Pinos e dos conectores de todas as contas da empresa com get_statement, como o inter e o sicoob, ligados ao agente.
 ---
 
 # Conciliar o extrato
