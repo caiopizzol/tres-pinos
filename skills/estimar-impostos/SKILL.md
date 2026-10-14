@@ -13,8 +13,8 @@ Use o conector `nfse` do Três Pinos. Se ele não estiver disponível, diga ao d
    `regime_tributario`. A Receita publica com cerca de um ano de atraso, então pergunte ao dono se a empresa:
    - ainda está no Lucro Presumido e apura por competência;
    - presta serviços em geral;
-   - tem receita bruta anual, somando todas as receitas e não só as notas, acima de R$ 120.000,00 e até
-     R$ 5.000.000,00.
+   - tem receita bruta, somando todas as receitas e não só as notas, acima de R$ 120.000,00 no ano e até
+     R$ 1.250.000,00 por trimestre, contando o ano até o fim do trimestre (o limite proporcional da LC 224/2025).
 
    Se alguma resposta for não, diga que esta skill ainda não cobre o caso e pare.
 
