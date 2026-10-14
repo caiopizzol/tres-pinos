@@ -11,7 +11,8 @@ Use o conector `nfse` do Três Pinos. Se ele não estiver disponível, diga ao d
 1. Confirme o regime. Se não souber o CNPJ da empresa, pergunte ao dono. Busque
    `https://brasilapi.com.br/api/cnpj/v1/{cnpj}` e mostre a `forma_de_tributacao` do ano mais recente em
    `regime_tributario`. A Receita publica com cerca de um ano de atraso, então pergunte ao dono se a empresa ainda
-   está no Lucro Presumido. Se não estiver, diga que esta skill ainda não cobre o regime dela e pare.
+   está no Lucro Presumido, se apura por competência e se a atividade é de serviços em geral, com receita anual acima
+   de R$ 120.000,00. Se alguma resposta for não, diga que esta skill ainda não cobre o caso e pare.
 2. Busque as notas com `list_invoices`, começando em `afterNsu` 0 e repetindo com `lastNsu` até `done` ser `true`.
    Fique só com as notas em que `provider.id` é o CNPJ da empresa, comparando só os dígitos. Uma nota com um evento
    de cancelamento (mesma `accessKey`) não conta. Separe as do trimestre pela `competence`.

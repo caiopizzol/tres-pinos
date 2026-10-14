@@ -13,5 +13,11 @@ regra e a data.
 | Alíquota da CSLL                     | 9% da base                                                                                | [Lei 7.689/1988, art. 3º, III](https://www.planalto.gov.br/ccivil_03/leis/l7689.htm)                                                                                              |
 | Receita acima de R$ 5 milhões no ano | os percentuais de presunção sobem 10% sobre a parte da receita acima desse valor          | [LC 224/2025, art. 4º, § 4º, VII, e § 5º](https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp224.htm)                                                                              |
 
-Fora destas regras, e por isso fora da estimativa: atividades com outro percentual (comércio, transporte, serviços
-hospitalares), receitas que não são de serviços (financeiras, ganhos de capital) e impostos retidos.
+Fora destas regras, e por isso fora da estimativa:
+
+- atividades com outro percentual, como transporte (16%), comércio (8%) e serviços hospitalares
+  ([Lei 9.249/1995, art. 15, § 1º](https://www.planalto.gov.br/ccivil_03/leis/l9249.htm));
+- serviços com receita anual de até R$ 120.000,00, que podem usar 16% no IRPJ, exceto profissões regulamentadas
+  ([Lei 9.250/1995, art. 40](https://www.planalto.gov.br/ccivil_03/leis/l9250.htm));
+- o regime de caixa, que precisa das datas de recebimento;
+- receitas que não são de serviços (financeiras, ganhos de capital) e impostos retidos.
