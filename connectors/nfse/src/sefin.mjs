@@ -66,6 +66,9 @@ function readDps(xml) {
   if (!DPS_ID.test(id ?? "")) throw new Error("The DPS has no valid Id");
   const tpAmb = inf.getElementsByTagNameNS(NS, "tpAmb")[0]?.textContent;
   if (tpAmb !== "2") throw new Error("The DPS must be for produção restrita (tpAmb 2)");
+  // A DPS with subst replaces an invoice and cancels the original, through the same request.
+  if (inf.getElementsByTagNameNS(NS, "subst").length)
+    throw new Error("The DPS replaces an invoice (subst), which would cancel it");
   // The national system refuses a DPS that doesn't declare UTF-8 (E1229).
   return {
     id,
@@ -81,10 +84,11 @@ export function sefinClient(fetch, certificate) {
     async prepare(dpsXml) {
       const { id, xml } = readDps(dpsXml);
       const { valid, violations } = await validateDpsXml(xml, { throwOnInvalid: false });
-      if (!valid)
-        throw new Error(
-          `The DPS fails the official schema: ${violations[0]?.message ?? "invalid"}`,
-        );
+      // Only the element's name: the validator's message quotes the value, which can be an amount or an ID.
+      if (!valid) {
+        const field = /Element '(?:\{[^}]*\})?(\w+)'/.exec(violations[0]?.message ?? "")?.[1];
+        throw new Error(`The DPS fails the official schema${field ? ` at ${field}` : ""}`);
+      }
       return { id, signedXml: signDpsXml(xml, certificate) };
     },
 

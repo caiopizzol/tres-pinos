@@ -7,6 +7,7 @@ import { readFileSync } from "node:fs";
 import { gunzipSync, gzipSync } from "node:zlib";
 import { beforeEach, test } from "node:test";
 import { DOMParser, XMLSerializer } from "@xmldom/xmldom";
+import { validateDpsXml } from "open-nfse";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { certificateFetch } from "@tres-pinos/api";
@@ -88,6 +89,13 @@ test("refuses a DPS that isn't for produção restrita, valid or unsigned, befor
   for (const [dps, error] of [
     [DPS.replace("<tpAmb>2</tpAmb>", "<tpAmb>1</tpAmb>"), /produção restrita/],
     [DPS.replace(/<cTribNac>\d+<\/cTribNac>/, ""), /official schema/],
+    [
+      DPS.replace(
+        "</cLocEmi>",
+        `</cLocEmi><subst><chSubstda>${KEY}</chSubstda><cMotivo>01</cMotivo></subst>`,
+      ),
+      /replaces an invoice/,
+    ],
     [DPS.replace(`Id="${ID}"`, 'Id="DPS1"'), /valid Id/],
     [
       DPS.replace("</infDPS>", '</infDPS><Signature xmlns="http://www.w3.org/2000/09/xmldsig#"/>'),
@@ -106,6 +114,30 @@ test("refuses a DPS that isn't for produção restrita, valid or unsigned, befor
   ])
     await assert.rejects(sefin().issue(dps), error, String(error));
   assert.equal(requests.length, before);
+});
+
+test("a substitution is refused even though the schema accepts it", async () => {
+  const subst = DPS.replace(
+    "</cLocEmi>",
+    `</cLocEmi><subst><chSubstda>${KEY}</chSubstda><cMotivo>01</cMotivo></subst>`,
+  );
+  const { valid } = await validateDpsXml(`<?xml version="1.0" encoding="UTF-8"?>${subst}`, {
+    throwOnInvalid: false,
+  });
+  assert.ok(valid);
+  const before = requests.length;
+  await assert.rejects(
+    sefin().issue(subst),
+    /replaces an invoice \(subst\), which would cancel it/,
+  );
+  assert.equal(requests.length, before);
+});
+
+test("a schema failure names the field, never its value", async () => {
+  const error = await sefin()
+    .prepare(DPS.replace("1500.50", "1234.567"))
+    .catch((e) => e);
+  assert.equal(error.message, "The DPS fails the official schema at vServ");
 });
 
 test("a rejection carries the status and the official codes, never their text", async () => {
