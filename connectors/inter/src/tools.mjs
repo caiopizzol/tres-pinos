@@ -1,7 +1,7 @@
 // The MCP tools: read the owner's Banco Inter business account. They never move money.
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { isReadOnly } from "@tres-pinos/api";
+import { isGuarded } from "@tres-pinos/api";
 import { toolAnswer } from "@tres-pinos/server";
 import { InterError } from "./inter.mjs";
 
@@ -14,7 +14,7 @@ const answer = (work) =>
 // `inter` is one interClient for the whole process, so every request shares its token.
 export function buildServer(inter, icons) {
   // Without the guard, a bug could reach anything the integration allows, payments included.
-  if (!isReadOnly(inter.fetch)) throw new Error("The tools need a fetch from readOnly");
+  if (!isGuarded(inter.fetch)) throw new Error("The tools need a guarded fetch");
   const server = new McpServer({
     name: "tres-pinos-inter",
     title: "Três Pinos · Banco Inter",

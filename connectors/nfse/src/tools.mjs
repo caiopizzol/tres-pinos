@@ -1,7 +1,7 @@
 // The MCP tool: list the company's NFS-e from the national system. It never issues or cancels an invoice.
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { isReadOnly } from "@tres-pinos/api";
+import { isGuarded } from "@tres-pinos/api";
 import { toolAnswer } from "@tres-pinos/server";
 import { AdnError } from "./adn.mjs";
 
@@ -13,7 +13,7 @@ const answer = (work) =>
 
 export function buildServer(adn, icons) {
   // Without the guard, a bug could reach anything the e-CNPJ allows.
-  if (!isReadOnly(adn.fetch)) throw new Error("The tools need a fetch from readOnly");
+  if (!isGuarded(adn.fetch)) throw new Error("The tools need a guarded fetch");
   const server = new McpServer({
     name: "tres-pinos-nfse",
     title: "Três Pinos · NFS-e",

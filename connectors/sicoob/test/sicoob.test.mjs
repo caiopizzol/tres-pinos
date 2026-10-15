@@ -106,7 +106,7 @@ test("the guard refuses a redirect instead of following it", async () => {
 });
 
 test("the tools won't run on a fetch the guard didn't wrap", () => {
-  assert.throws(() => buildServer(sicoobClient(config, client())), /readOnly/);
+  assert.throws(() => buildServer(sicoobClient(config, client())), /guarded fetch/);
   buildServer(sicoobClient(config, readOnly(client())));
 });
 

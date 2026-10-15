@@ -169,7 +169,7 @@ test("the guard refuses a redirect instead of following it", async () => {
 });
 
 test("the tool won't run on a fetch the guard didn't wrap", () => {
-  assert.throws(() => buildServer(adnClient(client())), /readOnly/);
+  assert.throws(() => buildServer(adnClient(client())), /guarded fetch/);
   buildServer(adn());
 });
 

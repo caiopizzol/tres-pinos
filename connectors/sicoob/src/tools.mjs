@@ -1,7 +1,7 @@
 // The MCP tools: read the owner's Sicoob checking account. They never move money.
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { isReadOnly } from "@tres-pinos/api";
+import { isGuarded } from "@tres-pinos/api";
 import { toolAnswer } from "@tres-pinos/server";
 import { SicoobError } from "./sicoob.mjs";
 
@@ -16,7 +16,7 @@ const answer = (work) =>
 // `sicoob` is one sicoobClient for the whole process.
 export function buildServer(sicoob, icons) {
   // Without the guard, a bug could reach anything the certificate allows, payments included.
-  if (!isReadOnly(sicoob.fetch)) throw new Error("The tools need a fetch from readOnly");
+  if (!isGuarded(sicoob.fetch)) throw new Error("The tools need a guarded fetch");
   const server = new McpServer({
     name: "tres-pinos-sicoob",
     title: "Três Pinos · Sicoob",

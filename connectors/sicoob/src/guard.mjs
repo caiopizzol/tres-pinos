@@ -1,6 +1,6 @@
 // The only requests this connector may make to Sicoob: the token for the read-only scope, the balance and a
 // month's statement. The certificate itself can do much more, payments included.
-import { readOnly as guard } from "@tres-pinos/api";
+import { allowOnly } from "@tres-pinos/api";
 import { API_URL, SCOPE, TOKEN_URL } from "./sicoob.mjs";
 
 const API = API_URL.replaceAll(".", "\\.");
@@ -10,4 +10,4 @@ const REQUESTS = [
 ].map((pattern) => new RegExp(pattern));
 
 export const readOnly = (fetch) =>
-  guard(fetch, { tokenUrl: TOKEN_URL, scope: SCOPE, requests: REQUESTS });
+  allowOnly(fetch, { tokenUrl: TOKEN_URL, scope: SCOPE, requests: REQUESTS });
