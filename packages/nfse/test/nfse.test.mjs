@@ -31,6 +31,7 @@ test("reads the facts of a national NFS-e", () => {
     serviceAmountCents: 150050,
     unconditionalDiscountCents: 0,
     netAmountCents: 145050,
+    federalTaxPercent: null,
   });
 });
 
@@ -56,6 +57,12 @@ test("reads a prefixed namespace, an absent recipient, and a foreign one without
     .replace(/<n:Signature[\s\S]*<\/n:Signature>/, "");
   assert.equal(readNfse(prefixed).recipient.name, "FULANO & FILHOS");
 
+  const percent = change(
+    "<indTotTrib>0</indTotTrib>",
+    "<pTotTrib><pTotTribFed>7.68</pTotTribFed><pTotTribEst>0.00</pTotTribEst><pTotTribMun>0.00</pTotTribMun></pTotTrib>",
+  );
+  assert.equal(readNfse(percent).federalTaxPercent, "7.68");
+
   const registered = change("<regTrib>", "<IM>123456</IM><regTrib>");
   assert.equal(readNfse(registered).provider.municipalRegistration, "123456");
 
@@ -80,6 +87,7 @@ test("never guesses: a missing, repeated or malformed field fails", () => {
     ],
     [change('Id="NFS', 'Id="NF'), /no valid access key/],
     [change('Id="NFS4', 'Id="NFSX'), /no valid access key/],
+    [change('Id="DPS', 'Id="DP'), /infDPS has no valid Id/],
     [change('versao="1.01" xmlns', 'versao="2.00" xmlns'), /version 2.00 is not supported/],
     [change("http://www.sped.fazenda.gov.br/nfse", "http://example.com/nfse"), /national layout/],
     [change("<CPF>00000000191</CPF>", ""), /exactly one of CNPJ, CPF, NIF or cNaoNIF/],

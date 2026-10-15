@@ -52,7 +52,7 @@ Code e no Codex.
 | [`ler-conta`](skills/ler-conta)                 | Lê os códigos de boleto e Pix de uma conta em PDF ou foto, e confere antes de pagar                   |
 | [`conciliar-extrato`](skills/conciliar-extrato) | Confere as entradas de um mês nas contas da empresa com as NFS-e emitidas e diz quais ficam sem nota  |
 | [`estimar-impostos`](skills/estimar-impostos)   | Estima o IRPJ e a CSLL de um trimestre no Lucro Presumido, a partir das NFS-e emitidas                |
-| [`emitir-nfse`](skills/emitir-nfse)             | Emite, no ambiente de teste, a NFS-e de um serviço exportado a partir da invoice em moeda estrangeira |
+| [`emitir-nfse`](skills/emitir-nfse)             | Emite, no ambiente de teste, a NFS-e de um serviço de software exportado a partir da invoice em dólar |
 
 Como instalar cada uma está na pasta dela.
 

@@ -12,6 +12,9 @@ export const MAX_BYTES = 1_000_000;
 // CNPJ can have letters (TSIdNFSe in the schemas 1.01 of 2026-07-27).
 export const ACCESS_KEY = /^\d{9}[0-9A-Z]{14}\d{27}$/;
 
+// A DPS Id: municipality, 1 for CPF or 2 for CNPJ, the federal ID, the series and the number.
+export const DPS_ID = /^DPS\d{7}[12][0-9A-Z]{14}\d{20}$/;
+
 export class NfseError extends Error {}
 
 function parse(xml) {
@@ -80,6 +83,13 @@ function provider(element) {
   return { ...party(element), municipalRegistration: text(element, "IM", true) };
 }
 
+// The approximate share of federal taxes the provider declared (Lei 12.741/2012), such as "7.68", or null when it
+// declared them another way.
+function federalTaxPercent(values) {
+  const percent = child(child(child(values, "trib"), "totTrib"), "pTotTrib", true);
+  return percent && text(percent, "pTotTribFed");
+}
+
 export function readNfse(xml) {
   const root = parse(xml).documentElement;
   if (root?.namespaceURI !== NS || root.localName !== "NFSe")
@@ -92,6 +102,8 @@ export function readNfse(xml) {
   const accessKey = /^NFS(.*)$/.exec(inf.getAttribute("Id"))?.[1];
   if (!ACCESS_KEY.test(accessKey ?? "")) throw new NfseError("infNFSe has no valid access key");
   const dps = child(child(inf, "DPS"), "infDPS");
+  const dpsId = dps.getAttribute("Id");
+  if (!DPS_ID.test(dpsId ?? "")) throw new NfseError("infDPS has no valid Id");
   const service = child(dps, "serv");
   const values = child(dps, "valores");
   const discounts = child(values, "vDescCondIncond", true);
@@ -104,7 +116,7 @@ export function readNfse(xml) {
     generationCode: text(inf, "cStat"),
     generatedAt: text(inf, "dhProc"),
     // The DPS the invoice came from: municipality, federal ID, series and number.
-    dpsId: dps.getAttribute("Id"),
+    dpsId,
     dpsIssuedAt: text(dps, "dhEmi"),
     competence: text(dps, "dCompet"),
     issuer: party(child(inf, "emit")),
@@ -117,5 +129,6 @@ export function readNfse(xml) {
     unconditionalDiscountCents:
       discounts && child(discounts, "vDescIncond", true) ? cents(discounts, "vDescIncond") : 0,
     netAmountCents: cents(child(inf, "valores"), "vLiq"),
+    federalTaxPercent: federalTaxPercent(values),
   };
 }

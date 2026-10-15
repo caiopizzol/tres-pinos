@@ -1,7 +1,7 @@
 # emitir-nfse
 
-Emite a NFS-e de um serviço exportado a partir da invoice em moeda estrangeira, no ambiente de teste do sistema
-nacional, onde a nota não tem valor fiscal. O agente converte o valor pela PTAX do Banco Central, monta a declaração
+Emite a NFS-e de um serviço de software exportado a partir da invoice em dólar, no ambiente de teste do sistema
+nacional, onde a nota não tem valor fiscal. Ainda não cobre empresas do Simples Nacional. O agente converte o valor pela PTAX do Banco Central, monta a declaração
 (DPS), mostra tudo e só emite com a sua aprovação.
 
 Usa o conector [`nfse`](../../connectors/nfse) com `NFSE_ISSUE=restrita`, ligado ao seu agente. Na primeira vez, ele

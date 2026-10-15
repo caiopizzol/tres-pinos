@@ -2,8 +2,9 @@
 // checking and sending a DPS in produção restrita. The e-CNPJ itself can do much more in the national system, such as
 // issuing real invoices and cancelling them.
 import { allowOnly } from "@tres-pinos/api";
+import { DPS_ID } from "@tres-pinos/nfse";
 import { API_URL } from "./adn.mjs";
-import { DPS_ID, SEFIN_URL } from "./sefin.mjs";
+import { SEFIN_URL } from "./sefin.mjs";
 
 const pattern = (url) => url.replaceAll(".", "\\.");
 const READ = [new RegExp(`^GET ${pattern(API_URL)}/DFe/\\d{1,16}\\?lote=true$`)];

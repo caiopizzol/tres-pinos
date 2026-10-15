@@ -18,6 +18,7 @@ import { buildServer } from "../../../connectors/nfse/src/tools.mjs";
 export const COMPANY = "00000000000191";
 export const MUNICIPAL_REGISTRATION = "1234567";
 export const SERIES = "1";
+export const FEDERAL_TAX_PERCENT = "7.68";
 export const KEY = "k".repeat(32);
 // The invoice to issue, and what the skill should send for it: the Banco Central PTAX buying rate of its date, 2026-09-30, which the agent fetches for real.
 export const INVOICE = {
@@ -43,6 +44,10 @@ const keyFor = (n) => `4106902${2}${COMPANY}${String(n).padStart(28, "0")}`;
 // The company's earlier note: the fixture, with the municipal registration and an invoice it cites.
 const earlier = FIXTURE.replaceAll(FIXTURE_KEY, keyFor(1))
   .replace("<regTrib>", `<IM>${MUNICIPAL_REGISTRATION}</IM><regTrib>`)
+  .replace(
+    "<indTotTrib>0</indTotTrib>",
+    `<pTotTrib><pTotTribFed>${FEDERAL_TAX_PERCENT}</pTotTribFed><pTotTribEst>0.00</pTotTribEst><pTotTribMun>0.00</pTotTribMun></pTotTrib>`,
+  )
   .replace(
     "<xDescServ>Desenvolvimento de software &amp; manutenção</xDescServ>",
     "<xDescServ>Invoice INV-0011, de 2026-09-15</xDescServ>",
@@ -175,10 +180,12 @@ export function writeInvoice(dir) {
 // Starts the connector and returns its MCP URL.
 export function start({ port = 0 } = {}) {
   const fetch = guard(national, { issue: true });
+  const adn = adnClient(fetch);
+  const sefin = sefinClient(fetch, certificate());
   const server = serve({
     name: "NFSE_KEY",
     key: KEY,
-    tools: () => buildServer(adnClient(fetch), undefined, sefinClient(fetch, certificate())),
+    tools: () => buildServer(adn, undefined, sefin),
     port,
   });
   return new Promise((resolve) =>

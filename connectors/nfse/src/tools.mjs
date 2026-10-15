@@ -4,8 +4,9 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { isGuarded } from "@tres-pinos/api";
 import { toolAnswer } from "@tres-pinos/server";
+import { DPS_ID } from "@tres-pinos/nfse";
 import { AdnError } from "./adn.mjs";
-import { DPS_ID, SefinError } from "./sefin.mjs";
+import { SefinError } from "./sefin.mjs";
 
 // The answer to a tool call. A failure carries only the national system's status and error codes, never its text.
 const answer = (work) =>

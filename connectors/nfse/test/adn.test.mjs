@@ -91,6 +91,7 @@ test("lists a batch after an NSU, reading each NFS-e, with the company's e-CNPJ"
         serviceAmountCents: 150050,
         unconditionalDiscountCents: 0,
         netAmountCents: 145050,
+        federalTaxPercent: null,
       },
       // An event is listed, not read, so it never stops the listing.
       { nsu: 7, type: "EVENTO", eventType: "CANCELAMENTO", accessKey: KEY },

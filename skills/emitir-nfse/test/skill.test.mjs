@@ -9,6 +9,7 @@ import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/
 import {
   COMPANY,
   EXPECTED,
+  FEDERAL_TAX_PERCENT,
   INVOICE,
   KEY,
   MUNICIPAL_REGISTRATION,
@@ -61,9 +62,13 @@ const filled = (n) =>
     .replace("<nro>{número}</nro>", "<nro>500</nro>")
     .replace("{bairro}", "Financial District")
     .replace("{país do cliente}", "US")
-    .replace("{descrição}", `Invoice ${INVOICE.number}`)
+    .replace(
+      "{descrição}",
+      `Invoice ${INVOICE.number}, de ${INVOICE.date}. Serviço de ${INVOICE.period[0]} a ${INVOICE.period[1]}. USD ${EXPECTED.usd} x 5.1803 (PTAX de compra de ${INVOICE.date}) = R$ ${EXPECTED.brl}.`,
+    )
     .replace("{valor em dólar, 0.00}", EXPECTED.usd)
-    .replace("{valor em reais, 0.00}", EXPECTED.brl);
+    .replace("{valor em reais, 0.00}", EXPECTED.brl)
+    .replace("{tributos federais, %}", FEDERAL_TAX_PERCENT);
 
 test("the skill has a name and a description, which Claude Code and Codex both need", () => {
   const frontmatter = skill.split("---")[1];
@@ -72,8 +77,9 @@ test("the skill has a name and a description, which Claude Code and Codex both n
 });
 
 test("the tools and fields the skill names are the ones the connector gives", async () => {
-  const { documents } = await call("list_invoices", { afterNsu: 0 });
+  const { documents, lastNsu, done } = await call("list_invoices", { afterNsu: 0 });
   const [note] = documents;
+  const body = skill.split("---")[2];
   for (const name of [
     "list_invoices",
     "find_invoice",
@@ -86,12 +92,16 @@ test("the tools and fields the skill names are the ones the connector gives", as
     "provider.municipalRegistration",
     "dpsId",
     "description",
+    "federalTaxPercent",
   ])
-    assert.ok(skill.includes(name), `SKILL.md names ${name}`);
+    assert.ok(body.includes(name), `SKILL.md names ${name}`);
+  assert.equal(typeof lastNsu, "number");
+  assert.equal(typeof done, "boolean");
   assert.equal(note.provider.id, COMPANY);
   assert.equal(note.provider.municipalRegistration, MUNICIPAL_REGISTRATION);
   assert.equal(note.dpsId, id(1));
   assert.match(note.description, /INV-0011/);
+  assert.equal(note.federalTaxPercent, FEDERAL_TAX_PERCENT);
 });
 
 test("the next DPS number is the first that find_invoice reports as not issued", async () => {

@@ -48,6 +48,7 @@ Devolve JSON, resumido aqui:
 | `serviceAmountCents`             | O valor do serviço, em centavos                                                                 |
 | `unconditionalDiscountCents`     | O desconto incondicionado, em centavos, ou 0                                                    |
 | `netAmountCents`                 | O valor líquido, depois de descontos e retenções, em centavos                                   |
+| `federalTaxPercent`              | O percentual aproximado dos tributos federais declarado na nota, como `"7.68"`, ou `null`       |
 
 Uma nota cancelada continua com o mesmo `generationCode`: o cancelamento é um evento à parte. Nenhum campo diz
 se a nota foi paga.
