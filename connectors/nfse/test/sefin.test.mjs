@@ -2,7 +2,7 @@
 // certificate signed by its CA. The certificates are made here, with fictional names; the DPS and the invoice are
 // packages/nfse's fixture.
 import assert from "node:assert/strict";
-import { createPrivateKey } from "node:crypto";
+import { createHash, createPrivateKey } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { gunzipSync, gzipSync } from "node:zlib";
 import { beforeEach, test } from "node:test";
@@ -11,10 +11,11 @@ import { validateDpsXml } from "open-nfse";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { certificateFetch } from "@tres-pinos/api";
+import { createApprovals } from "@tres-pinos/server";
 import { certificates, fakeApi } from "@tres-pinos/testing";
 import { adnClient } from "../src/adn.mjs";
 import { guard } from "../src/guard.mjs";
-import { SEFIN_URL, SefinError, sefinClient } from "../src/sefin.mjs";
+import { SEFIN_URL, SefinError, sefinClient, summarize } from "../src/sefin.mjs";
 import { buildServer } from "../src/tools.mjs";
 
 const certs = certificates({
@@ -223,16 +224,67 @@ test("the guard lets out issuing only when it's on, and only in produção restr
   assert.equal(requests.length, before);
 });
 
-test("the issuing tools appear only with issuing on, and answer a failure with only its status and codes", async () => {
+test("the owner reads the DPS itself before approving: the main facts, then every field", () => {
+  const summary = summarize(DPS);
+  assert.deepEqual(summary.slice(0, 6), [
+    ["Ambiente", "Produção restrita: teste, sem valor fiscal"],
+    ["Tomador", "FULANO & FILHOS"],
+    ["Valor do serviço", "R$ 1.500,50"],
+    ["Competência", "2026-08-31"],
+    ["Descrição", "Desenvolvimento de software & manutenção"],
+    ["DPS", ID],
+  ]);
+  const all = new Map(summary.slice(6));
+  assert.equal(all.get("prest › CNPJ"), "00000000000191");
+  assert.equal(all.get("valores › vServPrest › vServ"), "1500.50");
+  // A choice that changes the invoice, such as a discount, is on the page too.
+  const discounted = new Map(
+    summarize(
+      DPS.replace(
+        "</vServPrest>",
+        "</vServPrest><vDescCondIncond><vDescIncond>1000.00</vDescIncond></vDescCondIncond>",
+      ),
+    ).slice(6),
+  );
+  assert.equal(discounted.get("valores › vDescCondIncond › vDescIncond"), "1000.00");
+  assert.throws(() => summarize(DPS.replace("<tpAmb>2</tpAmb>", "<tpAmb>1</tpAmb>")), /restrita/);
+});
+
+const APPROVAL_KEY = "a".repeat(32);
+const approvals = () =>
+  createApprovals({
+    name: "NFSE_APPROVAL_HASH",
+    hash: createHash("sha256").update(APPROVAL_KEY).digest("hex"),
+    url: "https://nfse.example.com",
+  });
+
+const connect = async (server) => {
+  const [clientSide, serverSide] = InMemoryTransport.createLinkedPair();
+  await server.connect(serverSide);
+  const agent = new Client({ name: "test", version: "0" });
+  await agent.connect(clientSide);
+  return agent;
+};
+const result = (answer) => JSON.parse(answer.content[0].text);
+
+// The owner approves on the page: here, the same form post the page sends, from the page's own origin.
+async function ownerApproves(gate, link) {
+  const page = new URL(link);
+  const req = Object.assign(
+    [new URLSearchParams({ key: APPROVAL_KEY, decision: "approve" }).toString()],
+    {
+      url: page.pathname,
+      method: "POST",
+      headers: { origin: page.origin, host: page.host },
+    },
+  );
+  const res = { writeHead: () => res, end: () => {} };
+  assert.ok(await gate.handle(req, res));
+}
+
+test("the issuing tools appear only with issuing on, and only with the owner's approvals", async () => {
   const adn = adnClient(guard(client(), { issue: true }));
-  const names = async (server) => {
-    const [clientSide, serverSide] = InMemoryTransport.createLinkedPair();
-    await server.connect(serverSide);
-    const agent = new Client({ name: "test", version: "0" });
-    await agent.connect(clientSide);
-    return agent;
-  };
-  const readOnlyAgent = await names(buildServer(adnClient(guard(client())), undefined));
+  const readOnlyAgent = await connect(buildServer(adnClient(guard(client())), undefined));
   assert.deepEqual(
     (await readOnlyAgent.listTools()).tools.map((t) => t.name),
     ["list_invoices"],
@@ -240,24 +292,75 @@ test("the issuing tools appear only with issuing on, and answer a failure with o
   await readOnlyAgent.close();
 
   assert.throws(
-    () => buildServer(adn, undefined, sefinClient(client(), certificate)),
+    () => buildServer(adn, undefined, sefinClient(client(), certificate), approvals()),
     /guarded fetch/,
   );
-  const agent = await names(buildServer(adn, undefined, sefin()));
+  assert.throws(() => buildServer(adn, undefined, sefin()), /owner's approvals/);
+  const agent = await connect(buildServer(adn, undefined, sefin(), approvals()));
   const { tools } = await agent.listTools();
   assert.deepEqual(
     tools.map((t) => t.name),
     ["list_invoices", "prepare_invoice", "issue_invoice", "find_invoice"],
   );
   assert.equal(tools.find((t) => t.name === "issue_invoice").annotations.readOnlyHint, false);
+  await agent.close();
+});
 
+test("issue_invoice sends only the DPS the owner approved, once", async () => {
+  const gate = approvals();
+  const agent = await connect(
+    buildServer(adnClient(guard(client(), { issue: true })), undefined, sefin(), gate),
+  );
+  const before = requests.length;
+  const prepared = result(
+    await agent.callTool({ name: "prepare_invoice", arguments: { dps: DPS } }),
+  );
+  assert.equal(prepared.id, ID);
+  assert.match(prepared.link, /^https:\/\/nfse\.example\.com\/approve\/[\w-]{32}$/);
+
+  const issue = (approval) => agent.callTool({ name: "issue_invoice", arguments: { approval } });
+  assert.match((await issue(prepared.approval)).content[0].text, /not approved it yet/);
+  assert.match((await issue("made-up")).content[0].text, /No pending approval/);
+  // The old way, with the DPS in the call, is not a way around the approval.
+  const withDps = await agent.callTool({ name: "issue_invoice", arguments: { dps: DPS } });
+  assert.ok(withDps.isError);
+  assert.equal(requests.length, before);
+
+  await ownerApproves(gate, prepared.link);
+
+  // A DPS the agent sends along is ignored: what goes out is the one the owner read.
+  reply = issued();
+  const invoice = result(
+    await agent.callTool({
+      name: "issue_invoice",
+      arguments: { approval: prepared.approval, dps: DPS.replace("1500.50", "9500.50") },
+    }),
+  );
+  assert.deepEqual([invoice.dpsId, invoice.accessKey], [ID, KEY]);
+  assert.equal(requests.length, before + 1);
+  const sent = gunzipSync(Buffer.from(JSON.parse(requests.at(-1).body).dpsXmlGZipB64, "base64"));
+  assert.match(sent.toString(), /<vServ>1500\.50<\/vServ>/);
+  assert.match((await issue(prepared.approval)).content[0].text, /No pending approval/);
+  assert.equal(requests.length, before + 1);
+  await agent.close();
+});
+
+test("a failure answers with only its status and codes", async () => {
+  const gate = approvals();
+  const agent = await connect(
+    buildServer(adnClient(guard(client(), { issue: true })), undefined, sefin(), gate),
+  );
+  const { approval } = result(
+    await agent.callTool({ name: "prepare_invoice", arguments: { dps: DPS } }),
+  );
+  await ownerApproves(gate, `https://nfse.example.com/approve/${approval}`);
   reply = [400, { erros: [{ Codigo: "E0014", Descricao: "CNPJ 00000000000191" }] }];
-  assert.deepEqual(await agent.callTool({ name: "issue_invoice", arguments: { dps: DPS } }), {
+  assert.deepEqual(await agent.callTool({ name: "issue_invoice", arguments: { approval } }), {
     isError: true,
     content: [{ type: "text", text: "NFS-e: HTTP 400 E0014" }],
   });
   const refused = await agent.callTool({
-    name: "issue_invoice",
+    name: "prepare_invoice",
     arguments: { dps: DPS.replace("<tpAmb>2</tpAmb>", "<tpAmb>1</tpAmb>") },
   });
   assert.match(refused.content[0].text, /produção restrita/);

@@ -78,6 +78,42 @@ function readDps(xml) {
   };
 }
 
+const brl = (value) =>
+  `R$ ${Number(value).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+// Every value in an element, as [path, value]: the path is the field names from `root` down, such as
+// "valores › trib › tribMun › tpRetISSQN".
+function fields(root, path = []) {
+  return Array.from(root.childNodes)
+    .filter((node) => node.nodeType === 1)
+    .flatMap((element) => {
+      const at = [...path, element.localName];
+      const hasChildren = Array.from(element.childNodes).some((node) => node.nodeType === 1);
+      return hasChildren ? fields(element, at) : [[at.join(" › "), element.textContent]];
+    });
+}
+
+// What the owner reads before approving a DPS, taken from the DPS itself, not from what the agent says about it: the
+// main facts, then every field, so that nothing the DPS declares (a discount, a withholding) goes out unseen.
+export function summarize(dpsXml) {
+  const { id, xml } = readDps(dpsXml);
+  const inf = parse(xml).getElementsByTagNameNS(NS, "infDPS")[0];
+  const field = (name) => inf.getElementsByTagNameNS(NS, name)[0]?.textContent ?? "";
+  const toma = inf.getElementsByTagNameNS(NS, "toma")[0];
+  return [
+    ["Ambiente", "Produção restrita: teste, sem valor fiscal"],
+    [
+      "Tomador",
+      toma ? (toma.getElementsByTagNameNS(NS, "xNome")[0]?.textContent ?? "") : "Sem tomador",
+    ],
+    ["Valor do serviço", brl(field("vServ"))],
+    ["Competência", field("dCompet")],
+    ["Descrição", field("xDescServ")],
+    ["DPS", id],
+    ...fields(inf),
+  ];
+}
+
 export function sefinClient(fetch, certificate) {
   return {
     fetch,

@@ -3,6 +3,7 @@
 // tokens for /mcp, which expire and can be revoked without changing the key.
 // https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization
 import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
+import { escape, page, pageHeaders, read, send, style } from "./page.mjs";
 
 const CODE_MS = 5 * 60_000;
 const ACCESS_MS = 60 * 60_000;
@@ -37,32 +38,10 @@ export function allowedCallback(uri) {
 
 const random = (bytes = 32) => randomBytes(bytes).toString("base64url");
 const sha256 = (value) => createHash("sha256").update(value).digest("base64url");
-const escape = (s) => String(s).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
-
-async function read(req, limit = 8192) {
-  let text = "";
-  for await (const chunk of req) {
-    text += chunk;
-    if (text.length > limit) throw new Error("Request too large");
-  }
-  return text;
-}
-
-const send = (res, status, body, headers = {}) =>
-  res.writeHead(status, { "Cache-Control": "no-store", ...headers }).end(body);
 const json = (res, value, status = 200) =>
   send(res, status, JSON.stringify(value), { "Content-Type": "application/json" });
 const oauthError = (res, error, description) =>
   json(res, { error, error_description: description }, 400);
-
-const pageHeaders = {
-  "Content-Type": "text/html; charset=utf-8",
-  "X-Frame-Options": "DENY",
-  "Content-Security-Policy":
-    "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'",
-  // Under no-referrer, browsers send "Origin: null" with the form, which the origin check refuses.
-  "Referrer-Policy": "same-origin",
-};
 
 // `title` and `reach` describe the connector on the consent page; `name` is its key's setting, such as INTER_KEY.
 export function createOAuth({
@@ -210,26 +189,17 @@ export function createOAuth({
     );
 
   function consent(res, query, name, callback, wrong = false) {
-    const style =
-      "font:16px/1.5 system-ui;color:#1D1D1F;background:#F6F5F1;max-width:28rem;margin:4rem auto;padding:0 1rem";
-    const field =
-      "display:block;width:100%;box-sizing:border-box;margin:.25rem 0 1rem;padding:.5rem;border:1px solid #E2DFD6;border-radius:8px;font:inherit";
-    const button =
-      "padding:.5rem .9rem;border-radius:10px;border:1px solid #1D1D1F;font:inherit;font-weight:600";
-    send(
+    page(
       res,
       wrong ? 401 : 200,
-      `<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width">
-<title>Três Pinos</title><body style="${style}">
-<h1 style="font-size:1.25rem">Ligar ${escape(name)} ao ${escape(title)}?</h1>
+      `<h1 style="font-size:1.25rem">Ligar ${escape(name)} ao ${escape(title)}?</h1>
 <p>${escape(reach)}</p>
 <p style="color:#6A675F;font-size:.9rem">Volta para ${escape(new URL(callback).origin)}</p>
 <form method="post" action="/authorize"><input type="hidden" name="query" value="${escape(query)}">
-<label>Chave do conector (${escape(keyName)})<input name="key" type="password" required autocomplete="current-password" style="${field}"></label>
+<label>Chave do conector (${escape(keyName)})<input name="key" type="password" required autocomplete="current-password" style="${style.field}"></label>
 ${wrong ? '<p style="color:#B42318">Chave errada.</p>' : ""}
-<button name="decision" value="allow" style="${button};background:#1D1D1F;color:#F7C831">Permitir</button>
-<button name="decision" value="deny" formnovalidate style="${button};background:none">Recusar</button></form>`,
-      pageHeaders,
+<button name="decision" value="allow" style="${style.button};background:#1D1D1F;color:#F7C831">Permitir</button>
+<button name="decision" value="deny" formnovalidate style="${style.button};background:none">Recusar</button></form>`,
     );
   }
 

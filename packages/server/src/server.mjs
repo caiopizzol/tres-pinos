@@ -7,6 +7,8 @@ import { DatabaseSync } from "node:sqlite";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { createOAuth } from "./oauth.mjs";
 
+export { ApprovalError, createApprovals } from "./approvals.mjs";
+
 // The Três Pinos icon, public at /favicon.ico and /icon.png, for apps that show a connector's logo.
 const ICONS = {
   "/favicon.ico": ["image/x-icon", readFileSync(new URL("icon/favicon.ico", import.meta.url))],
@@ -21,7 +23,17 @@ export const icons = (publicUrl) =>
 
 // `name` is the key's setting, such as SICOOB_KEY; `tools` builds a fresh McpServer for each request.
 // `consent` is the connector's title and what it reaches, for the sign-in page; `dataDir` keeps the sign-ins.
-export function serve({ name, key, tools, port, publicUrl, dataDir = "/data", consent }) {
+// `approvals`, from createApprovals, serves the owner's approval pages.
+export function serve({
+  name,
+  key,
+  tools,
+  port,
+  publicUrl,
+  dataDir = "/data",
+  consent,
+  approvals,
+}) {
   // The key is the only thing between the internet and the owner's account, so it must be long enough not to guess.
   if (key.length < 32)
     throw new Error(`${name} needs at least 32 characters: openssl rand -hex 32`);
@@ -66,6 +78,7 @@ export function serve({ name, key, tools, port, publicUrl, dataDir = "/data", co
     // A malformed path, such as //[, makes URL parsing throw; answer it here instead of crashing the server.
     try {
       if (oauth && (await oauth.handle(req, res))) return;
+      if (approvals && (await approvals.handle(req, res))) return;
       const path = new URL(req.url, "http://x").pathname;
       if (ICONS[path] && req.method === "GET") {
         const [type, body] = ICONS[path];

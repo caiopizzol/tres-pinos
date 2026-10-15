@@ -13,3 +13,8 @@ hora. Os de renovação valem 30 dias e servem uma vez só.
 
 Cada resposta de ferramenta passa por `toolAnswer`: o resultado vai em JSON, e uma falha leva só o que o conector
 diz do erro, como o status HTTP. O texto da mensagem da API nunca chega ao agente.
+
+Com `approvals`, de `createApprovals`, um conector pede a aprovação do dono antes de uma ferramenta com efeito legal
+ou financeiro. O dono lê o pedido em `/approve/<id>` e aprova com a chave de aprovação, da qual o servidor guarda só o
+SHA-256, e pode recusar ou cancelar sem ela. O pedido vale uma hora, e cinco chaves erradas o apagam; aprovado, a
+ferramenta o usa uma vez, em até 10 minutos.
