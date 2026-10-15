@@ -2,8 +2,8 @@
 
 Servidor MCP que deixa um agente de IA ler as notas fiscais de serviço da sua empresa no
 [Sistema Nacional NFS-e](https://www.gov.br/nfse), pela distribuição oficial (ADN): as notas em que a empresa
-aparece como emitente, tomadora ou intermediária, e os eventos delas, como cancelamentos. Ele nunca emite nem
-cancela notas.
+aparece como emitente, tomadora ou intermediária, e os eventos delas, como cancelamentos. Se você ligar, também
+emite notas no ambiente de teste (produção restrita), onde elas não têm valor fiscal. Ele nunca cancela notas.
 
 ## Requisitos
 
@@ -47,18 +47,22 @@ IA, com o mesmo cuidado com apps na nuvem. Os logins ficam no volume `nfse`.
 
 ## Configuração
 
-| Variável             | O que faz                                                   |
-| -------------------- | ----------------------------------------------------------- |
-| `NFSE_KEY`           | Chave que o agente envia. Pelo menos 32 caracteres          |
-| `NFSE_CERT_DIR`      | Pasta com `nfse.crt` e `nfse.key`. Padrão: `./certificate`  |
-| `NFSE_CERT_PASSWORD` | A senha de `nfse.key`                                       |
-| `NFSE_PUBLIC_URL`    | Endereço público com HTTPS, para entrar com login. Opcional |
+| Variável             | O que faz                                                           |
+| -------------------- | ------------------------------------------------------------------- |
+| `NFSE_KEY`           | Chave que o agente envia. Pelo menos 32 caracteres                  |
+| `NFSE_CERT_DIR`      | Pasta com `nfse.crt` e `nfse.key`. Padrão: `./certificate`          |
+| `NFSE_CERT_PASSWORD` | A senha de `nfse.key`                                               |
+| `NFSE_PUBLIC_URL`    | Endereço público com HTTPS, para entrar com login. Opcional         |
+| `NFSE_ISSUE`         | `restrita` liga a [emissão](#emitir) no ambiente de teste. Opcional |
 
 ## Ferramentas
 
-| Ferramenta      | O que devolve                                                                                  |
-| --------------- | ---------------------------------------------------------------------------------------------- |
-| `list_invoices` | Os próximos documentos, até 50, depois de um NSU. Comece no 0 e continue até `done` vir `true` |
+| Ferramenta        | O que devolve                                                                                  |
+| ----------------- | ---------------------------------------------------------------------------------------------- |
+| `list_invoices`   | Os próximos documentos, até 50, depois de um NSU. Comece no 0 e continue até `done` vir `true` |
+| `prepare_invoice` | Confere a DPS no esquema oficial e a assina, sem enviar. Só com `NFSE_ISSUE`                   |
+| `issue_invoice`   | Envia a DPS uma vez e devolve a nota emitida. Só com `NFSE_ISSUE`                              |
+| `find_invoice`    | Diz se o sistema nacional gerou uma nota para um Id de DPS. Só com `NFSE_ISSUE`                |
 
 O NSU é o número que o sistema nacional dá a cada documento, em ordem. Guarde o `lastNsu` de uma resposta para
 pedir só os documentos novos na próxima vez.
@@ -67,9 +71,23 @@ Cada nota vem com os mesmos campos da CLI [`nfse`](../../packages/nfse#campos), 
 Qualquer outro documento vem só com `nsu`, `type`, `eventType` e a `accessKey` da nota a que se refere. Um
 cancelamento, por exemplo, vem com `type` `EVENTO` e `eventType` `CANCELAMENTO`.
 
-O conector só deixa sair essa consulta. Qualquer outra chamada, como emitir ou cancelar uma nota, é recusada antes
-de chegar ao sistema nacional, mesmo que o certificado permita. Uma nota que não dá para ler direito faz a
-consulta falhar, em vez de virar um palpite.
+O conector só deixa sair essa consulta e, com `NFSE_ISSUE`, as duas chamadas de emissão no ambiente de teste.
+Qualquer outra, como emitir uma nota de verdade ou cancelar uma, é recusada antes de chegar ao sistema nacional,
+mesmo que o certificado permita. Uma nota que não dá para ler direito faz a consulta falhar, em vez de virar um
+palpite.
+
+## Emitir
+
+Com `NFSE_ISSUE=restrita`, o conector emite notas na produção restrita, o ambiente de teste do sistema nacional. Lá
+uma nota não tem valor fiscal. O agente monta a DPS, a declaração da qual a nota é gerada, com `tpAmb` 2, e:
+
+1. `prepare_invoice` confere a DPS no esquema oficial e a assina com o e-CNPJ, sem enviar. Revise antes de seguir.
+2. `issue_invoice` envia a DPS uma vez e devolve a nota emitida, lida como em `list_invoices`.
+3. Se a resposta não for clara, como um tempo esgotado, `find_invoice` diz se a nota foi gerada. Nunca envie a mesma
+   DPS com outro número: isso emitiria uma segunda nota.
+
+Use uma série de DPS só para o conector, para não repetir o número de uma nota emitida pelo portal ou pelo seu
+contador. A emissão usa o [open-nfse](https://github.com/fm-s/open-nfse) para conferir e assinar a DPS.
 
 ## Desenvolvimento
 

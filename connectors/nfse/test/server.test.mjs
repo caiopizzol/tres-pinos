@@ -45,18 +45,30 @@ test("only NFSE_KEY gets in, and it offers only the read tool", async () => {
   assert.ok(listed.every((t) => t.annotations.readOnlyHint));
 });
 
-// The README lists the tools by hand, so it must name every tool the server offers, and no other.
+// The README lists the tools by hand, so it must name every tool the server offers with issuing on, and no other.
 test("the README names exactly the tools it offers", async () => {
-  const names = (await listTools(await runningServer(SERVER, SETTINGS))).map((t) => t.name).sort();
+  const url = await runningServer(SERVER, { ...SETTINGS, NFSE_ISSUE: "restrita" });
+  const names = (await listTools(url)).map((t) => t.name).sort();
   assert.deepEqual(readmeTools("nfse"), names, "README");
 });
 
+test("with NFSE_ISSUE=restrita, it also offers the issuing tools", async () => {
+  const url = await runningServer(SERVER, { ...SETTINGS, NFSE_ISSUE: "restrita" });
+  const listed = await listTools(url);
+  assert.deepEqual(
+    listed.map((t) => t.name),
+    ["list_invoices", "prepare_invoice", "issue_invoice", "find_invoice"],
+  );
+  assert.equal(listed.find((t) => t.name === "issue_invoice").annotations.readOnlyHint, false);
+});
+
 test(
-  "refuses to start with a short key, a missing setting, a wrong password, or a key that doesn't match",
+  "refuses to start with a short key, an unknown NFSE_ISSUE, a missing setting, a wrong password, or a key that doesn't match",
   { timeout: 10_000 },
   () =>
     refusesToStart(SERVER, SETTINGS, [
       [{ NFSE_KEY: "short" }, /NFSE_KEY needs at least 32 characters/],
+      [{ NFSE_ISSUE: "producao" }, /NFSE_ISSUE can only be restrita/],
       [{ NFSE_CERT_PASSWORD: "" }, /Set NFSE_CERT_PASSWORD/],
       [{ NFSE_CERT_PATH: certs.file("missing.crt") }, /Can't read .*missing\.crt/],
       [{ NFSE_CERT_PASSWORD: "wrong-password" }, /NFSE_CERT_PASSWORD does not open/],
@@ -88,4 +100,21 @@ test("with PUBLIC_URL, an app signs in on the consent page and gets only the rea
   ]);
   assert.match(consentPage, /sistema nacional da NFS-e/);
   assert.match(consentPage, /Nunca emite nem cancela notas/);
+});
+
+test("with issuing on, the consent page says it issues only in produção restrita", async () => {
+  const dataDir = mkdtempSync(join(tmpdir(), "nfse-data-"));
+  after(() => rmSync(dataDir, { recursive: true, force: true }));
+  const url = await runningServer(SERVER, (self) => ({
+    ...SETTINGS,
+    NFSE_ISSUE: "restrita",
+    PUBLIC_URL: self,
+    DATA_DIR: dataDir,
+  }));
+  const { consentPage } = await signInAndListTools(url);
+  assert.match(
+    consentPage,
+    /emitir notas no ambiente de teste \(produção restrita\), sem valor fiscal/,
+  );
+  assert.match(consentPage, /Nunca cancela notas/);
 });
