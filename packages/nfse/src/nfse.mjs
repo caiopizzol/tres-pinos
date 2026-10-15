@@ -100,6 +100,53 @@ function federalTaxPercent(values) {
   return value;
 }
 
+// An optional amount: absent is 0, present must be an amount.
+const optionalCents = (parent, name) =>
+  parent && child(parent, name, true) ? cents(parent, name) : 0;
+
+// An optional code from the layout's list, or null when absent.
+function code(parent, name, allowed) {
+  const value = parent && text(parent, name, true);
+  if (value != null && !allowed.test(value))
+    throw new NfseError(`${name} is not a code the layout defines`);
+  return value ?? null;
+}
+
+// What the note declares about withholding, field by field as the layout names them. `issqn` says who withholds the
+// ISS (1 no one, 2 the recipient, 3 the intermediary) and `issqnCents` is the ISS amount; `pisCofins.withholding` is
+// the layout's code 0 to 9 for which of PIS, COFINS and CSLL were withheld, and its amounts are the provider's own
+// PIS and COFINS. No total: real notes put PIS and COFINS that weren't withheld in vTotalRet, and keep vLiq at the
+// full amount when the recipient withholds the ISS.
+function withholdings(dpsValues, nfseValues) {
+  const trib = child(dpsValues, "trib");
+  const federal = child(trib, "tribFed", true);
+  const pisCofins = federal && child(federal, "piscofins", true);
+  return {
+    irrfCents: optionalCents(federal, "vRetIRRF"),
+    cpCents: optionalCents(federal, "vRetCP"),
+    csllCents: optionalCents(federal, "vRetCSLL"),
+    issqn: code(child(trib, "tribMun"), "tpRetISSQN", /^[123]$/),
+    issqnCents: optionalCents(nfseValues, "vISSQN"),
+    pisCofins: pisCofins && {
+      cst: code(pisCofins, "CST", /^\d{2}$/),
+      withholding: code(pisCofins, "tpRetPisCofins", /^\d$/),
+      pisCents: optionalCents(pisCofins, "vPis"),
+      cofinsCents: optionalCents(pisCofins, "vCofins"),
+    },
+  };
+}
+
+// The IBS and CBS the national system calculated (reforma tributária, LC 214/2025), or null when the note has none.
+function ibsCbs(inf) {
+  const group = child(inf, "IBSCBS", true);
+  if (!group) return null;
+  const totals = child(group, "totCIBS");
+  return {
+    ibsCents: cents(child(totals, "gIBS"), "vIBSTot"),
+    cbsCents: cents(child(totals, "gCBS"), "vCBS"),
+  };
+}
+
 export function readNfse(xml) {
   const root = parse(xml).documentElement;
   if (root?.namespaceURI !== NS || root.localName !== "NFSe")
@@ -139,6 +186,8 @@ export function readNfse(xml) {
     unconditionalDiscountCents:
       discounts && child(discounts, "vDescIncond", true) ? cents(discounts, "vDescIncond") : 0,
     netAmountCents: cents(child(inf, "valores"), "vLiq"),
+    withholdings: withholdings(values, child(inf, "valores")),
+    ibsCbs: ibsCbs(inf),
     federalTaxPercent: federalTaxPercent(values),
   };
 }

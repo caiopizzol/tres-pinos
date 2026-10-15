@@ -48,8 +48,25 @@ Devolve JSON, resumido aqui:
 | `recipient`                      | O tomador, ou `null`. Sem CNPJ, CPF ou NIF, `idType` é `none` e `noIdReason` diz o motivo       |
 | `serviceAmountCents`             | O valor do serviço, em centavos                                                                 |
 | `unconditionalDiscountCents`     | O desconto incondicionado, em centavos, ou 0                                                    |
-| `netAmountCents`                 | O valor líquido, depois de descontos e retenções, em centavos                                   |
+| `netAmountCents`                 | O valor líquido que a nota declara, em centavos                                                 |
+| `withholdings`                   | O que a nota declara de retenção, campo a campo. Veja abaixo                                    |
+| `ibsCbs`                         | O IBS e a CBS que o sistema nacional calculou, em centavos, ou `null` se a nota não traz        |
 | `federalTaxPercent`              | O percentual aproximado dos tributos federais declarado na nota, como `"7.68"`, ou `null`       |
+
+Em `withholdings`, cada valor vem como a nota declara, em centavos, ou 0 quando ela não traz o campo:
+
+| Campo                                | O que é                                                                                   |
+| ------------------------------------ | ----------------------------------------------------------------------------------------- |
+| `irrfCents`, `csllCents`, `cpCents`  | O IRRF, a CSLL e a contribuição previdenciária retidos                                    |
+| `issqn`                              | Quem retém o ISS: `1` ninguém, `2` o tomador, `3` o intermediário                         |
+| `issqnCents`                         | O valor do ISS, retido ou não                                                             |
+| `pisCofins`                          | `null`, ou o PIS e a COFINS da nota, com o `cst` e o código `withholding`                 |
+| `pisCofins.withholding`              | O código de 0 a 9 do leiaute que diz quais de PIS, COFINS e CSLL foram retidos, ou `null` |
+| `pisCofins.pisCents`, `.cofinsCents` | O PIS e a COFINS da apuração própria do prestador, retidos ou não                         |
+
+O leiaute traz também um total de retenções (`vTotalRet`), que o leitor não devolve: em notas reais ele soma o PIS e
+a COFINS mesmo sem retenção. E uma nota com o ISS retido pelo tomador pode trazer o `netAmountCents` igual ao valor do
+serviço. Para saber o que foi retido, olhe cada campo.
 
 Uma nota cancelada continua com o mesmo `generationCode`: o cancelamento é um evento à parte. Nenhum campo diz
 se a nota foi paga.

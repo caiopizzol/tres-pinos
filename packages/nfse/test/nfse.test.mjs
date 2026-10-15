@@ -37,8 +37,63 @@ test("reads the facts of a national NFS-e", () => {
     serviceAmountCents: 150050,
     unconditionalDiscountCents: 0,
     netAmountCents: 145050,
+    withholdings: {
+      irrfCents: 0,
+      cpCents: 0,
+      csllCents: 0,
+      issqn: "1",
+      issqnCents: 0,
+      pisCofins: null,
+    },
+    ibsCbs: null,
     federalTaxPercent: null,
   });
+});
+
+// A note whose recipient withheld IRRF 1.5%, CSRF 4.65% (PIS 0.65%, COFINS 3%, CSLL 1%) and ISS 5% of R$ 1.000,00,
+// in the order the official 1.01 schema puts each field.
+const WITHHELD = change(
+  "<vLiq>1450.50</vLiq>",
+  "<vISSQN>50.00</vISSQN><vTotalRet>75.00</vTotalRet><vLiq>878.50</vLiq>",
+)
+  .replace("<vServ>1500.50</vServ>", "<vServ>1000.00</vServ>")
+  .replace("<tpRetISSQN>1</tpRetISSQN>", "<tpRetISSQN>2</tpRetISSQN>")
+  .replace(
+    "</tribMun>",
+    "</tribMun><tribFed><piscofins><CST>01</CST><vBCPisCofins>1000.00</vBCPisCofins><pAliqPis>0.65</pAliqPis><pAliqCofins>3.00</pAliqCofins><vPis>6.50</vPis><vCofins>30.00</vCofins><tpRetPisCofins>3</tpRetPisCofins></piscofins><vRetIRRF>15.00</vRetIRRF><vRetCSLL>10.00</vRetCSLL></tribFed>",
+  );
+
+test("reads what the note declares as withheld, field by field", () => {
+  const note = readNfse(WITHHELD);
+  assert.equal(note.serviceAmountCents, 100000);
+  assert.equal(note.netAmountCents, 87850);
+  assert.deepEqual(note.withholdings, {
+    irrfCents: 1500,
+    cpCents: 0,
+    csllCents: 1000,
+    issqn: "2",
+    issqnCents: 5000,
+    pisCofins: { cst: "01", withholding: "3", pisCents: 650, cofinsCents: 3000 },
+  });
+});
+
+test("reads the IBS and CBS the national system calculated", () => {
+  const group =
+    "<IBSCBS><cLocalidadeIncid>4106902</cLocalidadeIncid><xLocalidadeIncid>Curitiba</xLocalidadeIncid>" +
+    "<valores><vBC>1500.50</vBC><uf><pIBSUF>0.10</pIBSUF><pAliqEfetUF>0.10</pAliqEfetUF></uf>" +
+    "<mun><pIBSMun>0.00</pIBSMun><pAliqEfetMun>0.00</pAliqEfetMun></mun>" +
+    "<fed><pCBS>0.90</pCBS><pAliqEfetCBS>0.90</pAliqEfetCBS></fed></valores>" +
+    "<totCIBS><vTotNF>1500.50</vTotNF><gIBS><vIBSTot>1.50</vIBSTot><gIBSUFTot><vIBSUF>1.50</vIBSUF></gIBSUFTot>" +
+    "<gIBSMunTot><vIBSMun>0.00</vIBSMun></gIBSMunTot></gIBS><gCBS><vCBS>13.50</vCBS></gCBS></totCIBS></IBSCBS>";
+  const note = readNfse(change("</valores>\n    <DPS", `</valores>${group}<DPS`));
+  assert.deepEqual(note.ibsCbs, { ibsCents: 150, cbsCents: 1350 });
+  assert.throws(
+    () =>
+      readNfse(
+        change("</valores>\n    <DPS", `</valores>${group.replace("<vCBS>13.50</vCBS>", "")}<DPS`),
+      ),
+    /vCBS is missing/,
+  );
 });
 
 test("reads an unconditional discount, and only that one", () => {
@@ -110,6 +165,25 @@ test("never guesses: a missing, repeated or malformed field fails", () => {
       /exactly one of CNPJ, CPF, NIF or cNaoNIF/,
     ],
     [change("<vLiq>1450.50</vLiq>", "<vLiq><x>1450.50</x></vLiq>"), /vLiq holds elements/],
+    [
+      WITHHELD.replace("<vRetIRRF>15.00</vRetIRRF>", "<vRetIRRF>15,00</vRetIRRF>"),
+      /vRetIRRF is not an amount/,
+    ],
+    [
+      WITHHELD.replace(
+        "<vRetCSLL>10.00</vRetCSLL>",
+        "<vRetCSLL>10.00</vRetCSLL><vRetCSLL>1.00</vRetCSLL>",
+      ),
+      /vRetCSLL appears more than once/,
+    ],
+    [
+      change("<tpRetISSQN>1</tpRetISSQN>", "<tpRetISSQN>4</tpRetISSQN>"),
+      /tpRetISSQN is not a code/,
+    ],
+    [
+      WITHHELD.replace("<tpRetPisCofins>3</tpRetPisCofins>", "<tpRetPisCofins>X</tpRetPisCofins>"),
+      /tpRetPisCofins is not a code/,
+    ],
     [XML.slice(0, 400), /not well-formed/],
   ];
   // An NfseError, so the CLI shows its message instead of a stack trace.
