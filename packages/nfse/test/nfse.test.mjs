@@ -180,6 +180,11 @@ test("never guesses: a missing, repeated or malformed field fails", () => {
       change("<tpRetISSQN>1</tpRetISSQN>", "<tpRetISSQN>4</tpRetISSQN>"),
       /tpRetISSQN is not a code/,
     ],
+    [WITHHELD.replace("<CST>01</CST>", "<CST>10</CST>"), /CST is not a code/],
+    [
+      WITHHELD.replace("<tpRetPisCofins>3</tpRetPisCofins>", "<tpRetPisCofins/>"),
+      /tpRetPisCofins is empty/,
+    ],
     [
       WITHHELD.replace("<tpRetPisCofins>3</tpRetPisCofins>", "<tpRetPisCofins>X</tpRetPisCofins>"),
       /tpRetPisCofins is not a code/,

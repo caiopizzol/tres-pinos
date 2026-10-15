@@ -104,12 +104,15 @@ function federalTaxPercent(values) {
 const optionalCents = (parent, name) =>
   parent && child(parent, name, true) ? cents(parent, name) : 0;
 
-// An optional code from the layout's list, or null when absent.
+// The PIS/COFINS situation codes (CST) the layout defines, TSTipoCST in the 1.01 schema.
+const CST = /^(0[0-9]|49|5[0-6]|6[0-7]|7[0-5]|9[89])$/;
+
+// An optional code from the layout's list, or null when absent. Present but empty is not absent: it fails.
 function code(parent, name, allowed) {
-  const value = parent && text(parent, name, true);
-  if (value != null && !allowed.test(value))
-    throw new NfseError(`${name} is not a code the layout defines`);
-  return value ?? null;
+  if (!parent || !child(parent, name, true)) return null;
+  const value = text(parent, name);
+  if (!allowed.test(value)) throw new NfseError(`${name} is not a code the layout defines`);
+  return value;
 }
 
 // What the note declares about withholding, field by field as the layout names them. `issqn` says who withholds the
@@ -128,7 +131,7 @@ function withholdings(dpsValues, nfseValues) {
     issqn: code(child(trib, "tribMun"), "tpRetISSQN", /^[123]$/),
     issqnCents: optionalCents(nfseValues, "vISSQN"),
     pisCofins: pisCofins && {
-      cst: code(pisCofins, "CST", /^\d{2}$/),
+      cst: code(pisCofins, "CST", CST),
       withholding: code(pisCofins, "tpRetPisCofins", /^\d$/),
       pisCents: optionalCents(pisCofins, "vPis"),
       cofinsCents: optionalCents(pisCofins, "vCofins"),
