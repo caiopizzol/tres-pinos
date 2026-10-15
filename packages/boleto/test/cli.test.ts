@@ -1,6 +1,10 @@
 // The CLI's contract, run as a real process: exit 0 when a code is confirmed, 2 when none is, 1 for
 // bad arguments or an unreadable file, with the result as JSON on stdout and errors on stderr.
-import { expect, test } from "bun:test";
+import { expect, setDefaultTimeout, test } from "bun:test";
+
+// Each test starts the CLI, which loads the WASM barcode reader; the locked PDF runs it twice. That nears bun's 5 s
+// default on a CI runner.
+setDefaultTimeout(20_000);
 
 const CLI = new URL("../src/cli.ts", import.meta.url).pathname;
 const fixture = (name: string) => new URL(`../fixtures/${name}`, import.meta.url).pathname;
