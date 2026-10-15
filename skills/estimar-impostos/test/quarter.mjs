@@ -7,7 +7,8 @@ import { adnClient } from "../../../connectors/nfse/src/adn.mjs";
 import { guard as adnGuard } from "../../../connectors/nfse/src/guard.mjs";
 import { buildServer as nfseTools } from "../../../connectors/nfse/src/tools.mjs";
 
-export const COMPANY = "00000000000191";
+// The first alphanumeric CNPJ, issued by the Receita on 2026-07-31: since then a CNPJ can have letters.
+export const COMPANY = "00000000E08G12";
 export const KEY = "k".repeat(32);
 // What the skill should find for the second quarter of 2026: R$ 250.000,00 of services less a R$ 10.000,00
 // unconditional discount, so the presumed base (R$ 76.800,00) goes past R$ 60.000,00 and the IRPJ additional applies.
@@ -19,7 +20,7 @@ const FIXTURE = readFileSync(
 );
 // An NFS-e from the fixture, with its own number, dates, provider, recipient and amount.
 function invoice({ number, issued, competence, provider = COMPANY, recipient, amount, discount }) {
-  const accessKey = `4106902${provider}${String(number).padStart(29, "0")}`;
+  const accessKey = `410690222${provider}${String(number).padStart(27, "0")}`;
   const xml = FIXTURE.replaceAll("41069022200000000000191000000000000126090000000001", accessKey)
     .replace("<nNFSe>1</nNFSe>", `<nNFSe>${number}</nNFSe>`)
     .replace(
