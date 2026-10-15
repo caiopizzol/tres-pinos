@@ -24,7 +24,13 @@ test("reads the facts of a national NFS-e", () => {
     dpsIssuedAt: "2026-09-02T10:00:00-03:00",
     competence: "2026-08-31",
     issuer: { idType: "CNPJ", id: "00000000000191", name: "EMPRESA FICTICIA LTDA" },
-    provider: { idType: "CNPJ", id: "00000000000191", name: null, municipalRegistration: null },
+    provider: {
+      idType: "CNPJ",
+      id: "00000000000191",
+      name: null,
+      municipalRegistration: null,
+      simplesNacional: "1",
+    },
     recipient: { idType: "CPF", id: "00000000191", name: "FULANO & FILHOS" },
     serviceCode: "010101",
     description: "Desenvolvimento de software & manutenção",
@@ -88,6 +94,7 @@ test("never guesses: a missing, repeated or malformed field fails", () => {
     [change('Id="NFS', 'Id="NF'), /no valid access key/],
     [change('Id="NFS4', 'Id="NFSX'), /no valid access key/],
     [change('Id="DPS', 'Id="DP'), /infDPS has no valid Id/],
+    [change("<opSimpNac>1</opSimpNac>", "<opSimpNac>4</opSimpNac>"), /opSimpNac is not 1, 2 or 3/],
     [
       change(
         "<indTotTrib>0</indTotTrib>",

@@ -18,8 +18,11 @@ As notas saem na produção restrita, sem valor fiscal.
    o CNPJ de `provider.id`, a inscrição municipal de `provider.municipalRegistration` e o percentual de tributos
    federais de `federalTaxPercent`. Se não houver nota, ou faltar um desses dados, pergunte ao dono. Pergunte também a
    série da DPS, de 1 a 49999, se ele não disse: só o conector emite nela, sempre no próximo número.
-4. Busque `https://brasilapi.com.br/api/cnpj/v1/{cnpj}`. Se `opcao_pelo_simples` ou `opcao_pelo_mei` for `true`, diga
-   que o modelo ainda não cobre o Simples Nacional e pare.
+4. Confira se a empresa está fora do Simples Nacional em `https://brasilapi.com.br/api/cnpj/v1/{cnpj}`
+   (`opcao_pelo_simples` e `opcao_pelo_mei` `false`). Se a consulta falhar ou não trouxer os dois como `true` ou
+   `false`, use o `provider.simplesNacional` dessa nota (`1` é não optante). Se ela e a nota divergirem, pergunte ao
+   dono. Se a empresa estiver no Simples, diga que o modelo ainda não cobre o caso e pare. O sistema nacional confere
+   com o cadastro do Simples e recusa a DPS com `E0160`.
 5. Busque a PTAX de compra do dia da invoice, ou do último dia útil antes dela, em
    `https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoDolarDia(dataCotacao=@d)?@d='MM-DD-AAAA'&$format=json`
    (`cotacaoCompra`). Multiplique o valor pela cotação rodando código e arredonde para o centavo.

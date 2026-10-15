@@ -90,6 +90,7 @@ test("the tools and fields the skill names are the ones the connector gives", as
     "done",
     "provider.id",
     "provider.municipalRegistration",
+    "provider.simplesNacional",
     "issuer.id",
     "dpsId",
     "description",
@@ -101,6 +102,7 @@ test("the tools and fields the skill names are the ones the connector gives", as
   assert.equal(note.provider.id, COMPANY);
   assert.equal(note.issuer.id, COMPANY);
   assert.equal(note.provider.municipalRegistration, MUNICIPAL_REGISTRATION);
+  assert.equal(note.provider.simplesNacional, "1");
   assert.equal(note.dpsId, id(1));
   assert.match(note.description, /INV-0011/);
   assert.equal(note.federalTaxPercent, FEDERAL_TAX_PERCENT);

@@ -78,9 +78,16 @@ function party(element) {
   return element && { ...identity(element), name: text(element, "xNome", true) };
 }
 
-// The provider also carries its municipal registration, when the DPS gives one.
+// The provider also carries its municipal registration, when the DPS gives one, and its standing in the Simples
+// Nacional: 1 not opted in, 2 MEI, 3 ME/EPP. The national system checks that against its register (E0160).
 function provider(element) {
-  return { ...party(element), municipalRegistration: text(element, "IM", true) };
+  const simples = text(child(element, "regTrib"), "opSimpNac");
+  if (!["1", "2", "3"].includes(simples)) throw new NfseError("opSimpNac is not 1, 2 or 3");
+  return {
+    ...party(element),
+    municipalRegistration: text(element, "IM", true),
+    simplesNacional: simples,
+  };
 }
 
 // The approximate share of federal taxes the provider declared (Lei 12.741/2012), such as "7.68", or null when it
