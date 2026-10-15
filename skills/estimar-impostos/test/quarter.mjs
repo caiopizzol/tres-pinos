@@ -12,14 +12,33 @@ export const COMPANY = "00000000E08G12";
 export const KEY = "k".repeat(32);
 // What the skill should find for the second quarter of 2026: R$ 250.000,00 of services less a R$ 10.000,00
 // unconditional discount, so the presumed base (R$ 76.800,00) goes past R$ 60.000,00 and the IRPJ additional applies.
-export const QUARTER = { revenueCents: 24_000_000, irpjCents: 1_320_000, csllCents: 691_200 };
+// Note 1's recipient withheld IRRF (1,5%) and CSLL (1%), which come off what's due; its PIS and COFINS don't.
+export const QUARTER = {
+  revenueCents: 24_000_000,
+  irpjCents: 1_320_000,
+  csllCents: 691_200,
+  irrfWithheldCents: 150_000,
+  csllWithheldCents: 100_000,
+  irpjToPayCents: 1_170_000,
+  csllToPayCents: 591_200,
+};
 
 const FIXTURE = readFileSync(
   new URL("../../../packages/nfse/fixtures/nfse.xml", import.meta.url),
   "utf8",
 );
-// An NFS-e from the fixture, with its own number, dates, provider, recipient and amount.
-function invoice({ number, issued, competence, provider = COMPANY, recipient, amount, discount }) {
+// An NFS-e from the fixture, with its own number, dates, provider, recipient and amount. `withheld` is the federal
+// withholding group (tribFed) the note declares, in the order of the official 1.01 schema.
+function invoice({
+  number,
+  issued,
+  competence,
+  provider = COMPANY,
+  recipient,
+  amount,
+  discount,
+  withheld,
+}) {
   const accessKey = `410690222${provider}${String(number).padStart(27, "0")}`;
   const xml = FIXTURE.replaceAll("41069022200000000000191000000000000126090000000001", accessKey)
     .replace("<nNFSe>1</nNFSe>", `<nNFSe>${number}</nNFSe>`)
@@ -41,7 +60,8 @@ function invoice({ number, issued, competence, provider = COMPANY, recipient, am
       discount
         ? `</vServPrest><vDescCondIncond><vDescIncond>${discount}</vDescIncond></vDescCondIncond>`
         : "</vServPrest>",
-    );
+    )
+    .replace("</tribMun>", withheld ? `</tribMun><tribFed>${withheld}</tribFed>` : "</tribMun>");
   return { accessKey, xml };
 }
 
@@ -70,6 +90,10 @@ export const INVOICES = [
     competence: "2026-04-10",
     recipient: "CLIENTE UM LTDA",
     amount: "100000.00",
+    withheld:
+      "<piscofins><CST>01</CST><vBCPisCofins>100000.00</vBCPisCofins><pAliqPis>0.65</pAliqPis><pAliqCofins>3.00</pAliqCofins>" +
+      "<vPis>650.00</vPis><vCofins>3000.00</vCofins><tpRetPisCofins>3</tpRetPisCofins></piscofins>" +
+      "<vRetIRRF>1500.00</vRetIRRF><vRetCSLL>1000.00</vRetCSLL>",
   }),
   invoice({
     number: 2,
@@ -159,6 +183,6 @@ export function start({ port = 0 } = {}) {
 }
 
 if (import.meta.main) {
-  const { url } = await start({ port: 3114 });
+  const { url } = await start({ port: Number(process.env.PORT ?? 3114) });
   console.log(`nfse ${url}`);
 }

@@ -57,6 +57,8 @@ test("the tools and fields the skill names are the ones the connector gives", as
     accessKey: "accessKey" in invoice && "accessKey" in cancellation,
     serviceAmountCents: "serviceAmountCents" in invoice,
     unconditionalDiscountCents: "unconditionalDiscountCents" in invoice,
+    "withholdings.irrfCents": "irrfCents" in invoice.withholdings,
+    "withholdings.csllCents": "csllCents" in invoice.withholdings,
   };
   for (const [name, given] of Object.entries(named)) {
     assert.ok(skill.includes(`\`${name}\``), `SKILL.md names ${name}`);
@@ -84,7 +86,21 @@ test("the fictional quarter adds up to the revenue, IRPJ and CSLL the skill's ru
   const base = Math.round(revenue * 0.32);
   const irpj = Math.round(base * 0.15) + Math.round(Math.max(0, base - 6_000_000) * 0.1);
   const csll = Math.round(base * 0.09);
-  assert.deepEqual({ revenueCents: revenue, irpjCents: irpj, csllCents: csll }, QUARTER);
+  const withheld = (field) => counted.reduce((sum, d) => sum + d.withholdings[field], 0);
+  const irrfWithheld = withheld("irrfCents");
+  const csllWithheld = withheld("csllCents");
+  assert.deepEqual(
+    {
+      revenueCents: revenue,
+      irpjCents: irpj,
+      csllCents: csll,
+      irrfWithheldCents: irrfWithheld,
+      csllWithheldCents: csllWithheld,
+      irpjToPayCents: Math.max(0, irpj - irrfWithheld),
+      csllToPayCents: Math.max(0, csll - csllWithheld),
+    },
+    QUARTER,
+  );
 });
 
 test("the fictional third quarter passes the proportional quarterly limit, with the year under R$ 5 million", async () => {
