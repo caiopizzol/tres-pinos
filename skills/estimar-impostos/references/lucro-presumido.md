@@ -25,4 +25,6 @@ Fora destas regras, e por isso fora da estimativa:
   ([Lei 9.250/1995, art. 40](https://www.planalto.gov.br/ccivil_03/leis/l9250.htm));
 - o regime de caixa, que precisa das datas de recebimento;
 - receitas que não são de serviços (financeiras, ganhos de capital);
-- um imposto retido que a nota não declara, ou retido num período diferente da competência da nota.
+- um imposto retido que a nota não declara, ou retido num trimestre diferente do da competência da nota: a retenção
+  acontece no pagamento ([Lei 10.833/2003, art. 30](https://www.planalto.gov.br/ccivil_03/leis/2003/l10.833.htm);
+  [RIR/2018, art. 714](https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/decreto/d9580.htm)).
