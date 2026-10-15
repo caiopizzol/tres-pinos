@@ -52,6 +52,13 @@ function readDps(xml) {
   }
   if (root?.namespaceURI !== NS || root.localName !== "DPS")
     throw new Error("This is not a DPS in the national layout");
+  // The schema allows a prefix such as <n:infDPS>, but the national system refuses one (E1228).
+  if (
+    Array.from(root.getElementsByTagNameNS(NS, "*"))
+      .concat(root)
+      .some((e) => e.prefix)
+  )
+    throw new Error("The DPS uses a namespace prefix, which the national system refuses");
   if (root.getElementsByTagNameNS("http://www.w3.org/2000/09/xmldsig#", "Signature").length)
     throw new Error("The DPS is already signed");
   const inf = root.getElementsByTagNameNS(NS, "infDPS")[0];

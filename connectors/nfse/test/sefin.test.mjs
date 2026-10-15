@@ -93,6 +93,13 @@ test("refuses a DPS that isn't for produção restrita, valid or unsigned, befor
       DPS.replace("</infDPS>", '</infDPS><Signature xmlns="http://www.w3.org/2000/09/xmldsig#"/>'),
       /already signed/,
     ],
+    [
+      DPS.replace(/<(\/?)(?!\?)(\w+)/g, "<$1n:$2").replace(
+        'xmlns="http://www.sped.fazenda.gov.br/nfse"',
+        'xmlns:n="http://www.sped.fazenda.gov.br/nfse"',
+      ),
+      /namespace prefix/,
+    ],
     [`<!DOCTYPE x>${DPS}`, /DOCTYPE/],
     [NFSE.toString(), /not a DPS/],
     ["<DPS", /not well-formed/],
