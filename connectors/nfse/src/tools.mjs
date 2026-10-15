@@ -1,19 +1,30 @@
-// The MCP tool: list the company's NFS-e from the national system. It never issues or cancels an invoice.
+// The MCP tools: list the company's NFS-e from the national system and, when the owner turns issuing on, issue them
+// in produção restrita, where an invoice has no legal effect. It never cancels an invoice.
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { isGuarded } from "@tres-pinos/api";
 import { toolAnswer } from "@tres-pinos/server";
 import { AdnError } from "./adn.mjs";
+import { DPS_ID, SefinError } from "./sefin.mjs";
 
-// The answer to a tool call. A failure carries only the ADN's status, never its message text.
+// The answer to a tool call. A failure carries only the national system's status and error codes, never its text.
 const answer = (work) =>
   toolAnswer("NFS-e", work, (error) =>
-    error instanceof AdnError ? `HTTP ${error.status}` : undefined,
+    error instanceof AdnError
+      ? `HTTP ${error.status}`
+      : error instanceof SefinError
+        ? `HTTP ${error.status}${error.codes.length ? ` ${error.codes.join(", ")}` : ""}`
+        : error.message.startsWith("The DPS")
+          ? error.message
+          : undefined,
   );
 
-export function buildServer(adn, icons) {
+const DPS = z.string().min(1).max(1_000_000).describe("The DPS XML, unsigned, for tpAmb 2");
+
+export function buildServer(adn, icons, sefin = null) {
   // Without the guard, a bug could reach anything the e-CNPJ allows.
-  if (!isGuarded(adn.fetch)) throw new Error("The tools need a guarded fetch");
+  if (!isGuarded(adn.fetch) || (sefin && !isGuarded(sefin.fetch)))
+    throw new Error("The tools need a guarded fetch");
   const server = new McpServer({
     name: "tres-pinos-nfse",
     title: "Três Pinos · NFS-e",
@@ -32,6 +43,38 @@ export function buildServer(adn, icons) {
       annotations: { readOnlyHint: true },
     },
     ({ afterNsu }) => answer(() => adn.listDocuments(afterNsu)),
+  );
+  if (!sefin) return server;
+
+  server.registerTool(
+    "prepare_invoice",
+    {
+      description:
+        "Checks a DPS against the official schema and signs it with the company's e-CNPJ, without sending it. Returns the DPS Id and the signed XML, for the owner to review before issue_invoice. Only produção restrita (tpAmb 2), where an invoice has no legal effect.",
+      inputSchema: { dps: DPS },
+      annotations: { readOnlyHint: true },
+    },
+    ({ dps }) => answer(() => sefin.prepare(dps)),
+  );
+  server.registerTool(
+    "issue_invoice",
+    {
+      description:
+        "Issues an NFS-e in produção restrita (tpAmb 2), where it has no legal effect, from a DPS the owner approved. Sends once and returns the invoice's facts. If the answer is unclear, such as a timeout, call find_invoice with the DPS Id before anything else: sending the same DPS again is refused as a duplicate, and a new DPS number would issue a second invoice.",
+      inputSchema: { dps: DPS },
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false },
+    },
+    ({ dps }) => answer(() => sefin.issue(dps)),
+  );
+  server.registerTool(
+    "find_invoice",
+    {
+      description:
+        "Whether the national system generated an invoice for a DPS Id, in produção restrita, and its access key.",
+      inputSchema: { dpsId: z.string().regex(DPS_ID) },
+      annotations: { readOnlyHint: true },
+    },
+    ({ dpsId }) => answer(() => sefin.find(dpsId)),
   );
   return server;
 }

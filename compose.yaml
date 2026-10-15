@@ -76,6 +76,7 @@ services:
       NFSE_CERT_KEY_PATH: /certificate/nfse.key
       NFSE_CERT_PASSWORD: ${NFSE_CERT_PASSWORD:-}
       PUBLIC_URL: ${NFSE_PUBLIC_URL:-}
+      NFSE_ISSUE: ${NFSE_ISSUE:-}
     ports:
       - 127.0.0.1:3014:8080
     volumes:

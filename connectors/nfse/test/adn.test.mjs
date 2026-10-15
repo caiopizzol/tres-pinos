@@ -9,7 +9,7 @@ import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { certificateFetch } from "@tres-pinos/api";
 import { certificates, fakeApi } from "@tres-pinos/testing";
 import { AdnError, adnClient, API_URL } from "../src/adn.mjs";
-import { readOnly } from "../src/guard.mjs";
+import { guard } from "../src/guard.mjs";
 import { buildServer } from "../src/tools.mjs";
 
 const certs = certificates({
@@ -61,7 +61,7 @@ function client() {
   const real = certificateFetch({ ...certs.identity("owner"), ca: certs.read("ca.crt") });
   return (url, init) => real(url.replace(new URL(API_URL).origin, fake.url()), init);
 }
-const adn = () => adnClient(readOnly(client()));
+const adn = () => adnClient(guard(client()));
 
 test("lists a batch after an NSU, reading each NFS-e, with the company's e-CNPJ", async () => {
   reply = found(nfse(5), cancellation(7));
@@ -148,7 +148,7 @@ test("the ADN refuses a client with no certificate", async () => {
 
 test("the guard lets out only the next batch, before the network", async () => {
   const before = requests.length;
-  const fetch = readOnly(() => assert.fail("reached the network"));
+  const fetch = guard(() => assert.fail("reached the network"));
   for (const [url, init] of [
     [`${API_URL}/DFe/0?lote=true`, { method: "POST" }],
     [`${API_URL}/DFe/0`, {}],

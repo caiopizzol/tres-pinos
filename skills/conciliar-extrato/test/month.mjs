@@ -15,7 +15,7 @@ import {
 } from "../../../connectors/sicoob/src/sicoob.mjs";
 import { buildServer as sicoobTools } from "../../../connectors/sicoob/src/tools.mjs";
 import { adnClient } from "../../../connectors/nfse/src/adn.mjs";
-import { readOnly as adnGuard } from "../../../connectors/nfse/src/guard.mjs";
+import { guard as adnGuard } from "../../../connectors/nfse/src/guard.mjs";
 import { buildServer as nfseTools } from "../../../connectors/nfse/src/tools.mjs";
 
 export const COMPANY = "00000000000191";

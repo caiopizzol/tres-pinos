@@ -15,6 +15,13 @@ export class AdnError extends Error {
   }
 }
 
+// A gzip file in base64 as text. Bounded, so a small archive can't unpack into gigabytes; strict, so a broken byte
+// fails instead of turning into a different character.
+export const unzip = (base64) =>
+  new TextDecoder("utf-8", { fatal: true }).decode(
+    gunzipSync(Buffer.from(base64, "base64"), { maxOutputLength: MAX_BYTES }),
+  );
+
 const isNsu = (value) => Number.isSafeInteger(value) && value >= 0;
 const isName = (value) => typeof value === "string" && /^[A-Z_]+$/.test(value);
 
@@ -33,11 +40,7 @@ function document(record, afterNsu) {
   }
   let xml;
   try {
-    // Bounded, so a small archive can't unpack into gigabytes; strict, so a broken byte fails instead of
-    // turning into a different character.
-    xml = new TextDecoder("utf-8", { fatal: true }).decode(
-      gunzipSync(Buffer.from(record.ArquivoXml, "base64"), { maxOutputLength: MAX_BYTES }),
-    );
+    xml = unzip(record.ArquivoXml);
   } catch {
     throw new Error(`The ADN returned an unreadable file at NSU ${nsu}`);
   }

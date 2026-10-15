@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { gzipSync } from "node:zlib";
 import { serve } from "@tres-pinos/server";
 import { adnClient } from "../../../connectors/nfse/src/adn.mjs";
-import { readOnly as adnGuard } from "../../../connectors/nfse/src/guard.mjs";
+import { guard as adnGuard } from "../../../connectors/nfse/src/guard.mjs";
 import { buildServer as nfseTools } from "../../../connectors/nfse/src/tools.mjs";
 
 export const COMPANY = "00000000000191";
