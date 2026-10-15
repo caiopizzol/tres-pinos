@@ -23,6 +23,10 @@ export function createApprovals({ name, hash, url, now = () => Date.now() }) {
     throw new Error(`${name} must be the SHA-256 of the approval key, in hex`);
   if (!URL.canParse(url ?? ""))
     throw new Error("Approvals need the address the owner opens them at");
+  // The owner types the key there, so it must not cross a network in the clear.
+  const { protocol, hostname } = new URL(url);
+  if (protocol !== "https:" && !["127.0.0.1", "localhost"].includes(hostname))
+    throw new Error("Approvals need an https address, or 127.0.0.1 on this machine");
   const expected = Buffer.from(hash, "hex");
   // The key is 32 random bytes or more, so a short one is never the owner's, whatever its hash.
   const isOwner = (given) =>

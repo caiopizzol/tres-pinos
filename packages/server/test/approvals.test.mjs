@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { createServer } from "node:http";
 import { after, test } from "node:test";
+import { read } from "../src/page.mjs";
 import { ApprovalError, createApprovals } from "../src/server.mjs";
 
 const APPROVAL_KEY = "a".repeat(32);
@@ -45,6 +46,23 @@ test("needs the SHA-256 of the approval key, not the key", () => {
       () => createApprovals({ name: "TEST_APPROVAL_HASH", hash, url: "http://127.0.0.1:1" }),
       /TEST_APPROVAL_HASH must be the SHA-256/,
     );
+});
+
+test("the owner types the key only over https, or on this machine", () => {
+  const make = (url) => createApprovals({ name: "TEST_APPROVAL_HASH", hash: HASH, url });
+  assert.throws(() => make("http://nfse.example.com"), /https address/);
+  make("https://nfse.example.com");
+  make("http://localhost:3014");
+});
+
+test("a form's text survives a character split across chunks", async () => {
+  const bytes = Buffer.from("decision=refuse&nome=Ação");
+  const at = bytes.indexOf(0xc3) + 1;
+  assert.equal(
+    await read([bytes.subarray(0, at), bytes.subarray(at)]),
+    "decision=refuse&nome=Ação",
+  );
+  await assert.rejects(read([Buffer.alloc(9000)]), /too large/);
 });
 
 test("the tool gets the payload only after the owner approves it with the key, and only once", async () => {

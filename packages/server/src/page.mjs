@@ -3,13 +3,16 @@
 
 export const escape = (s) => String(s).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 
+// A request's body as text, decoded once at the end so a character split across chunks stays whole.
 export async function read(req, limit = 8192) {
-  let text = "";
+  const chunks = [];
+  let size = 0;
   for await (const chunk of req) {
-    text += chunk;
-    if (text.length > limit) throw new Error("Request too large");
+    size += chunk.length;
+    if (size > limit) throw new Error("Request too large");
+    chunks.push(Buffer.from(chunk));
   }
-  return text;
+  return Buffer.concat(chunks).toString("utf8");
 }
 
 export const send = (res, status, body, headers = {}) =>
