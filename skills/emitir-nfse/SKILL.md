@@ -14,10 +14,10 @@ As notas saem na produção restrita, sem valor fiscal.
 2. Busque as notas com `list_invoices`, começando em `afterNsu` 0 e repetindo com `lastNsu` até `done` ser `true`.
    Fique com as da empresa (`provider.id` é o CNPJ dela; se não souber o CNPJ, pergunte). Se a `description` de uma
    delas cita o número da invoice, diga qual é e pare.
-3. Da nota mais recente da empresa, tire o município e o CNPJ do `dpsId`, a inscrição municipal de
-   `provider.municipalRegistration` e o percentual de tributos federais de `federalTaxPercent`. Se não houver nota, ou
-   faltar um desses dados, pergunte ao dono. Pergunte também a série da DPS do conector, de 1 a 49999, se ele não
-   disse.
+3. Da nota mais recente que a própria empresa emitiu (`issuer.id` igual a `provider.id`), tire o município do `dpsId`,
+   o CNPJ de `provider.id`, a inscrição municipal de `provider.municipalRegistration` e o percentual de tributos
+   federais de `federalTaxPercent`. Se não houver nota, ou faltar um desses dados, pergunte ao dono. Pergunte também a
+   série da DPS, de 1 a 49999, se ele não disse: só o conector emite nela, sempre no próximo número.
 4. Busque `https://brasilapi.com.br/api/cnpj/v1/{cnpj}`. Se `opcao_pelo_simples` ou `opcao_pelo_mei` for `true`, diga
    que o modelo ainda não cobre o Simples Nacional e pare.
 5. Busque a PTAX de compra do dia da invoice, ou do último dia útil antes dela, em

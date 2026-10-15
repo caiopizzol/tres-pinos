@@ -90,6 +90,7 @@ test("the tools and fields the skill names are the ones the connector gives", as
     "done",
     "provider.id",
     "provider.municipalRegistration",
+    "issuer.id",
     "dpsId",
     "description",
     "federalTaxPercent",
