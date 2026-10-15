@@ -3,7 +3,7 @@
 // e-CNPJ authenticates each request (mutual TLS); there is no token.
 // https://www.gov.br/nfse/pt-br/biblioteca/documentacao-tecnica
 import { gunzipSync } from "node:zlib";
-import { MAX_BYTES, readNfse } from "@tres-pinos/nfse";
+import { ACCESS_KEY, MAX_BYTES, readNfse } from "@tres-pinos/nfse";
 
 export const API_URL = "https://adn.nfse.gov.br/contribuintes";
 
@@ -30,7 +30,7 @@ const isName = (value) => typeof value === "string" && /^[A-Z_]+$/.test(value);
 function document(record, afterNsu) {
   const { NSU: nsu, TipoDocumento: type, ChaveAcesso: accessKey = null } = record ?? {};
   if (!isNsu(nsu) || nsu <= afterNsu) throw new Error("The ADN returned an invalid NSU");
-  if (!isName(type) || !(accessKey === null || /^\d{50}$/.test(accessKey)))
+  if (!isName(type) || !(accessKey === null || ACCESS_KEY.test(accessKey)))
     throw new Error(`The ADN returned an invalid document at NSU ${nsu}`);
   if (type !== "NFSE") {
     const eventType = record.TipoEvento ?? null;

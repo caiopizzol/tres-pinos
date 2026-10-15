@@ -36,7 +36,7 @@ Devolve JSON, resumido aqui:
 
 | Campo                        | O que é                                                                                         |
 | ---------------------------- | ----------------------------------------------------------------------------------------------- |
-| `accessKey`                  | A chave de acesso, 50 dígitos                                                                   |
+| `accessKey`                  | A chave de acesso, 50 caracteres: dígitos, e letras só no CNPJ do emitente                      |
 | `generationCode`             | Como a nota foi gerada: 100 normal, 101 substituição, 102 decisão judicial, 103 avulsa, 107 MEI |
 | `generatedAt`                | Quando o sistema nacional gerou a nota                                                          |
 | `dpsIssuedAt`                | Quando o prestador emitiu a declaração (DPS)                                                    |

@@ -5,15 +5,13 @@
 import { gzipSync } from "node:zlib";
 import { DOMParser, XMLSerializer } from "@xmldom/xmldom";
 import { signDpsXml, validateDpsXml } from "open-nfse";
-import { MAX_BYTES, readNfse } from "@tres-pinos/nfse";
+import { ACCESS_KEY, MAX_BYTES, readNfse } from "@tres-pinos/nfse";
 import { unzip } from "./adn.mjs";
 
 export const SEFIN_URL = "https://sefin.producaorestrita.nfse.gov.br/SefinNacional";
 const NS = "http://www.sped.fazenda.gov.br/nfse";
 // A DPS Id: municipality, 1 for CPF or 2 for CNPJ, the federal ID, the series and the number.
 export const DPS_ID = /^DPS\d{7}[12][0-9A-Z]{14}\d{20}$/;
-// An access key: digits, except the CNPJ, which can have letters since August 2026 (schemas 1.01 of 2026-07-27).
-const ACCESS_KEY = /^\d{6}[0-9A-Z]{14}\d{30}$/;
 
 // A request the national system answered with an error status. It carries the status and the official error
 // codes, never their text, which can quote the DPS.

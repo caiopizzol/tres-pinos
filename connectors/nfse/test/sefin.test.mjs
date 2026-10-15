@@ -33,9 +33,9 @@ const DPS = (() => {
   return new XMLSerializer().serializeToString(dps);
 })();
 // What the real system answers: idDps is "NFS" and the access key, and the invoice carries the DPS's Id.
-const issued = (nfse = NFSE) => [
+const issued = (nfse = NFSE, key = KEY) => [
   201,
-  { idDps: `NFS${KEY}`, chaveAcesso: KEY, nfseXmlGZipB64: gzipSync(nfse).toString("base64") },
+  { idDps: `NFS${key}`, chaveAcesso: key, nfseXmlGZipB64: gzipSync(nfse).toString("base64") },
 ];
 
 let reply = null;
@@ -74,6 +74,16 @@ test("issues a DPS once: checked, signed with the e-CNPJ, sent gzipped, and read
   assert.equal(invoice.dpsId, ID);
   assert.equal(invoice.accessKey, KEY);
   assert.equal(invoice.netAmountCents, 145050);
+});
+
+test("issues for a CNPJ with letters, whose access key carries them", async () => {
+  const cnpj = "AB1C2D3E4F5G61";
+  const key = KEY.replace("00000000000191", cnpj);
+  const id = ID.replace("00000000000191", cnpj);
+  const swap = (xml) => xml.replaceAll("00000000000191", cnpj).replaceAll(KEY, key);
+  reply = issued(swap(NFSE.toString()), key);
+  const invoice = await sefin().issue(swap(DPS));
+  assert.deepEqual([invoice.dpsId, invoice.accessKey], [id, key]);
 });
 
 test("prepare signs without sending anything", async () => {
@@ -173,10 +183,10 @@ test("find tells whether a DPS generated an invoice", async () => {
   reply = [200, { chaveAcesso: KEY }];
   assert.deepEqual(await sefin().find(ID), { dpsId: ID, issued: true, accessKey: KEY });
   // An alphanumeric CNPJ puts letters in the key.
-  const alphanumeric = "410690AB1C2D3E4F5G6H71000000000000126090000000001";
-  reply = [200, { chaveAcesso: `${alphanumeric}0` }];
-  assert.equal((await sefin().find(ID)).accessKey, `${alphanumeric}0`);
-  reply = [200, { chaveAcesso: `X${alphanumeric}` }];
+  const alphanumeric = KEY.replace("00000000000191", "AB1C2D3E4F5G61");
+  reply = [200, { chaveAcesso: alphanumeric }];
+  assert.equal((await sefin().find(ID)).accessKey, alphanumeric);
+  reply = [200, { chaveAcesso: `X${alphanumeric.slice(1)}` }];
   await assert.rejects(sefin().find(ID), /invalid access key/);
   await assert.rejects(sefin().find("DPS1"), /Not a DPS Id/);
 });

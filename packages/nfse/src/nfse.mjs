@@ -8,6 +8,10 @@ const VERSIONS = ["1.00", "1.01"];
 // Larger than any invoice, small enough that a hostile file can't exhaust memory.
 export const MAX_BYTES = 1_000_000;
 
+// An access key: municipality, environment, registration type, the issuer's CNPJ, then digits. Since August 2026 the
+// CNPJ can have letters (TSIdNFSe in the schemas 1.01 of 2026-07-27).
+export const ACCESS_KEY = /^\d{9}[0-9A-Z]{14}\d{27}$/;
+
 export class NfseError extends Error {}
 
 function parse(xml) {
@@ -80,8 +84,8 @@ export function readNfse(xml) {
     throw new NfseError(`Layout version ${version || "(none)"} is not supported`);
 
   const inf = child(root, "infNFSe");
-  const accessKey = /^NFS(\d{50})$/.exec(inf.getAttribute("Id"))?.[1];
-  if (!accessKey) throw new NfseError("infNFSe has no 50-digit access key");
+  const accessKey = /^NFS(.*)$/.exec(inf.getAttribute("Id"))?.[1];
+  if (!ACCESS_KEY.test(accessKey ?? "")) throw new NfseError("infNFSe has no valid access key");
   const dps = child(child(inf, "DPS"), "infDPS");
   const service = child(dps, "serv");
   const values = child(dps, "valores");
