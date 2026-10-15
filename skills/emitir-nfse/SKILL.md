@@ -23,7 +23,9 @@ As notas saem na produção restrita, sem valor fiscal.
 5. Busque a PTAX de compra do dia da invoice, ou do último dia útil antes dela, em
    `https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoDolarDia(dataCotacao=@d)?@d='MM-DD-AAAA'&$format=json`
    (`cotacaoCompra`). Multiplique o valor pela cotação rodando código e arredonde para o centavo.
-6. Ache o número da DPS: chame `find_invoice` com os Ids da série, de 1 em diante, até um vir `issued: false`.
+6. Ache o número da DPS: chame `find_invoice` com os Ids da série, de 1 em diante, até um vir `issued: false`. As notas
+   da série são do ambiente de teste, que `list_invoices` não lê: se a `description` de uma delas cita o número da
+   invoice, diga qual é e pare.
 7. Monte a DPS com o modelo de [references/exportacao.md](references/exportacao.md) e chame `prepare_invoice`.
 8. Mostre ao dono o cliente, a invoice, o valor em moeda estrangeira, a cotação e a data dela, o valor em reais, a
    competência, a descrição e o Id da DPS, e pare. Uma aprovação dada antes desse resumo não vale.

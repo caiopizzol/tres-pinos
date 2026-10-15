@@ -88,6 +88,13 @@ test("never guesses: a missing, repeated or malformed field fails", () => {
     [change('Id="NFS', 'Id="NF'), /no valid access key/],
     [change('Id="NFS4', 'Id="NFSX'), /no valid access key/],
     [change('Id="DPS', 'Id="DP'), /infDPS has no valid Id/],
+    [
+      change(
+        "<indTotTrib>0</indTotTrib>",
+        "<pTotTrib><pTotTribFed>7,68</pTotTribFed><pTotTribEst>0</pTotTribEst><pTotTribMun>0</pTotTribMun></pTotTrib>",
+      ),
+      /pTotTribFed is not a percentage/,
+    ],
     [change('versao="1.01" xmlns', 'versao="2.00" xmlns'), /version 2.00 is not supported/],
     [change("http://www.sped.fazenda.gov.br/nfse", "http://example.com/nfse"), /national layout/],
     [change("<CPF>00000000191</CPF>", ""), /exactly one of CNPJ, CPF, NIF or cNaoNIF/],

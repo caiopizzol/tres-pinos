@@ -26,7 +26,7 @@ export const INVOICE = {
   number: "INV-0012",
   date: "2026-09-30",
   period: ["2026-09-16", "2026-09-30"],
-  client: "ACME CORP",
+  client: "ACME & SONS CORP",
   nif: "123456789",
   usd: "2,000.00",
 };
@@ -39,7 +39,8 @@ const FIXTURE = readFileSync(
   "utf8",
 );
 const FIXTURE_KEY = "41069022200000000000191000000000000126090000000001";
-const keyFor = (n) => `4106902${2}${COMPANY}${String(n).padStart(28, "0")}`;
+// An access key: municipality (7), environment (1), registration type (1), CNPJ (14), then 27 digits.
+const keyFor = (n) => `4106902${2}${2}${COMPANY}${String(n).padStart(27, "0")}`;
 
 // The company's earlier note: the fixture, with the municipal registration and an invoice it cites.
 const earlier = FIXTURE.replaceAll(FIXTURE_KEY, keyFor(1))
@@ -53,23 +54,22 @@ const earlier = FIXTURE.replaceAll(FIXTURE_KEY, keyFor(1))
     "<xDescServ>Invoice INV-0011, de 2026-09-15</xDescServ>",
   );
 
-// The notes the national system holds, as ADN records, and the DPS Ids it generated.
-const records = [];
-const issued = new Map();
-function hold(xml, key, dpsId) {
-  records.push({
-    NSU: records.length + 1,
-    ChaveAcesso: key,
+// Production's notes, which the distribution (ADN) lists, and the test environment's, by DPS Id. A note issued by the
+// connector exists only in the test environment, as with the real systems. The company's first test note took DPS 1.
+const records = [
+  {
+    NSU: 1,
+    ChaveAcesso: keyFor(1),
     TipoDocumento: "NFSE",
-    ArquivoXml: gzipSync(xml).toString("base64"),
-  });
-  issued.set(dpsId, key);
-}
-hold(earlier, keyFor(1), "DPS410690220000000000019100001000000000000001");
+    ArquivoXml: gzipSync(earlier).toString("base64"),
+  },
+];
+const restricted = new Map([[`DPS4106902${2}${COMPANY}00001${"1".padStart(15, "0")}`, earlier]]);
 export const sent = [];
 
 const answer = (status, body) => Promise.resolve({ status, text: JSON.stringify(body) });
 const text = (doc, name) => doc.getElementsByTagNameNS(NS, name)[0]?.textContent;
+const keyOf = (xml) => /Id="NFS(\w{50})"/.exec(xml)[1];
 
 // The fake national system: the distribution, the DPS lookup and issuing. An issued note is the fixture with the
 // sent DPS inside, as the real one returns it.
@@ -82,9 +82,16 @@ function national(url, init = {}) {
   }
   const lookup = /\/dps\/(DPS\d+)$/.exec(url)?.[1];
   if (lookup)
-    return issued.has(lookup)
-      ? answer(200, { chaveAcesso: issued.get(lookup) })
+    return restricted.has(lookup)
+      ? answer(200, { chaveAcesso: keyOf(restricted.get(lookup)) })
       : answer(404, { erro: { codigo: "E404" } });
+  const byKey = /\/nfse\/(\w{50})$/.exec(url)?.[1];
+  if (byKey) {
+    const xml = [...restricted.values()].find((x) => keyOf(x) === byKey);
+    return xml
+      ? answer(200, { chaveAcesso: byKey, nfseXmlGZipB64: gzipSync(xml).toString("base64") })
+      : answer(404, { erro: { codigo: "E404" } });
+  }
   if (url === `${SEFIN_URL}/nfse` && init.method === "POST") {
     const dpsXml = gunzipSync(
       Buffer.from(JSON.parse(init.body).dpsXmlGZipB64, "base64"),
@@ -92,14 +99,14 @@ function national(url, init = {}) {
     sent.push(dpsXml);
     const doc = new DOMParser().parseFromString(dpsXml, "application/xml");
     const id = doc.getElementsByTagNameNS(NS, "infDPS")[0].getAttribute("Id");
-    if (issued.has(id)) return answer(400, { erros: [{ Codigo: "E0014" }] });
-    const key = keyFor(records.length + 1);
+    if (restricted.has(id)) return answer(400, { erros: [{ Codigo: "E0014" }] });
+    const key = keyFor(restricted.size + 1);
     const dps = dpsXml.slice(dpsXml.indexOf("<DPS"));
     const nfse = FIXTURE.replaceAll(FIXTURE_KEY, key)
       .replace(/<DPS[\s\S]*<\/DPS>/, dps)
-      .replace("<nNFSe>1</nNFSe>", `<nNFSe>${records.length + 1}</nNFSe>`)
+      .replace("<nNFSe>1</nNFSe>", `<nNFSe>${restricted.size + 1}</nNFSe>`)
       .replace("<vLiq>1450.50</vLiq>", `<vLiq>${text(doc, "vServ")}</vLiq>`);
-    hold(nfse, key, id);
+    restricted.set(id, nfse);
     return answer(201, {
       idDps: `NFS${key}`,
       chaveAcesso: key,

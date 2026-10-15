@@ -87,7 +87,10 @@ function provider(element) {
 // declared them another way.
 function federalTaxPercent(values) {
   const percent = child(child(child(values, "trib"), "totTrib"), "pTotTrib", true);
-  return percent && text(percent, "pTotTribFed");
+  if (!percent) return null;
+  const value = text(percent, "pTotTribFed");
+  if (!/^\d{1,3}(\.\d{2})?$/.test(value)) throw new NfseError("pTotTribFed is not a percentage");
+  return value;
 }
 
 export function readNfse(xml) {

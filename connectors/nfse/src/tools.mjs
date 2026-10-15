@@ -71,7 +71,7 @@ export function buildServer(adn, icons, sefin = null) {
     "find_invoice",
     {
       description:
-        "Whether the national system generated an invoice for a DPS Id, in produção restrita, and its access key.",
+        "Whether the national system generated an invoice for a DPS Id, in produção restrita, and if so the invoice's facts, as list_invoices gives them.",
       inputSchema: { dpsId: z.string().regex(DPS_ID) },
       annotations: { readOnlyHint: true },
     },

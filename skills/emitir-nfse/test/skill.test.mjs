@@ -49,11 +49,11 @@ const filled = (n) =>
     .replace("{série}", SERIES)
     .replace("<nDPS>{número}</nDPS>", `<nDPS>${n}</nDPS>`)
     .replace("{competência, AAAA-MM-DD}", INVOICE.period[1])
-    .replace("{município}", "4106902")
+    .replaceAll("{município}", "4106902")
     .replace("{CNPJ}", COMPANY)
     .replace("{inscrição municipal}", MUNICIPAL_REGISTRATION)
     .replace("{NIF do cliente}", INVOICE.nif)
-    .replace("{nome do cliente}", INVOICE.client)
+    .replace("{nome do cliente}", INVOICE.client.replaceAll("&", "&amp;"))
     .replace("{país, ISO de 2 letras}", "US")
     .replace("{código postal}", "94105")
     .replace("{cidade}", "San Francisco")
@@ -116,5 +116,8 @@ test("the template, filled for the invoice, passes the official schema and issue
   assert.equal(invoice.dpsId, id(EXPECTED.nDPS));
   assert.equal(invoice.netAmountCents, 1_036_060);
   assert.match(sent.at(-1), new RegExp(`<vServMoeda>${EXPECTED.usd}</vServMoeda>`));
+  // The fake doesn't refuse indTotTrib, but the real system does for a company outside the Simples (E0713).
+  assert.match(sent.at(-1), new RegExp(`<pTotTribFed>${FEDERAL_TAX_PERCENT}</pTotTribFed>`));
+  assert.doesNotMatch(sent.at(-1), /<indTotTrib>/);
   assert.equal((await call("find_invoice", { dpsId: id(EXPECTED.nDPS) })).issued, true);
 });

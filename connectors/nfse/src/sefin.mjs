@@ -115,7 +115,7 @@ export function sefinClient(fetch, certificate) {
       return { dpsId: id, ...nfse };
     },
 
-    // Whether an invoice was generated for the DPS `id`, and its access key.
+    // Whether an invoice was generated for the DPS `id`, and if so the invoice, read like list_invoices.
     async find(id) {
       if (!DPS_ID.test(id)) throw new Error("Not a DPS Id");
       const res = await fetch(`${SEFIN_URL}/dps/${id}`, {
@@ -126,7 +126,15 @@ export function sefinClient(fetch, certificate) {
       if (res.status !== 200) throw new SefinError(res.status, codes(body));
       if (!ACCESS_KEY.test(body.chaveAcesso ?? ""))
         throw new Error("Sefin returned an invalid access key");
-      return { dpsId: id, issued: true, accessKey: body.chaveAcesso };
+      const note = await fetch(`${SEFIN_URL}/nfse/${body.chaveAcesso}`, {
+        headers: { Accept: "application/json" },
+      });
+      const found = json(note);
+      if (note.status !== 200) throw new SefinError(note.status, codes(found));
+      const nfse = readNfse(unzip(found.nfseXmlGZipB64));
+      if (nfse.accessKey !== body.chaveAcesso || nfse.dpsId !== id)
+        throw new Error("Sefin returned an invoice for a different DPS");
+      return { dpsId: id, issued: true, ...nfse };
     },
   };
 }
