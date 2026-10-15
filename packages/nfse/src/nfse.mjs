@@ -75,6 +75,11 @@ function party(element) {
   return element && { ...identity(element), name: text(element, "xNome", true) };
 }
 
+// The provider also carries its municipal registration, when the DPS gives one.
+function provider(element) {
+  return { ...party(element), municipalRegistration: text(element, "IM", true) };
+}
+
 export function readNfse(xml) {
   const root = parse(xml).documentElement;
   if (root?.namespaceURI !== NS || root.localName !== "NFSe")
@@ -98,10 +103,12 @@ export function readNfse(xml) {
     // 100 generated, 101 substitution, 102 court order, 103 avulsa, 107 MEI. Cancellation comes as a separate event.
     generationCode: text(inf, "cStat"),
     generatedAt: text(inf, "dhProc"),
+    // The DPS the invoice came from: municipality, federal ID, series and number.
+    dpsId: dps.getAttribute("Id"),
     dpsIssuedAt: text(dps, "dhEmi"),
     competence: text(dps, "dCompet"),
     issuer: party(child(inf, "emit")),
-    provider: party(child(dps, "prest")),
+    provider: provider(child(dps, "prest")),
     recipient: party(child(dps, "toma", true)),
     serviceCode: text(child(service, "cServ"), "cTribNac"),
     description: text(child(service, "cServ"), "xDescServ"),

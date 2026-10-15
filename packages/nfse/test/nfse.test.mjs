@@ -20,10 +20,11 @@ test("reads the facts of a national NFS-e", () => {
     number: "1",
     generationCode: "100",
     generatedAt: "2026-09-02T10:15:00-03:00",
+    dpsId: "DPS410690220000000000019100001000000000000001",
     dpsIssuedAt: "2026-09-02T10:00:00-03:00",
     competence: "2026-08-31",
     issuer: { idType: "CNPJ", id: "00000000000191", name: "EMPRESA FICTICIA LTDA" },
-    provider: { idType: "CNPJ", id: "00000000000191", name: null },
+    provider: { idType: "CNPJ", id: "00000000000191", name: null, municipalRegistration: null },
     recipient: { idType: "CPF", id: "00000000191", name: "FULANO & FILHOS" },
     serviceCode: "010101",
     description: "Desenvolvimento de software & manutenção",
@@ -54,6 +55,9 @@ test("reads a prefixed namespace, an absent recipient, and a foreign one without
     )
     .replace(/<n:Signature[\s\S]*<\/n:Signature>/, "");
   assert.equal(readNfse(prefixed).recipient.name, "FULANO & FILHOS");
+
+  const registered = change("<regTrib>", "<IM>123456</IM><regTrib>");
+  assert.equal(readNfse(registered).provider.municipalRegistration, "123456");
 
   const noRecipient = change(/<toma>[\s\S]*?<\/toma>/.exec(XML)[0], "");
   assert.equal(readNfse(noRecipient).recipient, null);
