@@ -12,6 +12,9 @@ export const MAX_BYTES = 1_000_000;
 // CNPJ can have letters (TSIdNFSe in the schemas 1.01 of 2026-07-27).
 export const ACCESS_KEY = /^\d{9}[0-9A-Z]{14}\d{27}$/;
 
+// A DPS Id: municipality, 1 for CPF or 2 for CNPJ, the federal ID, the series and the number.
+export const DPS_ID = /^DPS\d{7}[12][0-9A-Z]{14}\d{20}$/;
+
 export class NfseError extends Error {}
 
 function parse(xml) {
@@ -75,6 +78,21 @@ function party(element) {
   return element && { ...identity(element), name: text(element, "xNome", true) };
 }
 
+// The provider also carries its municipal registration, when the DPS gives one.
+function provider(element) {
+  return { ...party(element), municipalRegistration: text(element, "IM", true) };
+}
+
+// The approximate share of federal taxes the provider declared (Lei 12.741/2012), such as "7.68", or null when it
+// declared them another way.
+function federalTaxPercent(values) {
+  const percent = child(child(child(values, "trib"), "totTrib"), "pTotTrib", true);
+  if (!percent) return null;
+  const value = text(percent, "pTotTribFed");
+  if (!/^\d{1,3}(\.\d{2})?$/.test(value)) throw new NfseError("pTotTribFed is not a percentage");
+  return value;
+}
+
 export function readNfse(xml) {
   const root = parse(xml).documentElement;
   if (root?.namespaceURI !== NS || root.localName !== "NFSe")
@@ -87,6 +105,8 @@ export function readNfse(xml) {
   const accessKey = /^NFS(.*)$/.exec(inf.getAttribute("Id"))?.[1];
   if (!ACCESS_KEY.test(accessKey ?? "")) throw new NfseError("infNFSe has no valid access key");
   const dps = child(child(inf, "DPS"), "infDPS");
+  const dpsId = dps.getAttribute("Id");
+  if (!DPS_ID.test(dpsId ?? "")) throw new NfseError("infDPS has no valid Id");
   const service = child(dps, "serv");
   const values = child(dps, "valores");
   const discounts = child(values, "vDescCondIncond", true);
@@ -98,10 +118,12 @@ export function readNfse(xml) {
     // 100 generated, 101 substitution, 102 court order, 103 avulsa, 107 MEI. Cancellation comes as a separate event.
     generationCode: text(inf, "cStat"),
     generatedAt: text(inf, "dhProc"),
+    // The DPS the invoice came from: municipality, federal ID, series and number.
+    dpsId,
     dpsIssuedAt: text(dps, "dhEmi"),
     competence: text(dps, "dCompet"),
     issuer: party(child(inf, "emit")),
-    provider: party(child(dps, "prest")),
+    provider: provider(child(dps, "prest")),
     recipient: party(child(dps, "toma", true)),
     serviceCode: text(child(service, "cServ"), "cTribNac"),
     description: text(child(service, "cServ"), "xDescServ"),
@@ -110,5 +132,6 @@ export function readNfse(xml) {
     unconditionalDiscountCents:
       discounts && child(discounts, "vDescIncond", true) ? cents(discounts, "vDescIncond") : 0,
     netAmountCents: cents(child(inf, "valores"), "vLiq"),
+    federalTaxPercent: federalTaxPercent(values),
   };
 }

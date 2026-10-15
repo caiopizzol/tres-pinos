@@ -34,18 +34,21 @@ Devolve JSON, resumido aqui:
 
 ## Campos
 
-| Campo                        | O que é                                                                                         |
-| ---------------------------- | ----------------------------------------------------------------------------------------------- |
-| `accessKey`                  | A chave de acesso, 50 caracteres: dígitos, e letras só no CNPJ do emitente                      |
-| `generationCode`             | Como a nota foi gerada: 100 normal, 101 substituição, 102 decisão judicial, 103 avulsa, 107 MEI |
-| `generatedAt`                | Quando o sistema nacional gerou a nota                                                          |
-| `dpsIssuedAt`                | Quando o prestador emitiu a declaração (DPS)                                                    |
-| `competence`                 | A data de competência                                                                           |
-| `issuer`, `provider`         | Quem emitiu a nota e quem prestou o serviço. Podem ser diferentes                               |
-| `recipient`                  | O tomador, ou `null`. Sem CNPJ, CPF ou NIF, `idType` é `none` e `noIdReason` diz o motivo       |
-| `serviceAmountCents`         | O valor do serviço, em centavos                                                                 |
-| `unconditionalDiscountCents` | O desconto incondicionado, em centavos, ou 0                                                    |
-| `netAmountCents`             | O valor líquido, depois de descontos e retenções, em centavos                                   |
+| Campo                            | O que é                                                                                         |
+| -------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `accessKey`                      | A chave de acesso, 50 caracteres: dígitos, e letras só no CNPJ do emitente                      |
+| `generationCode`                 | Como a nota foi gerada: 100 normal, 101 substituição, 102 decisão judicial, 103 avulsa, 107 MEI |
+| `generatedAt`                    | Quando o sistema nacional gerou a nota                                                          |
+| `dpsIssuedAt`                    | Quando o prestador emitiu a declaração (DPS)                                                    |
+| `dpsId`                          | O Id da DPS: município, CNPJ ou CPF, série e número                                             |
+| `competence`                     | A data de competência                                                                           |
+| `issuer`, `provider`             | Quem emitiu a nota e quem prestou o serviço. Podem ser diferentes                               |
+| `provider.municipalRegistration` | A inscrição municipal do prestador, ou `null` se a DPS não informa                              |
+| `recipient`                      | O tomador, ou `null`. Sem CNPJ, CPF ou NIF, `idType` é `none` e `noIdReason` diz o motivo       |
+| `serviceAmountCents`             | O valor do serviço, em centavos                                                                 |
+| `unconditionalDiscountCents`     | O desconto incondicionado, em centavos, ou 0                                                    |
+| `netAmountCents`                 | O valor líquido, depois de descontos e retenções, em centavos                                   |
+| `federalTaxPercent`              | O percentual aproximado dos tributos federais declarado na nota, como `"7.68"`, ou `null`       |
 
 Uma nota cancelada continua com o mesmo `generationCode`: o cancelamento é um evento à parte. Nenhum campo diz
 se a nota foi paga.

@@ -5,13 +5,11 @@
 import { gzipSync } from "node:zlib";
 import { DOMParser, XMLSerializer } from "@xmldom/xmldom";
 import { signDpsXml, validateDpsXml } from "open-nfse";
-import { ACCESS_KEY, MAX_BYTES, readNfse } from "@tres-pinos/nfse";
+import { ACCESS_KEY, DPS_ID, MAX_BYTES, readNfse } from "@tres-pinos/nfse";
 import { unzip } from "./adn.mjs";
 
 export const SEFIN_URL = "https://sefin.producaorestrita.nfse.gov.br/SefinNacional";
 const NS = "http://www.sped.fazenda.gov.br/nfse";
-// A DPS Id: municipality, 1 for CPF or 2 for CNPJ, the federal ID, the series and the number.
-export const DPS_ID = /^DPS\d{7}[12][0-9A-Z]{14}\d{20}$/;
 
 // A request the national system answered with an error status. It carries the status and the official error
 // codes, never their text, which can quote the DPS.
@@ -117,7 +115,7 @@ export function sefinClient(fetch, certificate) {
       return { dpsId: id, ...nfse };
     },
 
-    // Whether an invoice was generated for the DPS `id`, and its access key.
+    // Whether an invoice was generated for the DPS `id`, and if so the invoice, read like list_invoices.
     async find(id) {
       if (!DPS_ID.test(id)) throw new Error("Not a DPS Id");
       const res = await fetch(`${SEFIN_URL}/dps/${id}`, {
@@ -128,7 +126,15 @@ export function sefinClient(fetch, certificate) {
       if (res.status !== 200) throw new SefinError(res.status, codes(body));
       if (!ACCESS_KEY.test(body.chaveAcesso ?? ""))
         throw new Error("Sefin returned an invalid access key");
-      return { dpsId: id, issued: true, accessKey: body.chaveAcesso };
+      const note = await fetch(`${SEFIN_URL}/nfse/${body.chaveAcesso}`, {
+        headers: { Accept: "application/json" },
+      });
+      const found = json(note);
+      if (note.status !== 200) throw new SefinError(note.status, codes(found));
+      const nfse = readNfse(unzip(found.nfseXmlGZipB64));
+      if (nfse.accessKey !== body.chaveAcesso || nfse.dpsId !== id)
+        throw new Error("Sefin returned an invoice for a different DPS");
+      return { dpsId: id, issued: true, ...nfse };
     },
   };
 }

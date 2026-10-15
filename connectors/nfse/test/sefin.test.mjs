@@ -39,7 +39,7 @@ const issued = (nfse = NFSE, key = KEY) => [
 ];
 
 let reply = null;
-const fake = fakeApi(certs, () => reply);
+const fake = fakeApi(certs, (request) => (typeof reply === "function" ? reply(request) : reply));
 const { requests } = fake;
 beforeEach(() => {
   reply = [404, { erro: { codigo: "E404" } }];
@@ -177,17 +177,31 @@ test("an invoice for a different DPS is not taken as this one's", async () => {
   await assert.rejects(sefin().issue(DPS), /different DPS/);
 });
 
-test("find tells whether a DPS generated an invoice", async () => {
+test("find tells whether a DPS generated an invoice, and reads back the invoice it did", async () => {
   assert.deepEqual(await sefin().find(ID), { dpsId: ID, issued: false });
   assert.equal(requests.at(-1).path, `/SefinNacional/dps/${ID}`);
-  reply = [200, { chaveAcesso: KEY }];
-  assert.deepEqual(await sefin().find(ID), { dpsId: ID, issued: true, accessKey: KEY });
+
+  // The DPS lookup gives the key; the invoice comes from the test environment by that key.
+  const nfseFor = (xml, key) => (request) =>
+    request.path.startsWith("/SefinNacional/dps/")
+      ? [200, { chaveAcesso: key }]
+      : [200, { chaveAcesso: key, nfseXmlGZipB64: gzipSync(xml).toString("base64") }];
+  reply = nfseFor(NFSE, KEY);
+  const found = await sefin().find(ID);
+  assert.deepEqual([found.issued, found.accessKey, found.dpsId], [true, KEY, ID]);
+  assert.equal(requests.at(-1).path, `/SefinNacional/nfse/${KEY}`);
+
   // An alphanumeric CNPJ puts letters in the key.
-  const alphanumeric = KEY.replace("00000000000191", "AB1C2D3E4F5G61");
-  reply = [200, { chaveAcesso: alphanumeric }];
-  assert.equal((await sefin().find(ID)).accessKey, alphanumeric);
+  const cnpj = "AB1C2D3E4F5G61";
+  const alphanumeric = KEY.replace("00000000000191", cnpj);
+  const swapped = NFSE.toString().replaceAll("00000000000191", cnpj).replaceAll(KEY, alphanumeric);
+  reply = nfseFor(swapped, alphanumeric);
+  assert.equal((await sefin().find(ID.replace("00000000000191", cnpj))).accessKey, alphanumeric);
+
   reply = [200, { chaveAcesso: `X${alphanumeric.slice(1)}` }];
   await assert.rejects(sefin().find(ID), /invalid access key/);
+  reply = nfseFor(NFSE.toString().replace(ID, ID.replace(/1$/, "2")), KEY);
+  await assert.rejects(sefin().find(ID), /different DPS/);
   await assert.rejects(sefin().find("DPS1"), /Not a DPS Id/);
 });
 
@@ -200,7 +214,7 @@ test("the guard lets out issuing only when it's on, and only in produção restr
   for (const [url, init] of [
     ["https://sefin.nfse.gov.br/SefinNacional/nfse", { method: "POST" }],
     [`${SEFIN_URL}/nfse/${KEY}/eventos`, { method: "POST" }],
-    [`${SEFIN_URL}/nfse/${KEY}`, {}],
+    [`${SEFIN_URL}/nfse/${KEY}`, { method: "POST" }],
     [`${SEFIN_URL}/nfse`, { method: "PUT" }],
     [`${SEFIN_URL}/dps/${ID}`, { method: "POST" }],
     [`${SEFIN_URL}/dps/DPS1`, {}],
