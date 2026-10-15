@@ -155,9 +155,7 @@ test("reading the returned invoice logs nothing, even on an XML warning", async 
   for (const level of ["error", "warn", "log"])
     t.mock.method(console, level, (...args) => logged.push(args.join(" ")));
   reply = issued(NFSE.toString().replace("<NFSe ", "<NFSe note=FICTIONAL_ACCOUNT_123 "));
-  await sefin()
-    .issue(DPS)
-    .catch(() => {});
+  assert.equal((await sefin().issue(DPS)).accessKey, KEY);
   assert.deepEqual(
     logged.filter((line) => line.includes("FICTIONAL_ACCOUNT_123")),
     [],
