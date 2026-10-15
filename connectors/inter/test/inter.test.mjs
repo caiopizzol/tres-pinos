@@ -232,7 +232,7 @@ test("the guard refuses a redirect instead of following it", async () => {
 });
 
 test("the tools won't run on a fetch the guard didn't wrap", () => {
-  assert.throws(() => buildServer(interClient(config, client())), /readOnly/);
+  assert.throws(() => buildServer(interClient(config, client())), /guarded fetch/);
   buildServer(interClient(config, readOnly(client())));
 });
 

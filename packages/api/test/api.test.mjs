@@ -6,11 +6,11 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
-import { isReadOnly, readCertificate, readOnly, toCents } from "../src/api.mjs";
+import { allowOnly, isGuarded, readCertificate, toCents } from "../src/api.mjs";
 
 const TOKEN_URL = "https://bank.example/token";
 const guarded = (reply) =>
-  readOnly(async () => reply, {
+  allowOnly(async () => reply, {
     tokenUrl: TOKEN_URL,
     scope: "read",
     requests: [/^GET https:\/\/bank\.example\/balance$/],
@@ -18,8 +18,8 @@ const guarded = (reply) =>
 
 test("the guard lets out only the read-only token and the listed requests", async () => {
   const fetch = guarded({ status: 200, text: "" });
-  assert.ok(isReadOnly(fetch));
-  assert.ok(!isReadOnly(async () => {}));
+  assert.ok(isGuarded(fetch));
+  assert.ok(!isGuarded(async () => {}));
   await fetch(TOKEN_URL, { method: "POST", body: "grant_type=client_credentials&scope=read" });
   await fetch("https://bank.example/balance");
   for (const [url, init] of [
@@ -35,7 +35,7 @@ test("the guard lets out only the read-only token and the listed requests", asyn
 });
 
 test("without a token URL, the guard lets out only the listed requests", async () => {
-  const fetch = readOnly(async () => ({ status: 200, text: "" }), {
+  const fetch = allowOnly(async () => ({ status: 200, text: "" }), {
     requests: [/^GET https:\/\/bank\.example\/balance$/],
   });
   await fetch("https://bank.example/balance");
