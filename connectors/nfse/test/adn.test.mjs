@@ -84,6 +84,7 @@ test("lists a batch after an NSU, reading each NFS-e, with the company's e-CNPJ"
           id: "00000000000191",
           name: null,
           municipalRegistration: null,
+          simplesNacional: "1",
         },
         recipient: { idType: "CPF", id: "00000000191", name: "FULANO & FILHOS" },
         serviceCode: "010101",

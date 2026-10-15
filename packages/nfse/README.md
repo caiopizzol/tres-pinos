@@ -44,6 +44,7 @@ Devolve JSON, resumido aqui:
 | `competence`                     | A data de competência                                                                           |
 | `issuer`, `provider`             | Quem emitiu a nota e quem prestou o serviço. Podem ser diferentes                               |
 | `provider.municipalRegistration` | A inscrição municipal do prestador, ou `null` se a DPS não informa                              |
+| `provider.simplesNacional`       | A situação do prestador no Simples Nacional: `1` não optante, `2` MEI, `3` ME/EPP               |
 | `recipient`                      | O tomador, ou `null`. Sem CNPJ, CPF ou NIF, `idType` é `none` e `noIdReason` diz o motivo       |
 | `serviceAmountCents`             | O valor do serviço, em centavos                                                                 |
 | `unconditionalDiscountCents`     | O desconto incondicionado, em centavos, ou 0                                                    |
