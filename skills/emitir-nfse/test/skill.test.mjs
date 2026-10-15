@@ -99,6 +99,7 @@ test("the tools and fields the skill names are the ones the connector gives", as
   assert.equal(typeof lastNsu, "number");
   assert.equal(typeof done, "boolean");
   assert.equal(note.provider.id, COMPANY);
+  assert.equal(note.issuer.id, COMPANY);
   assert.equal(note.provider.municipalRegistration, MUNICIPAL_REGISTRATION);
   assert.equal(note.dpsId, id(1));
   assert.match(note.description, /INV-0011/);
