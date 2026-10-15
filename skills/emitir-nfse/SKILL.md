@@ -9,6 +9,10 @@ compatibility: Precisa do conector nfse do Três Pinos com NFSE_ISSUE=restrita, 
 Use o conector `nfse` do Três Pinos. Se faltar `issue_invoice`, diga ao dono para ligar `NFSE_ISSUE=restrita` e pare.
 As notas saem na produção restrita, sem valor fiscal.
 
+Se o dono indicar o perfil da empresa (veja [references/perfil.md](references/perfil.md)), leia antes de começar e use
+as decisões dele em vez de perguntar. Uma decisão vencida conta como sem resposta, e o que vier das notas, da invoice ou
+de uma consulta ao vivo vale mais que o perfil: se divergirem, pergunte ao dono.
+
 1. Leia a invoice que o dono indicar: cliente, endereço, número, data, período do serviço e valor. Se ela não for de
    desenvolvimento de software ou não for em dólar, diga que o modelo ainda não cobre o caso e pare.
 2. Busque as notas com `list_invoices`, começando em `afterNsu` 0 e repetindo com `lastNsu` até `done` ser `true`.
