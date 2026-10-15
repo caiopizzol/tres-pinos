@@ -7,6 +7,7 @@ import { after, test } from "node:test";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import {
+  APPROVAL_KEY,
   COMPANY,
   EXPECTED,
   FEDERAL_TAX_PERCENT,
@@ -85,6 +86,8 @@ test("the tools and fields the skill names are the ones the connector gives", as
     "find_invoice",
     "prepare_invoice",
     "issue_invoice",
+    "approval",
+    "link",
     "afterNsu",
     "lastNsu",
     "done",
@@ -113,10 +116,18 @@ test("the next DPS number is the first that find_invoice reports as not issued",
   assert.equal((await call("find_invoice", { dpsId: id(2) })).issued, false);
 });
 
-test("the template, filled for the invoice, passes the official schema and issues", async () => {
-  const { id: prepared } = await call("prepare_invoice", { dps: filled(EXPECTED.nDPS) });
-  assert.equal(prepared, id(EXPECTED.nDPS));
-  const invoice = await call("issue_invoice", { dps: filled(EXPECTED.nDPS) });
+test("the template, filled for the invoice, passes the official schema and issues once the owner approves", async () => {
+  const prepared = await call("prepare_invoice", { dps: filled(EXPECTED.nDPS) });
+  assert.equal(prepared.id, id(EXPECTED.nDPS));
+  const page = await fetch(prepared.link);
+  assert.match(await page.text(), new RegExp(INVOICE.client.replace("&", "&#38;")));
+  const approved = await fetch(prepared.link, {
+    method: "POST",
+    headers: { Origin: new URL(prepared.link).origin },
+    body: new URLSearchParams({ key: APPROVAL_KEY, decision: "approve" }),
+  });
+  assert.equal(approved.status, 200);
+  const invoice = await call("issue_invoice", { approval: prepared.approval });
   assert.equal(invoice.dpsId, id(EXPECTED.nDPS));
   assert.equal(invoice.netAmountCents, 1_036_060);
   assert.match(sent.at(-1), new RegExp(`<vServMoeda>${EXPECTED.usd}</vServMoeda>`));

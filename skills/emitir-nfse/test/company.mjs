@@ -2,14 +2,14 @@
 // national system that issues for real. It already has one note, from DPS 1 of series 1, with the company's municipal
 // registration. Run it to point Claude Code or Codex at it: `node skills/emitir-nfse/test/company.mjs <folder>`, which
 // also writes the invoice to issue into <folder>.
-import { createPrivateKey } from "node:crypto";
+import { createHash, createPrivateKey } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { gunzipSync, gzipSync } from "node:zlib";
 import { DOMParser } from "@xmldom/xmldom";
-import { serve } from "@tres-pinos/server";
+import { createApprovals, serve } from "@tres-pinos/server";
 import { adnClient, API_URL } from "../../../connectors/nfse/src/adn.mjs";
 import { guard } from "../../../connectors/nfse/src/guard.mjs";
 import { SEFIN_URL, sefinClient } from "../../../connectors/nfse/src/sefin.mjs";
@@ -20,6 +20,8 @@ export const MUNICIPAL_REGISTRATION = "1234567";
 export const SERIES = "1";
 export const FEDERAL_TAX_PERCENT = "7.68";
 export const KEY = "k".repeat(32);
+// The owner's approval key, which the agent never gets: the connector keeps only its hash.
+export const APPROVAL_KEY = "a".repeat(32);
 // The invoice to issue, and what the skill should send for it: the Banco Central PTAX buying rate of its date, 2026-09-30, which the agent fetches for real.
 export const INVOICE = {
   file: "INV-0012.pdf",
@@ -189,22 +191,32 @@ export function start({ port = 0 } = {}) {
   const fetch = guard(national, { issue: true });
   const adn = adnClient(fetch);
   const sefin = sefinClient(fetch, certificate());
+  // The address is known only once the server listens, so approvals are made then; tools are built per request.
+  let approvals;
   const server = serve({
     name: "NFSE_KEY",
     key: KEY,
-    tools: () => buildServer(adn, undefined, sefin),
+    tools: () => buildServer(adn, undefined, sefin, approvals),
     port,
+    approvals: { handle: (req, res) => approvals.handle(req, res) },
   });
   return new Promise((resolve) =>
     server.listening ? resolve() : server.once("listening", resolve),
-  ).then(() => ({
-    nfse: `http://127.0.0.1:${server.address().port}/mcp`,
-    close: () => server.close(),
-  }));
+  ).then(() => {
+    approvals = createApprovals({
+      name: "NFSE_APPROVAL_HASH",
+      hash: createHash("sha256").update(APPROVAL_KEY).digest("hex"),
+      url: `http://127.0.0.1:${server.address().port}`,
+    });
+    return {
+      nfse: `http://127.0.0.1:${server.address().port}/mcp`,
+      close: () => server.close(),
+    };
+  });
 }
 
 if (import.meta.main) {
   writeInvoice(process.argv[2] ?? ".");
-  const { nfse } = await start({ port: 3115 });
+  const { nfse } = await start({ port: Number(process.env.PORT ?? 3115) });
   console.log(`nfse ${nfse}`);
 }

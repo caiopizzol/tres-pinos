@@ -28,6 +28,12 @@ const SETTINGS = {
   NFSE_CERT_KEY_PATH: certs.file("owner.key"),
   NFSE_CERT_PASSWORD: PASSWORD,
 };
+// Issuing on, with the hash of an approval key: echo -n <key> | sha256sum.
+const ISSUING = {
+  NFSE_ISSUE: "restrita",
+  NFSE_APPROVAL_HASH: "ab".repeat(32),
+  APPROVAL_URL: "http://127.0.0.1:3014",
+};
 
 test("only NFSE_KEY gets in, and it offers only the read tool", async () => {
   const url = await runningServer(SERVER, SETTINGS);
@@ -47,13 +53,13 @@ test("only NFSE_KEY gets in, and it offers only the read tool", async () => {
 
 // The README lists the tools by hand, so it must name every tool the server offers with issuing on, and no other.
 test("the README names exactly the tools it offers", async () => {
-  const url = await runningServer(SERVER, { ...SETTINGS, NFSE_ISSUE: "restrita" });
+  const url = await runningServer(SERVER, { ...SETTINGS, ...ISSUING });
   const names = (await listTools(url)).map((t) => t.name).sort();
   assert.deepEqual(readmeTools("nfse"), names, "README");
 });
 
 test("with NFSE_ISSUE=restrita, it also offers the issuing tools", async () => {
-  const url = await runningServer(SERVER, { ...SETTINGS, NFSE_ISSUE: "restrita" });
+  const url = await runningServer(SERVER, { ...SETTINGS, ...ISSUING });
   const listed = await listTools(url);
   assert.deepEqual(
     listed.map((t) => t.name),
@@ -63,12 +69,18 @@ test("with NFSE_ISSUE=restrita, it also offers the issuing tools", async () => {
 });
 
 test(
-  "refuses to start with a short key, an unknown NFSE_ISSUE, a missing setting, a wrong password, or a key that doesn't match",
+  "refuses to start with a short key, an unknown NFSE_ISSUE, issuing without an approval hash or address, a missing setting, a wrong password, or a key that doesn't match",
   { timeout: 10_000 },
   () =>
     refusesToStart(SERVER, SETTINGS, [
       [{ NFSE_KEY: "short" }, /NFSE_KEY needs at least 32 characters/],
       [{ NFSE_ISSUE: "producao" }, /NFSE_ISSUE can only be restrita/],
+      [{ NFSE_ISSUE: "restrita" }, /NFSE_APPROVAL_HASH must be the SHA-256/],
+      [{ ...ISSUING, APPROVAL_URL: "" }, /address the owner opens them at/],
+      [
+        { ...ISSUING, NFSE_APPROVAL_HASH: "a".repeat(32) },
+        /NFSE_APPROVAL_HASH must be the SHA-256/,
+      ],
       [{ NFSE_CERT_PASSWORD: "" }, /Set NFSE_CERT_PASSWORD/],
       [{ NFSE_CERT_PATH: certs.file("missing.crt") }, /Can't read .*missing\.crt/],
       [{ NFSE_CERT_PASSWORD: "wrong-password" }, /NFSE_CERT_PASSWORD does not open/],
@@ -107,7 +119,7 @@ test("with issuing on, the consent page says it issues only in produção restri
   after(() => rmSync(dataDir, { recursive: true, force: true }));
   const url = await runningServer(SERVER, (self) => ({
     ...SETTINGS,
-    NFSE_ISSUE: "restrita",
+    ...ISSUING,
     PUBLIC_URL: self,
     DATA_DIR: dataDir,
   }));

@@ -54,14 +54,15 @@ IA, com o mesmo cuidado com apps na nuvem. Os logins ficam no volume `nfse`.
 | `NFSE_CERT_PASSWORD` | A senha de `nfse.key`                                               |
 | `NFSE_PUBLIC_URL`    | Endereço público com HTTPS, para entrar com login. Opcional         |
 | `NFSE_ISSUE`         | `restrita` liga a [emissão](#emitir) no ambiente de teste. Opcional |
+| `NFSE_APPROVAL_HASH` | O SHA-256 da sua chave de aprovação. Obrigatório com `NFSE_ISSUE`   |
 
 ## Ferramentas
 
 | Ferramenta        | O que devolve                                                                                               |
 | ----------------- | ----------------------------------------------------------------------------------------------------------- |
 | `list_invoices`   | Os próximos documentos, até 50, depois de um NSU. Comece no 0 e continue até `done` vir `true`              |
-| `prepare_invoice` | Confere a DPS no esquema oficial e a assina, sem enviar. Só com `NFSE_ISSUE`                                |
-| `issue_invoice`   | Envia a DPS uma vez e devolve a nota emitida. Só com `NFSE_ISSUE`                                           |
+| `prepare_invoice` | Confere a DPS no esquema oficial, sem enviar, e devolve o link para você aprová-la. Só com `NFSE_ISSUE`     |
+| `issue_invoice`   | Envia uma vez a DPS que você aprovou e devolve a nota emitida. Só com `NFSE_ISSUE`                          |
 | `find_invoice`    | Diz se o sistema nacional gerou uma nota para um Id de DPS e, se gerou, devolve a nota. Só com `NFSE_ISSUE` |
 
 O NSU é o número que o sistema nacional dá a cada documento, em ordem. Guarde o `lastNsu` de uma resposta para
@@ -79,12 +80,33 @@ palpite.
 ## Emitir
 
 Com `NFSE_ISSUE=restrita`, o conector emite notas na produção restrita, o ambiente de teste do sistema nacional. Lá
-uma nota não tem valor fiscal. O agente monta a DPS, a declaração da qual a nota é gerada, com `tpAmb` 2, e:
+uma nota não tem valor fiscal. Cada nota sai só depois que você a aprova, numa página do conector, com uma chave de
+aprovação que o agente não recebe. O conector guarda só o SHA-256 dela e recusa chaves com menos de 32 caracteres.
+Com uma chave aleatória como a do `openssl` abaixo, nem um agente que leia o `.env` consegue descobri-la; não use uma
+senha que você inventou.
 
-1. `prepare_invoice` confere a DPS no esquema oficial e a assina com o e-CNPJ, sem enviar. Revise antes de seguir.
-2. `issue_invoice` envia a DPS uma vez e devolve a nota emitida, lida como em `list_invoices`.
+Gere a chave e guarde-a no seu gerenciador de senhas, fora da máquina do agente. Depois calcule o hash: o `read -s`
+pede a chave sem mostrá-la e sem gravá-la no histórico do terminal. Ponha o hash em `NFSE_APPROVAL_HASH`:
+
+```bash
+openssl rand -hex 32   # a chave de aprovação, só para você
+read -rs KEY && printf %s "$KEY" | shasum -a 256 | cut -c1-64; unset KEY
+```
+
+O agente monta a DPS, a declaração da qual a nota é gerada, com `tpAmb` 2, e:
+
+1. `prepare_invoice` confere a DPS no esquema oficial, sem enviar, e devolve um link. Nele você lê a DPS (o tomador,
+   o valor, a competência, a descrição e depois cada campo, tirados da própria DPS) e aprova com a chave, ou recusa.
+   O pedido vale uma hora, e cinco chaves erradas o apagam. Depois de aprovar, a mesma página deixa cancelar.
+2. `issue_invoice` envia uma vez a DPS que você aprovou e devolve a nota emitida, lida como em `list_invoices`. A
+   aprovação serve para um envio só, em até 10 minutos, e o conector esquece as que não foram usadas quando reinicia.
 3. Se a resposta não for clara, como um tempo esgotado, `find_invoice` diz se a nota foi gerada. Nunca envie a mesma
    DPS com outro número: isso emitiria uma segunda nota.
+
+O link é sempre `http://127.0.0.1:3014/approve/...`, ou o endereço de `NFSE_PUBLIC_URL`: confira o endereço antes de
+digitar a chave. A aprovação protege contra um agente que só tem a chave do conector. Quem controla a máquina do
+conector, com acesso ao Docker ou ao certificado, passa por cima dela: rode o conector onde o agente não tenha esse
+acesso.
 
 Use uma série de DPS só para o conector, para não repetir o número de uma nota emitida pelo portal ou pelo seu
 contador. A emissão usa o [open-nfse](https://github.com/fm-s/open-nfse) para conferir e assinar a DPS.

@@ -77,6 +77,9 @@ services:
       NFSE_CERT_PASSWORD: ${NFSE_CERT_PASSWORD:-}
       PUBLIC_URL: ${NFSE_PUBLIC_URL:-}
       NFSE_ISSUE: ${NFSE_ISSUE:-}
+      NFSE_APPROVAL_HASH: ${NFSE_APPROVAL_HASH:-}
+      # Where the owner opens the approval page on this machine: the port published below.
+      APPROVAL_URL: http://127.0.0.1:3014
     ports:
       - 127.0.0.1:3014:8080
     volumes:
