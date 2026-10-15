@@ -63,6 +63,11 @@ const WITHHELD = change(
     "</tribMun><tribFed><piscofins><CST>01</CST><vBCPisCofins>1000.00</vBCPisCofins><pAliqPis>0.65</pAliqPis><pAliqCofins>3.00</pAliqCofins><vPis>6.50</vPis><vCofins>30.00</vCofins><tpRetPisCofins>3</tpRetPisCofins></piscofins><vRetIRRF>15.00</vRetIRRF><vRetCSLL>10.00</vRetCSLL></tribFed>",
   );
 
+test("an absent PIS/COFINS withholding code is null, since the layout makes it optional", () => {
+  const note = readNfse(WITHHELD.replace("<tpRetPisCofins>3</tpRetPisCofins>", ""));
+  assert.equal(note.withholdings.pisCofins.withholding, null);
+});
+
 test("reads what the note declares as withheld, field by field", () => {
   const note = readNfse(WITHHELD);
   assert.equal(note.serviceAmountCents, 100000);
@@ -181,6 +186,9 @@ test("never guesses: a missing, repeated or malformed field fails", () => {
       /tpRetISSQN is not a code/,
     ],
     [WITHHELD.replace("<CST>01</CST>", "<CST>10</CST>"), /CST is not a code/],
+    [WITHHELD.replace("<CST>01</CST>", ""), /CST is missing/],
+    [change("<tpRetISSQN>1</tpRetISSQN>", ""), /tpRetISSQN is missing/],
+    [change("<tpRetISSQN>1</tpRetISSQN>", "<tpRetISSQN> </tpRetISSQN>"), /tpRetISSQN is empty/],
     [
       WITHHELD.replace("<tpRetPisCofins>3</tpRetPisCofins>", "<tpRetPisCofins/>"),
       /tpRetPisCofins is empty/,

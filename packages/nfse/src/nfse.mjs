@@ -107,9 +107,9 @@ const optionalCents = (parent, name) =>
 // The PIS/COFINS situation codes (CST) the layout defines, TSTipoCST in the 1.01 schema.
 const CST = /^(0[0-9]|49|5[0-6]|6[0-7]|7[0-5]|9[89])$/;
 
-// An optional code from the layout's list, or null when absent. Present but empty is not absent: it fails.
-function code(parent, name, allowed) {
-  if (!parent || !child(parent, name, true)) return null;
+// A code from the layout's list. Optional ones are null when absent; present but empty always fails.
+function code(parent, name, allowed, optional = false) {
+  if (optional && !child(parent, name, true)) return null;
   const value = text(parent, name);
   if (!allowed.test(value)) throw new NfseError(`${name} is not a code the layout defines`);
   return value;
@@ -132,7 +132,7 @@ function withholdings(dpsValues, nfseValues) {
     issqnCents: optionalCents(nfseValues, "vISSQN"),
     pisCofins: pisCofins && {
       cst: code(pisCofins, "CST", CST),
-      withholding: code(pisCofins, "tpRetPisCofins", /^\d$/),
+      withholding: code(pisCofins, "tpRetPisCofins", /^\d$/, true),
       pisCents: optionalCents(pisCofins, "vPis"),
       cofinsCents: optionalCents(pisCofins, "vCofins"),
     },
