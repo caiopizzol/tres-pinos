@@ -92,6 +92,15 @@ test("lists a batch after an NSU, reading each NFS-e, with the company's e-CNPJ"
         serviceAmountCents: 150050,
         unconditionalDiscountCents: 0,
         netAmountCents: 145050,
+        withholdings: {
+          irrfCents: 0,
+          cpCents: 0,
+          csllCents: 0,
+          issqn: "1",
+          issqnCents: 0,
+          pisCofins: null,
+        },
+        ibsCbs: null,
         federalTaxPercent: null,
       },
       // An event is listed, not read, so it never stops the listing.

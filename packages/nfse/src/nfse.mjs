@@ -100,6 +100,56 @@ function federalTaxPercent(values) {
   return value;
 }
 
+// An optional amount: absent is 0, present must be an amount.
+const optionalCents = (parent, name) =>
+  parent && child(parent, name, true) ? cents(parent, name) : 0;
+
+// The PIS/COFINS situation codes (CST) the layout defines, TSTipoCST in the 1.01 schema.
+const CST = /^(0[0-9]|49|5[0-6]|6[0-7]|7[0-5]|9[89])$/;
+
+// A code from the layout's list. Optional ones are null when absent; present but empty always fails.
+function code(parent, name, allowed, optional = false) {
+  if (optional && !child(parent, name, true)) return null;
+  const value = text(parent, name);
+  if (!allowed.test(value)) throw new NfseError(`${name} is not a code the layout defines`);
+  return value;
+}
+
+// What the note declares about withholding, field by field as the layout names them. `issqn` says who withholds the
+// ISS (1 no one, 2 the recipient, 3 the intermediary) and `issqnCents` is the ISS amount; `pisCofins.withholding` is
+// the layout's code 0 to 9 for which of PIS, COFINS and CSLL were withheld, and its amounts are the provider's own
+// PIS and COFINS. No total: real notes put PIS and COFINS that weren't withheld in vTotalRet, and keep vLiq at the
+// full amount when the recipient withholds the ISS.
+function withholdings(dpsValues, nfseValues) {
+  const trib = child(dpsValues, "trib");
+  const federal = child(trib, "tribFed", true);
+  const pisCofins = federal && child(federal, "piscofins", true);
+  return {
+    irrfCents: optionalCents(federal, "vRetIRRF"),
+    cpCents: optionalCents(federal, "vRetCP"),
+    csllCents: optionalCents(federal, "vRetCSLL"),
+    issqn: code(child(trib, "tribMun"), "tpRetISSQN", /^[123]$/),
+    issqnCents: optionalCents(nfseValues, "vISSQN"),
+    pisCofins: pisCofins && {
+      cst: code(pisCofins, "CST", CST),
+      withholding: code(pisCofins, "tpRetPisCofins", /^\d$/, true),
+      pisCents: optionalCents(pisCofins, "vPis"),
+      cofinsCents: optionalCents(pisCofins, "vCofins"),
+    },
+  };
+}
+
+// The IBS and CBS the national system calculated (reforma tributária, LC 214/2025), or null when the note has none.
+function ibsCbs(inf) {
+  const group = child(inf, "IBSCBS", true);
+  if (!group) return null;
+  const totals = child(group, "totCIBS");
+  return {
+    ibsCents: cents(child(totals, "gIBS"), "vIBSTot"),
+    cbsCents: cents(child(totals, "gCBS"), "vCBS"),
+  };
+}
+
 export function readNfse(xml) {
   const root = parse(xml).documentElement;
   if (root?.namespaceURI !== NS || root.localName !== "NFSe")
@@ -139,6 +189,8 @@ export function readNfse(xml) {
     unconditionalDiscountCents:
       discounts && child(discounts, "vDescIncond", true) ? cents(discounts, "vDescIncond") : 0,
     netAmountCents: cents(child(inf, "valores"), "vLiq"),
+    withholdings: withholdings(values, child(inf, "valores")),
+    ibsCbs: ibsCbs(inf),
     federalTaxPercent: federalTaxPercent(values),
   };
 }
