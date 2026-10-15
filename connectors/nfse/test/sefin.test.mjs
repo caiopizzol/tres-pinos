@@ -150,6 +150,20 @@ test("a rejection carries the status and the official codes, never their text", 
   assert.doesNotMatch(error.message, /CNPJ/);
 });
 
+test("reading the returned invoice logs nothing, even on an XML warning", async (t) => {
+  const logged = [];
+  for (const level of ["error", "warn", "log"])
+    t.mock.method(console, level, (...args) => logged.push(args.join(" ")));
+  reply = issued(NFSE.toString().replace("<NFSe ", "<NFSe note=FICTIONAL_ACCOUNT_123 "));
+  await sefin()
+    .issue(DPS)
+    .catch(() => {});
+  assert.deepEqual(
+    logged.filter((line) => line.includes("FICTIONAL_ACCOUNT_123")),
+    [],
+  );
+});
+
 test("an invoice for a different DPS is not taken as this one's", async () => {
   reply = issued(NFSE.toString().replace(ID, "DPS410690220000000000019100001000000000000002"));
   await assert.rejects(sefin().issue(DPS), /different DPS/);

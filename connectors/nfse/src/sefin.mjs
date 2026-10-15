@@ -35,6 +35,14 @@ const codes = (body) =>
     .map((e) => e?.Codigo ?? e?.codigo)
     .filter((c) => typeof c === "string" && /^[A-Z]\d{1,5}$/.test(c));
 
+// A document's root. An error fails the parse; a warning is dropped, since the default handler would log values.
+const parse = (xml) =>
+  new DOMParser({
+    onError: (level, message) => {
+      if (level !== "warning") throw new Error(message);
+    },
+  }).parseFromString(xml, "application/xml").documentElement;
+
 // The DPS of a produção restrita invoice as XML: one DPS element in the national namespace, for tpAmb 2, unsigned.
 function readDps(xml) {
   if (typeof xml !== "string" || Buffer.byteLength(xml) > MAX_BYTES)
@@ -42,11 +50,7 @@ function readDps(xml) {
   if (/<!DOCTYPE/i.test(xml)) throw new Error("The DPS has a DOCTYPE");
   let root;
   try {
-    root = new DOMParser({
-      onError: (level, message) => {
-        if (level !== "warning") throw new Error(message);
-      },
-    }).parseFromString(xml, "application/xml").documentElement;
+    root = parse(xml);
   } catch {
     throw new Error("The DPS is not well-formed XML");
   }
@@ -107,10 +111,7 @@ export function sefinClient(fetch, certificate) {
       const xml = unzip(body.nfseXmlGZipB64);
       const nfse = readNfse(xml);
       // The invoice carries the DPS it was generated from; despite its name, the answer's idDps is "NFS" and the key.
-      const from = new DOMParser()
-        .parseFromString(xml, "application/xml")
-        .getElementsByTagNameNS(NS, "infDPS")[0]
-        ?.getAttribute("Id");
+      const from = parse(xml).getElementsByTagNameNS(NS, "infDPS")[0]?.getAttribute("Id");
       if (from !== id || nfse.accessKey !== body.chaveAcesso)
         throw new Error("Sefin returned an invoice for a different DPS");
       return { dpsId: id, ...nfse };
