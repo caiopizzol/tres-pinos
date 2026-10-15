@@ -172,6 +172,12 @@ test("find tells whether a DPS generated an invoice", async () => {
   assert.equal(requests.at(-1).path, `/SefinNacional/dps/${ID}`);
   reply = [200, { chaveAcesso: KEY }];
   assert.deepEqual(await sefin().find(ID), { dpsId: ID, issued: true, accessKey: KEY });
+  // An alphanumeric CNPJ puts letters in the key.
+  const alphanumeric = "410690AB1C2D3E4F5G6H71000000000000126090000000001";
+  reply = [200, { chaveAcesso: `${alphanumeric}0` }];
+  assert.equal((await sefin().find(ID)).accessKey, `${alphanumeric}0`);
+  reply = [200, { chaveAcesso: `X${alphanumeric}` }];
+  await assert.rejects(sefin().find(ID), /invalid access key/);
   await assert.rejects(sefin().find("DPS1"), /Not a DPS Id/);
 });
 

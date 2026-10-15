@@ -12,6 +12,8 @@ export const SEFIN_URL = "https://sefin.producaorestrita.nfse.gov.br/SefinNacion
 const NS = "http://www.sped.fazenda.gov.br/nfse";
 // A DPS Id: municipality, 1 for CPF or 2 for CNPJ, the federal ID, the series and the number.
 export const DPS_ID = /^DPS\d{7}[12][0-9A-Z]{14}\d{20}$/;
+// An access key: digits, except the CNPJ, which can have letters since August 2026 (schemas 1.01 of 2026-07-27).
+const ACCESS_KEY = /^\d{6}[0-9A-Z]{14}\d{30}$/;
 
 // A request the national system answered with an error status. It carries the status and the official error
 // codes, never their text, which can quote the DPS.
@@ -126,7 +128,7 @@ export function sefinClient(fetch, certificate) {
       if (res.status === 404) return { dpsId: id, issued: false };
       const body = json(res);
       if (res.status !== 200) throw new SefinError(res.status, codes(body));
-      if (!/^\d{50}$/.test(body.chaveAcesso ?? ""))
+      if (!ACCESS_KEY.test(body.chaveAcesso ?? ""))
         throw new Error("Sefin returned an invalid access key");
       return { dpsId: id, issued: true, accessKey: body.chaveAcesso };
     },
