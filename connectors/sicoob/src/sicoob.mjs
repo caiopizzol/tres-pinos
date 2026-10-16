@@ -42,18 +42,42 @@ function json(text, context) {
   }
 }
 
+// Sicoob's messages that carry no data and say what went wrong, by their exact text, in words for the agent. Any other
+// text is dropped. 0001 isn't in Sicoob's documented codes, so the text, not the code, says which limit it is.
+const KNOWN = new Map([
+  [
+    "O seu limite diário para a operação foi excedido!",
+    "the account's daily limit for this operation was exceeded",
+  ],
+]);
+
 function failure(context, { status, text }) {
   let reason = null;
   try {
     const body = JSON.parse(text);
-    const code = (Array.isArray(body.mensagens) ? body.mensagens : [])
-      .map((m) => m?.codigo)
-      .find((c) => /^\d{1,6}$/.test(String(c)));
-    if (code !== undefined) reason = `Sicoob code ${code}`;
+    const messages = Array.isArray(body.mensagens) ? body.mensagens : [];
+    const code = messages.map((m) => m?.codigo).find((c) => /^\d{1,6}$/.test(String(c)));
+    const known = messages.map((m) => KNOWN.get(m?.mensagem)).find(Boolean);
+    if (code !== undefined) reason = [`Sicoob code ${code}`, known].filter(Boolean).join(", ");
     else if (typeof body.error === "string" && /^[a-z_]{1,64}$/.test(body.error))
       reason = body.error;
   } catch {}
   return new SicoobError(context, status, reason);
+}
+
+// Spaces requests to the payments API at least `gapMs` apart. Sicoob allows it 2 per second and answers HTTP 429 above
+// that, and preparing or paying a boleto makes several requests in a row.
+export function paced(fetch, gapMs = 600) {
+  let next = 0;
+  return async (url, init) => {
+    if (url.startsWith(`${API_URL}/pagamentos/`)) {
+      const now = Date.now();
+      const at = Math.max(now, next);
+      next = at + gapMs;
+      if (at > now) await new Promise((resolve) => setTimeout(resolve, at - now));
+    }
+    return fetch(url, init);
+  };
 }
 
 // A boleto payment's state. Any state Sicoob hasn't been seen to send becomes "unknown", since it could carry data.

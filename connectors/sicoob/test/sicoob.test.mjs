@@ -5,7 +5,7 @@ import { test } from "node:test";
 import { certificateFetch } from "@tres-pinos/api";
 import { certificates, fakeApi } from "@tres-pinos/testing";
 import { guard } from "../src/guard.mjs";
-import { API_URL, SicoobError, sicoobClient, TOKEN_URL } from "../src/sicoob.mjs";
+import { API_URL, paced, SicoobError, sicoobClient, TOKEN_URL } from "../src/sicoob.mjs";
 import { buildServer } from "../src/tools.mjs";
 
 const certs = certificates(
@@ -150,4 +150,34 @@ test("an error carries Sicoob's code and status, never its message text", async 
   assert.ok(error instanceof SicoobError);
   assert.equal(error.message, "Sicoob token request failed (HTTP 400): Sicoob code 10320");
   assert.doesNotMatch(error.message, /1234567/);
+});
+
+test("a message Sicoob is known to send carries no data, so it reaches the agent in words", async () => {
+  reply = [
+    422,
+    {
+      mensagens: [
+        { codigo: "0001", mensagem: "O seu limite diário para a operação foi excedido!" },
+      ],
+    },
+  ];
+  const error = await sicoobClient(config, guard(client()))
+    .getBalance()
+    .catch((e) => e);
+  reply = null;
+  assert.equal(
+    error.reason,
+    "Sicoob code 0001, the account's daily limit for this operation was exceeded",
+  );
+});
+
+test("requests to the payments API go out at most 2 per second, and the account's are not held", async () => {
+  const sent = [];
+  const fetch = paced(async (url) => sent.push([url, Date.now()]), 100);
+  const pay = `${API_URL}/pagamentos/v3/boletos/x`;
+  const start = Date.now();
+  await Promise.all([fetch(pay), fetch(TOKEN_URL), fetch(pay), fetch(pay)]);
+  const times = sent.filter(([url]) => url === pay).map(([, at]) => at - start);
+  assert.ok(times[1] >= 95 && times[2] >= 195, String(times));
+  assert.ok(sent.find(([url]) => url === TOKEN_URL)[1] - start < 50);
 });
