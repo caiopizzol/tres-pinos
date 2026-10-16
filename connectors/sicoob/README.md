@@ -6,9 +6,16 @@ ligar, ele também paga e agenda boletos, cada um só depois que você o aprova.
 ## Requisitos
 
 - Um app no [portal de desenvolvedores do Sicoob](https://developers.sicoob.com.br), registrado com o seu
-  certificado e-CPF A1 e com a API Conta Corrente. Para pagar boletos, também a API Cobrança Bancária Pagamentos,
-  e a sua cooperativa precisa liberar pagamentos pela API na conta
+  certificado e-CPF A1, com as APIs e os escopos abaixo
 - [OpenSSL](https://www.openssl.org) 3, para converter o certificado
+
+| API                          | Escopos                                      | Para                               |
+| ---------------------------- | -------------------------------------------- | ---------------------------------- |
+| Conta Corrente               | `cco_consulta`                               | Saldo e extrato                    |
+| Cobrança Bancária Pagamentos | `pagamentos_consulta`, `pagamentos_inclusao` | Pagar boletos. Só com `SICOOB_PAY` |
+
+Não confunda com a API Cobrança Bancária, que emite boletos. Para pagar, a cooperativa também precisa liberar
+pagamentos pela API na sua conta.
 
 ## Certificado
 
@@ -74,8 +81,8 @@ Depois, pergunte: "Qual é o saldo da minha conta no Sicoob?"
 | `pay_boleto`     | Paga ou agenda uma vez o boleto que você aprovou. Só com `SICOOB_PAY`                              |
 
 O conector só deixa sair as chamadas dessas ferramentas. Qualquer outra, como um Pix ou cancelar um agendamento, é
-recusada antes de chegar ao Sicoob, mesmo que o certificado permita. Faça as chamadas com uns 20 segundos de
-intervalo: em rajadas, o Sicoob responde HTTP 429.
+recusada antes de chegar ao Sicoob, mesmo que o certificado permita. Em rajadas, o Sicoob responde HTTP 429: faça as
+chamadas de saldo e extrato com uns 20 segundos de intervalo. As de pagamento o conector espaça sozinho.
 
 ## Pagar
 
@@ -93,10 +100,13 @@ dela e recusa chaves com menos de 32 caracteres. Gere a chave e o hash como na
 3. Se a resposta não for clara, `prepare_boleto` com o mesmo boleto mostra o pagamento já feito, em vez de pagar de
    novo.
 
-O pagamento sai em nome do titular do e-CPF. Para cancelar um agendamento, use o app do Sicoob. O link é sempre
-`http://127.0.0.1:3012/approve/...`, ou o endereço de `SICOOB_PUBLIC_URL`: confira o endereço antes de digitar a
-chave. Como na NFS-e, a aprovação protege contra um agente que só tem a chave do conector, não contra quem controla
-a máquina do conector. Deixe na conta só o saldo que você quer que possa ser gasto.
+O comprovante mostra como pagador quem está no boleto, mas o dinheiro sai da sua conta. Acima do limite diário de
+pagamentos pela API, o Sicoob recusa o pagamento, e o agente avisa; a cooperativa pode aumentar esse limite. Para
+cancelar um agendamento, use o app do Sicoob.
+
+O link é sempre `http://127.0.0.1:3012/approve/...`, ou o endereço de `SICOOB_PUBLIC_URL`: confira o endereço antes
+de digitar a chave. Como na NFS-e, a aprovação protege contra um agente que só tem a chave do conector, não contra
+quem controla a máquina do conector. Deixe na conta só o saldo que você quer que possa ser gasto.
 
 ## Desenvolvimento
 
