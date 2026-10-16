@@ -61,6 +61,7 @@ IA, com o mesmo cuidado com apps na nuvem. Os logins ficam no volume `nfse`.
 | Ferramenta        | O que devolve                                                                                               |
 | ----------------- | ----------------------------------------------------------------------------------------------------------- |
 | `list_invoices`   | Os próximos documentos, até 50, depois de um NSU. Comece no 0 e continue até `done` vir `true`              |
+| `read_skill`      | As skills que usam este conector, para o agente seguir sem instalar nada. Veja [Skills](#skills)            |
 | `prepare_invoice` | Confere a DPS no esquema oficial, sem enviar, e devolve o link para você aprová-la. Só com `NFSE_ISSUE`     |
 | `issue_invoice`   | Envia uma vez a DPS que você aprovou e devolve a nota emitida. Só com `NFSE_ISSUE`                          |
 | `find_invoice`    | Diz se o sistema nacional gerou uma nota para um Id de DPS e, se gerou, devolve a nota. Só com `NFSE_ISSUE` |
@@ -76,6 +77,13 @@ O conector só deixa sair essa consulta e, com `NFSE_ISSUE`, as chamadas de emis
 Qualquer outra, como emitir uma nota de verdade ou cancelar uma, é recusada antes de chegar ao sistema nacional,
 mesmo que o certificado permita. Uma nota que não dá para ler direito faz a consulta falhar, em vez de virar um
 palpite.
+
+## Skills
+
+O conector traz as skills [`emitir-nfse`](../../skills/emitir-nfse) e
+[`estimar-impostos`](../../skills/estimar-impostos), com as referências delas. O agente vê pela descrição de
+`read_skill` o que cada uma faz, lê o `SKILL.md` e os arquivos que ele cita, e segue. Testado no Claude Code, no
+Codex, no Grok Build e no Grok.
 
 ## Emitir
 

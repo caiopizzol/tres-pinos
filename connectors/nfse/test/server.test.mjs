@@ -35,7 +35,7 @@ const ISSUING = {
   APPROVAL_URL: "http://127.0.0.1:3014",
 };
 
-test("only NFSE_KEY gets in, and it offers only the read tool", async () => {
+test("only NFSE_KEY gets in, and it offers only the read tools", async () => {
   const url = await runningServer(SERVER, SETTINGS);
   assert.equal(
     (await fetch(`${url}/mcp`, { method: "POST", headers: { Authorization: "Bearer guess" } }))
@@ -46,7 +46,7 @@ test("only NFSE_KEY gets in, and it offers only the read tool", async () => {
   const listed = await listTools(url);
   assert.deepEqual(
     listed.map((t) => t.name),
-    ["list_invoices"],
+    ["list_invoices", "read_skill"],
   );
   assert.ok(listed.every((t) => t.annotations.readOnlyHint));
 });
@@ -63,7 +63,7 @@ test("with NFSE_ISSUE=restrita, it also offers the issuing tools", async () => {
   const listed = await listTools(url);
   assert.deepEqual(
     listed.map((t) => t.name),
-    ["list_invoices", "prepare_invoice", "issue_invoice", "find_invoice"],
+    ["list_invoices", "read_skill", "prepare_invoice", "issue_invoice", "find_invoice"],
   );
   assert.equal(listed.find((t) => t.name === "issue_invoice").annotations.readOnlyHint, false);
 });
@@ -104,7 +104,7 @@ test("with PUBLIC_URL, an app signs in on the consent page and gets only the rea
   const { tools, consentPage, server } = await signInAndListTools(url);
   assert.deepEqual(
     tools.map((t) => t.name),
-    ["list_invoices"],
+    ["list_invoices", "read_skill"],
   );
   assert.equal(server.title, "Três Pinos · NFS-e");
   assert.deepEqual(server.icons, [

@@ -1,5 +1,5 @@
-// The MCP tools: list the company's NFS-e from the national system and, when the owner turns issuing on, issue them
-// in produção restrita, where an invoice has no legal effect. It never cancels an invoice.
+// The MCP tools: list the company's NFS-e from the national system, read the skills that use them and, when the owner
+// turns issuing on, issue them in produção restrita, where an invoice has no legal effect. It never cancels an invoice.
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { isGuarded } from "@tres-pinos/api";
@@ -7,6 +7,7 @@ import { ApprovalError, toolAnswer } from "@tres-pinos/server";
 import { DPS_ID } from "@tres-pinos/nfse";
 import { AdnError } from "./adn.mjs";
 import { SefinError, summarize } from "./sefin.mjs";
+import { offerSkills } from "./skills.mjs";
 
 // The answer to a tool call. A failure carries only the national system's status and error codes, never its text.
 const answer = (work) =>
@@ -47,6 +48,7 @@ export function buildServer(adn, icons, sefin = null, approvals = null) {
     },
     ({ afterNsu }) => answer(() => adn.listDocuments(afterNsu)),
   );
+  offerSkills(server);
   if (!sefin) return server;
 
   server.registerTool(

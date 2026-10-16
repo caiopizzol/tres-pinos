@@ -6,7 +6,8 @@ nacional, onde a nota não tem valor fiscal. Ainda não cobre empresas do Simple
 
 Usa o conector [`nfse`](../../connectors/nfse) com `NFSE_ISSUE=restrita`, ligado ao seu agente. Na primeira vez, ele
 pergunta a série da DPS que o conector usa, para não repetir os números das notas do portal ou do seu contador.
-Na pasta do repositório, copie a pasta para o seu agente:
+O conector de uma versão posterior à v0.1.5 já traz esta skill: o agente a lê com `read_skill`, sem instalar nada.
+Com um conector anterior, na pasta do repositório, copie a pasta para o seu agente:
 
 ```bash
 mkdir -p ~/.claude/skills && cp -R skills/emitir-nfse ~/.claude/skills/   # Claude Code

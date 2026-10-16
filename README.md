@@ -54,7 +54,8 @@ Code e no Codex.
 | [`estimar-impostos`](skills/estimar-impostos)   | Estima o IRPJ e a CSLL de um trimestre no Lucro Presumido, a partir das NFS-e emitidas                |
 | [`emitir-nfse`](skills/emitir-nfse)             | Emite, no ambiente de teste, a NFS-e de um serviço de software exportado a partir da invoice em dólar |
 
-Como instalar cada uma está na pasta dela.
+O conector `nfse` já traz as skills que o usam, e o agente as lê sem instalar nada. Como instalar as outras está
+na pasta de cada uma.
 
 ## Início rápido
 

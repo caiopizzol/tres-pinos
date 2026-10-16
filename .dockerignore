@@ -15,3 +15,7 @@
 !packages/media/src/**
 !packages/media/scripts/**
 !packages/media/fixtures/**
+!skills/emitir-nfse/SKILL.md
+!skills/emitir-nfse/references/**
+!skills/estimar-impostos/SKILL.md
+!skills/estimar-impostos/references/**

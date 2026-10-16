@@ -287,7 +287,7 @@ test("the issuing tools appear only with issuing on, and only with the owner's a
   const readOnlyAgent = await connect(buildServer(adnClient(guard(client())), undefined));
   assert.deepEqual(
     (await readOnlyAgent.listTools()).tools.map((t) => t.name),
-    ["list_invoices"],
+    ["list_invoices", "read_skill"],
   );
   await readOnlyAgent.close();
 
@@ -300,7 +300,7 @@ test("the issuing tools appear only with issuing on, and only with the owner's a
   const { tools } = await agent.listTools();
   assert.deepEqual(
     tools.map((t) => t.name),
-    ["list_invoices", "prepare_invoice", "issue_invoice", "find_invoice"],
+    ["list_invoices", "read_skill", "prepare_invoice", "issue_invoice", "find_invoice"],
   );
   assert.equal(tools.find((t) => t.name === "issue_invoice").annotations.readOnlyHint, false);
   await agent.close();
