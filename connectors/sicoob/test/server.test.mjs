@@ -17,9 +17,13 @@ import {
 } from "@tres-pinos/testing";
 
 const SERVER = new URL("../src/server.mjs", import.meta.url);
-// Two certificates with password-protected keys, so a certificate that doesn't match the key can be given.
+// Password-protected keys: two e-CPFs, so a certificate that doesn't match the key can be given, and an e-CNPJ.
 const certs = certificates(
-  { owner: "/CN=FULANO DE TAL:00000000000", other: "/CN=CICLANO DE TAL:00000000191" },
+  {
+    owner: "/CN=FULANO DE TAL:00000000000",
+    other: "/CN=CICLANO DE TAL:00000000191",
+    company: "/CN=EMPRESA FICTICIA LTDA:00000000000191",
+  },
   { locked: true },
 );
 const SETTINGS = {
@@ -29,6 +33,13 @@ const SETTINGS = {
   SICOOB_CERT_PATH: certs.file("owner.crt"),
   SICOOB_CERT_KEY_PATH: certs.file("owner.key"),
   SICOOB_CERT_PASSWORD: PASSWORD,
+};
+// Paying on, with the hash of an approval key: echo -n <key> | sha256sum.
+const PAYING = {
+  SICOOB_PAY: "boletos",
+  SICOOB_COOPERATIVE: "3031",
+  SICOOB_APPROVAL_HASH: "ab".repeat(32),
+  APPROVAL_URL: "http://127.0.0.1:3012",
 };
 
 test("only SICOOB_KEY gets in, and it offers only the two read tools", async () => {
@@ -47,14 +58,23 @@ test("only SICOOB_KEY gets in, and it offers only the two read tools", async () 
   assert.ok(listed.every((t) => t.annotations.readOnlyHint));
 });
 
-// The README lists the tools by hand, so it must name every tool the server offers, and no other.
+// The README lists the tools by hand, so it must name every tool the server offers with paying on, and no other.
 test("the README names exactly the tools it offers", async () => {
-  const names = (await listTools(await runningServer(SERVER, SETTINGS))).map((t) => t.name).sort();
+  const url = await runningServer(SERVER, { ...SETTINGS, ...PAYING });
+  const names = (await listTools(url)).map((t) => t.name).sort();
   assert.deepEqual(readmeTools("sicoob"), names, "README");
 });
 
+test("with SICOOB_PAY=boletos, it also offers the payment tools", async () => {
+  const url = await runningServer(SERVER, { ...SETTINGS, ...PAYING });
+  assert.deepEqual(
+    (await listTools(url)).map((t) => t.name),
+    ["get_balance", "get_statement", "prepare_boleto", "pay_boleto"],
+  );
+});
+
 test(
-  "refuses to start with a short key, a missing setting, a wrong certificate password, or a certificate and key that don't match",
+  "refuses to start with a short key, a missing setting, a wrong certificate password, a certificate and key that don't match, or paying without its settings",
   { timeout: 10_000 },
   () =>
     refusesToStart(SERVER, SETTINGS, [
@@ -68,6 +88,18 @@ test(
       [
         { SICOOB_CERT_PATH: certs.file("other.crt") },
         /SICOOB_CERT_PATH and SICOOB_CERT_KEY_PATH are not a matching certificate and key/,
+      ],
+      [{ SICOOB_PAY: "pix" }, /SICOOB_PAY can only be boletos/],
+      [{ ...PAYING, SICOOB_COOPERATIVE: "" }, /Paying needs SICOOB_COOPERATIVE/],
+      [{ ...PAYING, SICOOB_APPROVAL_HASH: "" }, /SICOOB_APPROVAL_HASH must be the SHA-256/],
+      [{ ...PAYING, APPROVAL_URL: "" }, /address the owner opens them at/],
+      [
+        {
+          ...PAYING,
+          SICOOB_CERT_PATH: certs.file("company.crt"),
+          SICOOB_CERT_KEY_PATH: certs.file("company.key"),
+        },
+        /Paying needs an e-CPF certificate/,
       ],
     ]),
 );
@@ -93,4 +125,17 @@ test("with PUBLIC_URL, an app signs in on the consent page and gets only the rea
   ]);
   assert.match(consentPage, /seu Sicoob/);
   assert.match(consentPage, /Nunca movimenta dinheiro/);
+});
+
+test("with paying on, the consent page says it pays only boletos the owner approves", async () => {
+  const dataDir = mkdtempSync(join(tmpdir(), "sicoob-data-"));
+  after(() => rmSync(dataDir, { recursive: true, force: true }));
+  const url = await runningServer(SERVER, (self) => ({
+    ...SETTINGS,
+    ...PAYING,
+    PUBLIC_URL: self,
+    DATA_DIR: dataDir,
+  }));
+  const { consentPage } = await signInAndListTools(url);
+  assert.match(consentPage, /pagar ou agendar boletos que você aprovar, um a um/);
 });

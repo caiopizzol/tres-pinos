@@ -7,7 +7,7 @@ import { serve } from "@tres-pinos/server";
 import { readOnly as interGuard } from "../../../connectors/inter/src/guard.mjs";
 import { API_URL as INTER_URL, interClient } from "../../../connectors/inter/src/inter.mjs";
 import { buildServer as interTools } from "../../../connectors/inter/src/tools.mjs";
-import { readOnly as sicoobGuard } from "../../../connectors/sicoob/src/guard.mjs";
+import { guard as sicoobGuard } from "../../../connectors/sicoob/src/guard.mjs";
 import {
   API_URL as SICOOB_URL,
   sicoobClient,

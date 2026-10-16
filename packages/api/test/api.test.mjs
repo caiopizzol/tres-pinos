@@ -12,7 +12,7 @@ const TOKEN_URL = "https://bank.example/token";
 const guarded = (reply) =>
   allowOnly(async () => reply, {
     tokenUrl: TOKEN_URL,
-    scope: "read",
+    scopes: ["read"],
     requests: [/^GET https:\/\/bank\.example\/balance$/],
   });
 

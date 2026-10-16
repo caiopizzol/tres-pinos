@@ -7,6 +7,7 @@
   "type": "module",
   "exports": {
     ".": "./src/read.ts",
+    "./code": "./src/boleto.ts",
     "./cli": "./src/cli.ts"
   },
   "scripts": {

@@ -92,7 +92,7 @@ export function createApprovals({ name, hash, url, now = () => Date.now() }) {
       .join("");
     const refuse = `<button name="decision" value="refuse" formnovalidate style="${style.button};background:none">${entry.approved ? "Cancelar a aprovação" : "Recusar"}</button>`;
     const actions = entry.approved
-      ? `<p>Aprovado. O agente pode emitir até ${until(entry)}.</p>${refuse}`
+      ? `<p>Aprovado. O agente pode seguir até ${until(entry)}.</p>${refuse}`
       : `<label>Chave de aprovação<input name="key" type="password" required autocomplete="current-password" style="${style.field}"></label>
 ${wrong ? '<p style="color:#B42318">Chave errada.</p>' : ""}
 <button name="decision" value="approve" style="${style.button};background:#1D1D1F;color:#F7C831">Aprovar</button>

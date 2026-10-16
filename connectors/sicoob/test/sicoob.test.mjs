@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { certificateFetch } from "@tres-pinos/api";
 import { certificates, fakeApi } from "@tres-pinos/testing";
-import { readOnly } from "../src/guard.mjs";
+import { guard } from "../src/guard.mjs";
 import { API_URL, SicoobError, sicoobClient, TOKEN_URL } from "../src/sicoob.mjs";
 import { buildServer } from "../src/tools.mjs";
 
@@ -54,7 +54,7 @@ function client(identity = certs.identity("owner")) {
 const config = { clientId: "client-id", account: "1234567" };
 
 test("reads the balance and a statement, presenting the owner's certificate", async () => {
-  const sicoob = sicoobClient(config, readOnly(client()));
+  const sicoob = sicoobClient(config, guard(client()));
   assert.deepEqual(await sicoob.getBalance(), { balanceCents: 123450, limitCents: 50000 });
   assert.deepEqual(await sicoob.getStatement(2026, 9), [
     { id: "a1", date: "2026-09-02", type: "DEBITO", amountCents: 1230, description: "PIX ENVIADO" },
@@ -73,20 +73,25 @@ test("Sicoob refuses a client with no certificate", async () => {
   );
 });
 
+const BARCODE = "75697158600000265001234567890123456789012345";
+const KEY = "3031-1234567-00000000-0000-4000-8000-000000000000";
+const token = (scope) => [TOKEN_URL, { method: "POST", body: `scope=${scope}` }];
+const lookup = `${API_URL}/pagamentos/v3/boletos/${BARCODE}?numeroConta=1234567&dataPagamento=2026-10-26`;
+const receipt = `${API_URL}/pagamentos/v3/boletos/pagamentos/${KEY}/idempotency/comprovantes?numeroConta=1234567`;
+const payment = [`${API_URL}/pagamentos/v3/boletos/pagamentos/${BARCODE}`, { method: "POST" }];
+
 test("the guard refuses every request it wasn't built for, before the network", async () => {
   const before = requests.length;
-  const fetch = readOnly(() => assert.fail("reached the network"));
+  const fetch = guard(() => assert.fail("reached the network"));
   const refused = [
-    [
-      TOKEN_URL,
-      { method: "POST", body: "grant_type=client_credentials&scope=pixpagamentos_escrita" },
-    ],
+    token("pixpagamentos_escrita"),
+    token("pagamentos_consulta"),
+    token("pagamentos_inclusao"),
     [TOKEN_URL, { method: "POST", body: "scope=cco_consulta&scope=pagamentos_inclusao" }],
     [`${API_URL}/pix-pagamentos/v2/pagamentos`, { method: "POST" }],
-    [
-      `${API_URL}/pagamentos/v3/boletos/pagamentos/00000000000000000000000000000000000000000000`,
-      { method: "POST" },
-    ],
+    [lookup, {}],
+    [receipt, {}],
+    payment,
     [`${API_URL}/conta-corrente/v4/saldo?numeroContaCorrente=1`, { method: "DELETE" }],
     [`${API_URL}/conta-corrente/v4/extrato/13/2026?numeroContaCorrente=1`, {}],
     [`${API_URL}/conta-corrente/v4/saldo?numeroContaCorrente=1&other=2`, {}],
@@ -96,10 +101,36 @@ test("the guard refuses every request it wasn't built for, before the network", 
   assert.equal(requests.length, before);
 });
 
+test("with paying on, the guard lets out boleto payments and nothing else new", async () => {
+  const before = requests.length;
+  const fetch = guard(async () => ({ status: 200, text: "" }), { pay: true });
+  for (const [url, init] of [
+    token("pagamentos_consulta"),
+    token("pagamentos_inclusao"),
+    [lookup, {}],
+    [receipt, {}],
+    payment,
+  ])
+    await fetch(url, init);
+  const refused = [
+    token("pixpagamentos_escrita"),
+    token("pagamentos_alteracao"),
+    [`${API_URL}/pix-pagamentos/v2/pagamentos`, { method: "POST" }],
+    // Cancelling a scheduled boleto.
+    [`${API_URL}/pagamentos/v3/boletos/pagamentos/agendamentos/123`, { method: "DELETE" }],
+    // A guia, which starts with 8.
+    [`${API_URL}/pagamentos/v3/boletos/pagamentos/8${BARCODE.slice(1)}`, { method: "POST" }],
+    [`${API_URL}/pagamentos/v3/boletos/pagamentos/${BARCODE}0`, { method: "POST" }],
+    [`${lookup}&other=1`, {}],
+  ];
+  for (const [url, init] of refused) await assert.rejects(fetch(url, init), /Refused/, url);
+  assert.equal(requests.length, before);
+});
+
 test("the guard refuses a redirect instead of following it", async () => {
   reply = [302, {}];
   await assert.rejects(
-    readOnly(client())(`${API_URL}/conta-corrente/v4/saldo?numeroContaCorrente=1`, {}),
+    guard(client())(`${API_URL}/conta-corrente/v4/saldo?numeroContaCorrente=1`, {}),
     /Refused a 302 redirect/,
   );
   reply = null;
@@ -107,12 +138,12 @@ test("the guard refuses a redirect instead of following it", async () => {
 
 test("the tools won't run on a fetch the guard didn't wrap", () => {
   assert.throws(() => buildServer(sicoobClient(config, client())), /guarded fetch/);
-  buildServer(sicoobClient(config, readOnly(client())));
+  buildServer(sicoobClient(config, guard(client())));
 });
 
 test("an error carries Sicoob's code and status, never its message text", async () => {
   reply = [400, { mensagens: [{ codigo: "10320", mensagem: "Conta 1234567 sem permissão" }] }];
-  const error = await sicoobClient(config, readOnly(client()))
+  const error = await sicoobClient(config, guard(client()))
     .getBalance()
     .catch((e) => e);
   reply = null;

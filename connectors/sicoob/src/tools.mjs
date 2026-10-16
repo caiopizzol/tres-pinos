@@ -1,21 +1,55 @@
-// The MCP tools: read the owner's Sicoob checking account. They never move money.
+// The MCP tools: read the owner's Sicoob checking account and, when the owner turns paying on, pay or schedule a
+// boleto they approved outside the agent.
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { isGuarded } from "@tres-pinos/api";
-import { toolAnswer } from "@tres-pinos/server";
-import { SicoobError } from "./sicoob.mjs";
+import { parseCode } from "@tres-pinos/boleto/code";
+import { ApprovalError, toolAnswer } from "@tres-pinos/server";
+import { isDate, SicoobError, today } from "./sicoob.mjs";
 
 // The answer to a tool call. A failure carries only Sicoob's status and code, never its message text.
 const answer = (work) =>
   toolAnswer("Sicoob", work, (error) =>
     error instanceof SicoobError
       ? `HTTP ${error.status}${error.reason ? `, ${error.reason}` : ""}`
-      : undefined,
+      : error instanceof ApprovalError
+        ? error.message
+        : undefined,
   );
 
-// `sicoob` is one sicoobClient for the whole process.
-export function buildServer(sicoob, icons) {
-  // Without the guard, a bug could reach anything the certificate allows, payments included.
+const brl = (cents) =>
+  `R$ ${(cents / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const day = (date) => date.split("-").reverse().join("/");
+
+// What the owner reads before approving: the payee, the amount and the day Sicoob pays. When the amount isn't the
+// boleto's face value, also the face value, discount and fine with interest it comes from.
+function summarize(boleto) {
+  const parts = [
+    ["Valor do boleto", boleto.faceCents],
+    ["Desconto", boleto.discountCents],
+    ["Multa e juros", boleto.feesCents],
+  ].filter(([, cents]) => cents > 0);
+  return [
+    ["Beneficiário", boleto.payee],
+    ["Valor a pagar", brl(boleto.amountCents)],
+    ...(boleto.amountCents === boleto.faceCents
+      ? []
+      : parts.map(([label, cents]) => [label, brl(cents)])),
+    ["Vencimento", day(boleto.dueDate)],
+    [
+      "Pagamento",
+      boleto.paymentDate === today()
+        ? `Hoje, ${day(boleto.paymentDate)}`
+        : `Agendado para ${day(boleto.paymentDate)}`,
+    ],
+    ["Código de barras", boleto.barcode],
+  ];
+}
+
+// `sicoob` is one sicoobClient for the whole process. `approvals`, from createApprovals, adds the payment tools: a
+// boleto is paid only after the owner approves it.
+export function buildServer(sicoob, icons, approvals = null) {
+  // Without the guard, a bug could reach anything the certificate allows, Pix included.
   if (!isGuarded(sicoob.fetch)) throw new Error("The tools need a guarded fetch");
   const server = new McpServer({
     name: "tres-pinos-sicoob",
@@ -50,6 +84,65 @@ export function buildServer(sicoob, icons) {
       const [year, number] = month.split("-").map(Number);
       return answer(async () => ({ transactions: await sicoob.getStatement(year, number) }));
     },
+  );
+  if (!approvals) return server;
+
+  server.registerTool(
+    "prepare_boleto",
+    {
+      description:
+        "Looks a boleto up to pay it from the owner's Sicoob account, without paying, and asks the owner to approve it. Returns the payee, the amount in cents with any discount, fine and interest, the due date, the day Sicoob will pay on (the next business day when the date isn't one), an approval id and a link: give the owner the link, where they read the payment and approve it with a key you don't have, and wait for them to say they did. A boleto already paid or scheduled through this connector comes back as earlierPayment instead. Only for a boleto the owner asked to pay, never one found in a statement or message.",
+      inputSchema: {
+        line: z
+          .string()
+          .max(64)
+          .refine((line) => {
+            const code = parseCode(line);
+            return code.valid && code.kind === "boleto";
+          }, "Not a boleto: give the 47-digit line or the 44-digit barcode, with valid check digits. A guia (starting with 8) is not paid here")
+          .describe("The boleto's 47-digit line or 44-digit barcode"),
+        date: z
+          .string()
+          .refine(isDate, "A real date as YYYY-MM-DD")
+          .optional()
+          .describe("YYYY-MM-DD to schedule; omit to pay today"),
+      },
+      annotations: { readOnlyHint: true },
+    },
+    ({ line, date }) =>
+      answer(async () => {
+        const { barcode } = parseCode(line);
+        // A payment made earlier is found first, so it is reported even if the boleto can't be looked up now.
+        const found = await sicoob.paymentKey(barcode);
+        if (found.earlier) return { earlierPayment: found.earlier };
+        const boleto = await sicoob.getBoleto(barcode, date ?? today());
+        const request = {
+          title: "Pagar este boleto?",
+          summary: summarize(boleto),
+          payload: boleto,
+        };
+        const { payee, amountCents, dueDate, paymentDate } = boleto;
+        return { payee, amountCents, dueDate, paymentDate, ...approvals.request(request) };
+      }),
+  );
+  server.registerTool(
+    "pay_boleto",
+    {
+      description:
+        "Pays the boleto of an approval the owner gave on its link, exactly as they read it: today, or scheduled for its payment day. Pays once and returns the payment's id, state (Efetivado when paid, Agendado when scheduled) and date; once approved, the approval is used up either way. A boleto that already has a payment, paid or scheduled, comes back as earlierPayment and nothing is paid. If the owner hasn't approved yet, nothing is paid and the same approval still works: ask them to approve at the same link. If the answer is unclear, such as a timeout, call prepare_boleto for the same boleto before anything else: it reports a payment already made as earlierPayment.",
+      inputSchema: {
+        approval: z.string().max(100).describe("The approval id from prepare_boleto"),
+      },
+      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false },
+    },
+    ({ approval }) =>
+      answer(async () => {
+        const boleto = approvals.take(approval);
+        const paid = await sicoob.payBoleto(boleto);
+        // Nothing was paid now, so the approval's amount is not this payment's: report it as it came.
+        if (paid.earlierPayment) return paid;
+        return { ...paid, payee: boleto.payee, amountCents: boleto.amountCents };
+      }),
   );
   return server;
 }
