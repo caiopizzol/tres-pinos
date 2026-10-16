@@ -148,7 +148,7 @@ Slogans:
 - Fale como um colega técnico explica para outro.
 - Comece pelo que a pessoa consegue fazer, depois explique como.
 - Use frases curtas e verbos concretos: ler, conferir, agendar, aprovar.
-- Diga o limite junto com o recurso, como "só lê, nunca movimenta dinheiro".
+- Diga o limite junto com o recurso, como "paga só o boleto que você aprovar".
 - Use humor só na tomada e no padrão jabuticaba, nunca no dinheiro.
 - Não prometa segurança absoluta. Diga o que o código garante.
 - Avise quando uma integração não é oficial e o que ela arrisca.
@@ -164,7 +164,7 @@ O que não somos:
 | Dizemos                                      | Nunca dizemos                      |
 | -------------------------------------------- | ---------------------------------- |
 | "O agente pede sua aprovação antes de pagar" | "Pagamentos 100% automáticos"      |
-| "Só lê a conta, nunca movimenta dinheiro"    | "Controle total da sua conta"      |
+| "Paga só o boleto que você aprovar"          | "Controle total da sua conta"      |
 | "Você hospeda"                               | "Nossa nuvem segura"               |
 | "Não é oficial"                              | "Integração oficial", quando não é |
 
