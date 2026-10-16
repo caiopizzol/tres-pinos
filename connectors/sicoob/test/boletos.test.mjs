@@ -109,8 +109,12 @@ const approvals = () =>
     url: "https://sicoob.example.com",
   });
 
-async function connect(gate) {
-  const server = buildServer(sicoobClient(config, guard(client(), { pay: true })), undefined, gate);
+async function connect(gate, account = config.account) {
+  const server = buildServer(
+    sicoobClient({ ...config, account }, guard(client(), { pay: true })),
+    undefined,
+    gate,
+  );
   const [clientSide, serverSide] = InMemoryTransport.createLinkedPair();
   await server.connect(serverSide);
   const agent = new Client({ name: "test", version: "0" });
@@ -296,6 +300,25 @@ test("a payment Sicoob rejects fails with its state, and the approval is used up
     (await call(agent, "pay_boleto", { approval: prepared.approval })).content[0].text,
     /No pending approval/,
   );
+});
+
+test("the account written with a leading zero finds the payment made without it", async () => {
+  const gate = approvals();
+  const padded = await connect(gate, "01234567");
+  const first = result(await call(padded, "prepare_boleto", { line: LINE, date: "2026-10-26" }));
+  await approve(gate, first.link);
+  assert.equal(
+    result(await call(padded, "pay_boleto", { approval: first.approval })).state,
+    "Agendado",
+  );
+
+  // The owner drops the leading zero and the connector restarts: the same account, so the same payment.
+  const plain = await connect(gate, "1234567");
+  assert.deepEqual(result(await call(plain, "prepare_boleto", { line: BARCODE })), {
+    earlierPayment: { id: 1000, state: "Agendado", paymentDate: "2026-10-26" },
+  });
+  assert.equal(paid().length, 1);
+  assert.equal(payments.size, 1);
 });
 
 test("a receipt answered with no content means the key is free, not a failure", async () => {

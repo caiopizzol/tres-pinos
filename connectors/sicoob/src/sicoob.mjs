@@ -71,6 +71,10 @@ function payment(r, context) {
 // Reads the account and, with `payer`, pays boletos. Sicoob issues a token per request, so none is kept. `payer` is
 // who Sicoob records as paying: the e-CPF's holder, by name and CPF, and the cooperative that holds the account.
 export function sicoobClient({ clientId, account, payer }, fetch) {
+  // The account as the payment path names it, everywhere: leading zeros name the same account, and a key written
+  // with them wouldn't find the payment made without them after a restart. The server takes only digits.
+  const paymentAccount = String(Number(account));
+
   async function token(scope) {
     const res = await fetch(TOKEN_URL, {
       method: "POST",
@@ -123,13 +127,13 @@ export function sicoobClient({ clientId, account, payer }, fetch) {
     const hex = createHash("sha256").update(`${barcode}:${attempt}`).digest("hex");
     const variant = ((Number.parseInt(hex[16], 16) & 3) | 8).toString(16);
     const uuid = `${hex.slice(0, 8)}-${hex.slice(8, 12)}-4${hex.slice(13, 16)}-${variant}${hex.slice(17, 20)}-${hex.slice(20, 32)}`;
-    return `${payer.cooperative}-${account}-${uuid}`;
+    return `${payer.cooperative}-${paymentAccount}-${uuid}`;
   }
 
   // The key to pay `barcode` with, or the payment already made with it, paid or scheduled: so a payment whose
   // answer was lost is found instead of made again.
   async function findKey(barcode) {
-    const query = new URLSearchParams({ numeroConta: account });
+    const query = new URLSearchParams({ numeroConta: paymentAccount });
     for (let attempt = 0; attempt < 10; attempt++) {
       const key = paymentKey(barcode, attempt);
       let earlier;
@@ -188,7 +192,7 @@ export function sicoobClient({ clientId, account, payer }, fetch) {
     // The boleto with the 44-digit `barcode`, as Sicoob would pay it on `date`: the payee, the amount with any
     // discount, fine and interest, and the day Sicoob pays on, the next business day when `date` isn't one.
     async getBoleto(barcode, date) {
-      const query = new URLSearchParams({ numeroConta: account, dataPagamento: date });
+      const query = new URLSearchParams({ numeroConta: paymentAccount, dataPagamento: date });
       const r = await result(LOOKUP_SCOPE, `${BOLETOS}/${barcode}?${query}`, "boleto lookup");
       if (r.codigoBarras !== barcode) throw new Error("Sicoob returned a different boleto");
       if (r.bloquearPagamento !== false)
@@ -243,7 +247,7 @@ export function sicoobClient({ clientId, account, payer }, fetch) {
               date: boleto.paymentDate,
               debtorAccount: {
                 issuer: Number(payer.cooperative),
-                number: Number(account),
+                number: Number(paymentAccount),
                 accountType: 0,
                 personType: 0,
               },
