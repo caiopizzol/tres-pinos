@@ -65,18 +65,20 @@ function failure(context, { status, text }) {
   return new SicoobError(context, status, reason);
 }
 
-// Spaces requests to the payments API at least `gapMs` apart. Sicoob allows it 2 per second and answers HTTP 429 above
-// that, and preparing or paying a boleto makes several requests in a row.
+// Sends requests to the payments API one at a time, each at least `gapMs` after the previous one went out. Sicoob allows
+// it 2 per second and answers HTTP 429 above that, and preparing or paying a boleto makes several requests in a row.
 export function paced(fetch, gapMs = 600) {
-  let next = 0;
-  return async (url, init) => {
-    if (url.startsWith(`${API_URL}/pagamentos/`)) {
-      const now = Date.now();
-      const at = Math.max(now, next);
-      next = at + gapMs;
-      if (at > now) await new Promise((resolve) => setTimeout(resolve, at - now));
-    }
-    return fetch(url, init);
+  let queue = Promise.resolve();
+  let last = -Infinity;
+  return (url, init) => {
+    if (!url.startsWith(`${API_URL}/pagamentos/`)) return fetch(url, init);
+    const turn = queue.then(async () => {
+      const wait = last + gapMs - Date.now();
+      if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait));
+      last = Date.now();
+    });
+    queue = turn;
+    return turn.then(() => fetch(url, init));
   };
 }
 
