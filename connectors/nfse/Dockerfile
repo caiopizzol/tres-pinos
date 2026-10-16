@@ -11,6 +11,8 @@ COPY packages/api/src packages/api/src
 COPY packages/nfse/src packages/nfse/src
 COPY packages/server/src packages/server/src
 COPY connectors/nfse/src connectors/nfse/src
+# The skills it serves with read_skill: each one's SKILL.md and references.
+COPY --parents skills/emitir-nfse/SKILL.md skills/emitir-nfse/references skills/estimar-impostos/SKILL.md skills/estimar-impostos/references ./
 # Sign-ins are kept here, on a volume; the folder belongs to node so a new volume does too.
 RUN mkdir /data && chown node:node /data
 WORKDIR /app/connectors/nfse
