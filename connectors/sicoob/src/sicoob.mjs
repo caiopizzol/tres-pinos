@@ -126,6 +126,37 @@ export function sicoobClient({ clientId, account, payer }, fetch) {
     return `${payer.cooperative}-${account}-${uuid}`;
   }
 
+  // The key to pay `barcode` with, or the payment already made with it, paid or scheduled: so a payment whose
+  // answer was lost is found instead of made again.
+  async function findKey(barcode) {
+    const query = new URLSearchParams({ numeroConta: account });
+    for (let attempt = 0; attempt < 10; attempt++) {
+      const key = paymentKey(barcode, attempt);
+      let earlier;
+      try {
+        const found = await result(
+          LOOKUP_SCOPE,
+          `${BOLETOS}/pagamentos/${key}/idempotency/comprovantes?${query}`,
+          "boleto receipt",
+          { allowEmpty: true },
+        );
+        // Sicoob answered that the request worked and there is no payment to return.
+        if (found === null) return { key };
+        earlier = payment(found, "boleto receipt");
+      } catch (error) {
+        // Sicoob has no payment with this key.
+        if (error instanceof SicoobError && error.reason === "Sicoob code 10275") return { key };
+        throw error;
+      }
+      if (!["Cancelado", "Rejeitado"].includes(earlier.state)) return { earlier };
+    }
+    throw new Error("This boleto has too many cancelled or rejected payments");
+  }
+
+  // The boletos being paid right now. The key is chosen against what Sicoob has, so two payments for one boleto
+  // must not look at once and both believe the key is free.
+  const paying = new Set();
+
   return {
     fetch,
 
@@ -182,66 +213,50 @@ export function sicoobClient({ clientId, account, payer }, fetch) {
       };
     },
 
-    // The key to pay `barcode` with, or the payment already made with it, paid or scheduled: so a payment whose
-    // answer was lost is found instead of made again.
-    async paymentKey(barcode) {
-      const query = new URLSearchParams({ numeroConta: account });
-      for (let attempt = 0; attempt < 10; attempt++) {
-        const key = paymentKey(barcode, attempt);
-        let earlier;
-        try {
-          const found = await result(
-            LOOKUP_SCOPE,
-            `${BOLETOS}/pagamentos/${key}/idempotency/comprovantes?${query}`,
-            "boleto receipt",
-            { allowEmpty: true },
-          );
-          // Sicoob answered that the request worked and there is no payment to return.
-          if (found === null) return { key };
-          earlier = payment(found, "boleto receipt");
-        } catch (error) {
-          // Sicoob has no payment with this key.
-          if (error instanceof SicoobError && error.reason === "Sicoob code 10275") return { key };
-          throw error;
-        }
-        if (!["Cancelado", "Rejeitado"].includes(earlier.state)) return { earlier };
-      }
-      throw new Error("This boleto has too many cancelled or rejected payments");
-    },
+    // The payment already made for `barcode`, paid or scheduled, as { earlier }: so a payment whose answer was
+    // lost is found instead of made again. Without one, { key }, the key a payment would use.
+    paymentKey: findKey,
 
-    // Pays `boleto`, as getBoleto returned it, today or on its paymentDate. This moves money. A payment Sicoob
-    // doesn't take, even with HTTP 200, fails with its state. Two approvals prepared before either was paid share
-    // a key, so Sicoob can answer the second with the first payment: a payment for another day is not this one.
-    async payBoleto(boleto, key) {
-      const paid = payment(
-        await result(PAY_SCOPE, `${BOLETOS}/pagamentos/${boleto.barcode}`, "boleto payment", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "x-idempotency-key": key },
-          body: JSON.stringify({
-            identificadorConsulta: boleto.consultationId,
-            valorBoleto: boleto.faceCents / 100,
-            valorDescontoAbatimento: boleto.discountCents / 100,
-            valorMultaMora: boleto.feesCents / 100,
-            aceitaValorDivergente: false,
-            numeroCpfCnpjPortador: payer.cpf,
-            nomePortador: payer.name,
-            amount: boleto.amountCents / 100,
-            date: boleto.paymentDate,
-            debtorAccount: {
-              issuer: Number(payer.cooperative),
-              number: Number(account),
-              accountType: 0,
-              personType: 0,
-            },
+    // Pays `boleto`, as getBoleto returned it, today or on its paymentDate. This moves money. The key is chosen
+    // here, against what Sicoob has now, so the answer to this payment is never another approval's: a boleto that
+    // already has a live payment comes back as { earlierPayment } and nothing is sent. A payment Sicoob doesn't
+    // take, even with HTTP 200, fails with its state.
+    async payBoleto(boleto) {
+      if (paying.has(boleto.barcode)) throw new Error("This boleto is already being paid");
+      paying.add(boleto.barcode);
+      try {
+        const found = await findKey(boleto.barcode);
+        if (found.earlier) return { earlierPayment: found.earlier };
+        const paid = payment(
+          await result(PAY_SCOPE, `${BOLETOS}/pagamentos/${boleto.barcode}`, "boleto payment", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "x-idempotency-key": found.key },
+            body: JSON.stringify({
+              identificadorConsulta: boleto.consultationId,
+              valorBoleto: boleto.faceCents / 100,
+              valorDescontoAbatimento: boleto.discountCents / 100,
+              valorMultaMora: boleto.feesCents / 100,
+              aceitaValorDivergente: false,
+              numeroCpfCnpjPortador: payer.cpf,
+              nomePortador: payer.name,
+              amount: boleto.amountCents / 100,
+              date: boleto.paymentDate,
+              debtorAccount: {
+                issuer: Number(payer.cooperative),
+                number: Number(account),
+                accountType: 0,
+                personType: 0,
+              },
+            }),
           }),
-        }),
-        "boleto payment",
-      );
-      if (paid.paymentDate !== boleto.paymentDate)
-        throw new SicoobError("boleto payment", 200, "already paid for another day");
-      if (!["Efetivado", "Agendado"].includes(paid.state))
-        throw new SicoobError("boleto payment", 200, paid.state);
-      return paid;
+          "boleto payment",
+        );
+        if (!["Efetivado", "Agendado"].includes(paid.state))
+          throw new SicoobError("boleto payment", 200, paid.state);
+        return paid;
+      } finally {
+        paying.delete(boleto.barcode);
+      }
     },
   };
 }

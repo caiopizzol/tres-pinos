@@ -233,16 +233,16 @@ test("a boleto already paid or scheduled is reported, not paid again", async () 
   assert.equal(payments.size, 2);
 });
 
-test("a second approval for the same boleto never reports an amount Sicoob didn't pay", async () => {
+test("a second approval for the same boleto is answered with the payment already made", async () => {
   const gate = approvals();
   const agent = await connect(gate);
-  // Both are prepared before either is paid, so the boleto has no payment yet and both get the same key.
   const first = result(await call(agent, "prepare_boleto", { line: LINE, date: "2026-10-26" }));
+  // The payee raised the fine between the lookups, so the second approval quotes more for the very same day.
   bill = { valorMultaMora: 4.5, valorPagamento: 269.5 };
-  const second = result(await call(agent, "prepare_boleto", { line: LINE, date: "2026-10-27" }));
+  const second = result(await call(agent, "prepare_boleto", { line: LINE, date: "2026-10-26" }));
   assert.deepEqual(
-    [first.amountCents, first.paymentDate, second.amountCents, second.paymentDate],
-    [26850, "2026-10-26", 26950, "2026-10-27"],
+    [first.amountCents, second.amountCents, first.paymentDate, second.paymentDate],
+    [26850, 26950, "2026-10-26", "2026-10-26"],
   );
   await approve(gate, first.link);
   await approve(gate, second.link);
@@ -254,12 +254,32 @@ test("a second approval for the same boleto never reports an amount Sicoob didn'
     payee: "LOJA EXEMPLO LTDA",
     amountCents: 26850,
   });
-  // Sicoob answers the second key with the first payment: the second approval's day was never scheduled, so
-  // its amount was never paid and must not be reported as if it had been.
-  const replay = await call(agent, "pay_boleto", { approval: second.approval });
-  assert.ok(replay.isError, replay.content[0].text);
+  // The second approval pays nothing and is answered with the payment the first one made, never with its own
+  // amount, which Sicoob was never asked for.
+  assert.deepEqual(result(await call(agent, "pay_boleto", { approval: second.approval })), {
+    earlierPayment: { id: 1000, state: "Agendado", paymentDate: "2026-10-26" },
+  });
+  assert.equal(paid().length, 1);
   assert.equal(payments.size, 1);
-  assert.equal(paid().length, 2);
+});
+
+test("two approvals for the same boleto paid at once send only one payment", async () => {
+  const gate = approvals();
+  const agent = await connect(gate);
+  const first = result(await call(agent, "prepare_boleto", { line: LINE, date: "2026-10-26" }));
+  const second = result(await call(agent, "prepare_boleto", { line: LINE, date: "2026-10-26" }));
+  await approve(gate, first.link);
+  await approve(gate, second.link);
+
+  // Both look for a key before either payment lands, so without the guard both would believe it is free.
+  const answers = await Promise.all(
+    [first, second].map((a) => call(agent, "pay_boleto", { approval: a.approval })),
+  );
+  const refused = answers.filter((a) => a.isError);
+  assert.equal(refused.length, 1, JSON.stringify(answers));
+  assert.equal(result(answers.find((a) => !a.isError)).state, "Agendado");
+  assert.equal(paid().length, 1);
+  assert.equal(payments.size, 1);
 });
 
 test("a payment Sicoob rejects fails with its state, and the approval is used up", async () => {

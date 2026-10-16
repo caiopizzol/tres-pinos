@@ -119,7 +119,7 @@ export function buildServer(sicoob, icons, approvals = null) {
         const request = {
           title: "Pagar este boleto?",
           summary: summarize(boleto),
-          payload: { boleto, key: found.key },
+          payload: boleto,
         };
         const { payee, amountCents, dueDate, paymentDate } = boleto;
         return { payee, amountCents, dueDate, paymentDate, ...approvals.request(request) };
@@ -129,7 +129,7 @@ export function buildServer(sicoob, icons, approvals = null) {
     "pay_boleto",
     {
       description:
-        "Pays the boleto of an approval the owner gave on its link, exactly as they read it: today, or scheduled for its payment day. Pays once and returns the payment's id, state (Efetivado when paid, Agendado when scheduled) and date; once approved, the approval is used up either way. If the owner hasn't approved yet, nothing is paid and the same approval still works: ask them to approve at the same link. If the answer is unclear, such as a timeout, call prepare_boleto for the same boleto before anything else: it reports a payment already made as earlierPayment.",
+        "Pays the boleto of an approval the owner gave on its link, exactly as they read it: today, or scheduled for its payment day. Pays once and returns the payment's id, state (Efetivado when paid, Agendado when scheduled) and date; once approved, the approval is used up either way. A boleto that already has a payment, paid or scheduled, comes back as earlierPayment and nothing is paid. If the owner hasn't approved yet, nothing is paid and the same approval still works: ask them to approve at the same link. If the answer is unclear, such as a timeout, call prepare_boleto for the same boleto before anything else: it reports a payment already made as earlierPayment.",
       inputSchema: {
         approval: z.string().max(100).describe("The approval id from prepare_boleto"),
       },
@@ -137,12 +137,11 @@ export function buildServer(sicoob, icons, approvals = null) {
     },
     ({ approval }) =>
       answer(async () => {
-        const { boleto, key } = approvals.take(approval);
-        return {
-          ...(await sicoob.payBoleto(boleto, key)),
-          payee: boleto.payee,
-          amountCents: boleto.amountCents,
-        };
+        const boleto = approvals.take(approval);
+        const paid = await sicoob.payBoleto(boleto);
+        // Nothing was paid now, so the approval's amount is not this payment's: report it as it came.
+        if (paid.earlierPayment) return paid;
+        return { ...paid, payee: boleto.payee, amountCents: boleto.amountCents };
       }),
   );
   return server;
