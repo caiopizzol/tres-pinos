@@ -8,6 +8,7 @@ COPY package.json bun.lock ./
 COPY --parents connectors/*/package.json packages/*/package.json skills/*/package.json ./
 RUN bun install --frozen-lockfile --production --filter @tres-pinos/sicoob-connector && rm /usr/local/bin/bun
 COPY packages/api/src packages/api/src
+COPY packages/boleto/src/boleto.ts packages/boleto/src/boleto.ts
 COPY packages/server/src packages/server/src
 COPY connectors/sicoob/src connectors/sicoob/src
 # Sign-ins are kept here, on a volume; the folder belongs to node so a new volume does too.

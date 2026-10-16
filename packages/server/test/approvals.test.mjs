@@ -86,7 +86,7 @@ test("the tool gets the payload only after the owner approves it with the key, a
 
   const approved = await approve(link);
   assert.equal(approved.status, 200);
-  assert.match(await approved.text(), /Aprovado\. O agente pode emitir até/);
+  assert.match(await approved.text(), /Aprovado\. O agente pode seguir até/);
   assert.match(await (await fetch(link)).text(), /Cancelar a aprovação/);
   assert.equal(approvals.take(approval), "<DPS/>");
   assert.throws(() => approvals.take(approval), ApprovalError);

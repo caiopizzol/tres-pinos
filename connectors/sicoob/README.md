@@ -1,12 +1,13 @@
 # Sicoob
 
-Servidor MCP que deixa um agente de IA ler a sua conta corrente no Sicoob, pela API oficial: saldo e extrato.
-Ele nunca movimenta dinheiro.
+Servidor MCP que deixa um agente de IA ler a sua conta corrente no Sicoob, pela API oficial: saldo e extrato. Se você
+ligar, ele também paga e agenda boletos, cada um só depois que você o aprova.
 
 ## Requisitos
 
 - Um app no [portal de desenvolvedores do Sicoob](https://developers.sicoob.com.br), registrado com o seu
-  certificado e-CPF A1 e com a API Conta Corrente
+  certificado e-CPF A1 e com a API Conta Corrente. Para pagar boletos, também a API Cobrança Bancária Pagamentos,
+  e a sua cooperativa precisa liberar pagamentos pela API na conta
 - [OpenSSL](https://www.openssl.org) 3, para converter o certificado
 
 ## Certificado
@@ -59,17 +60,43 @@ Depois, pergunte: "Qual é o saldo da minha conta no Sicoob?"
 | `SICOOB_CERT_DIR`      | Pasta com `sicoob.crt` e `sicoob.key`. Padrão: `./certificate` |
 | `SICOOB_CERT_PASSWORD` | A senha de `sicoob.key`                                        |
 | `SICOOB_PUBLIC_URL`    | Endereço público com HTTPS, para entrar com login. Opcional    |
+| `SICOOB_PAY`           | `boletos` liga o pagamento de boletos. Veja [Pagar](#pagar)    |
+| `SICOOB_COOPERATIVE`   | Com `SICOOB_PAY`, a cooperativa (agência) da conta, 4 dígitos  |
+| `SICOOB_APPROVAL_HASH` | Com `SICOOB_PAY`, o SHA-256 da chave de aprovação              |
 
 ## Ferramentas
 
-| Ferramenta      | O que devolve                                                                  |
-| --------------- | ------------------------------------------------------------------------------ |
-| `get_balance`   | Saldo e limite, em centavos                                                    |
-| `get_statement` | As transações de um mês, em centavos. O Sicoob guarda só os últimos três meses |
+| Ferramenta       | O que devolve                                                                                      |
+| ---------------- | -------------------------------------------------------------------------------------------------- |
+| `get_balance`    | Saldo e limite, em centavos                                                                        |
+| `get_statement`  | As transações de um mês, em centavos. O Sicoob guarda só os últimos três meses                     |
+| `prepare_boleto` | Consulta um boleto, sem pagar, e devolve o link para você aprovar o pagamento. Só com `SICOOB_PAY` |
+| `pay_boleto`     | Paga ou agenda uma vez o boleto que você aprovou. Só com `SICOOB_PAY`                              |
 
-O conector só deixa sair as chamadas dessas duas ferramentas. Qualquer outra, como um pagamento, é recusada
-antes de chegar ao Sicoob, mesmo que o certificado permita. Faça as chamadas com uns 20 segundos de intervalo:
-em rajadas, o Sicoob responde HTTP 429.
+O conector só deixa sair as chamadas dessas ferramentas. Qualquer outra, como um Pix ou cancelar um agendamento, é
+recusada antes de chegar ao Sicoob, mesmo que o certificado permita. Faça as chamadas com uns 20 segundos de
+intervalo: em rajadas, o Sicoob responde HTTP 429.
+
+## Pagar
+
+Com `SICOOB_PAY=boletos`, o conector paga e agenda boletos da sua conta. Cada boleto sai só depois que você o
+aprova, numa página do conector, com uma chave de aprovação que o agente não recebe. O conector guarda só o SHA-256
+dela e recusa chaves com menos de 32 caracteres. Gere a chave e o hash como na
+[NFS-e](../nfse#emitir), e ponha o hash em `SICOOB_APPROVAL_HASH`.
+
+1. `prepare_boleto` recebe a linha digitável ou o código de barras e, se quiser agendar, a data. Ele consulta o
+   boleto no Sicoob e devolve um link. Nele você lê o beneficiário, o valor com desconto, multa e juros, o vencimento
+   e o dia em que o Sicoob vai pagar, e aprova com a chave, ou recusa. Num fim de semana ou feriado, o Sicoob paga no
+   dia útil seguinte, e a página já mostra esse dia.
+2. `pay_boleto` paga uma vez o boleto que você aprovou, hoje ou no dia agendado. A aprovação serve para um pagamento
+   só, em até 10 minutos.
+3. Se a resposta não for clara, `prepare_boleto` com o mesmo boleto mostra o pagamento já feito, em vez de pagar de
+   novo.
+
+O pagamento sai em nome do titular do e-CPF. Para cancelar um agendamento, use o app do Sicoob. O link é sempre
+`http://127.0.0.1:3012/approve/...`, ou o endereço de `SICOOB_PUBLIC_URL`: confira o endereço antes de digitar a
+chave. Como na NFS-e, a aprovação protege contra um agente que só tem a chave do conector, não contra quem controla
+a máquina do conector. Deixe na conta só o saldo que você quer que possa ser gasto.
 
 ## Desenvolvimento
 

@@ -8,6 +8,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.31.0",
     "@tres-pinos/api": "workspace:*",
+    "@tres-pinos/boleto": "workspace:*",
     "@tres-pinos/server": "workspace:*",
     "zod": "4.6.5"
   },

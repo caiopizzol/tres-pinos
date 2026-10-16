@@ -78,8 +78,8 @@ export function certificates(subjects, { locked = false } = {}) {
 
 // An HTTPS server like the official APIs: it accepts only a client certificate signed by the CA of `certs`, which
 // must have a "server" certificate for localhost. Each request is recorded in `requests` as { method, path, body,
-// auth, client }, where client is the name on its certificate, and `handle` answers it with [status, body]; a
-// string body goes out as is. `url()` is the base URL, once the tests start.
+// auth, client }, where client is the name on its certificate, and `handle` answers it, given also its headers, with
+// [status, body]; a string body goes out as is. `url()` is the base URL, once the tests start.
 export function fakeApi(certs, handle) {
   const requests = [];
   const server = createHttpsServer(
@@ -101,7 +101,7 @@ export function fakeApi(certs, handle) {
         client: req.socket.getPeerCertificate().subject.CN,
       };
       requests.push(request);
-      const [status, value] = await handle(request);
+      const [status, value] = await handle({ ...request, headers: req.headers });
       res
         .writeHead(status, { "Content-Type": "application/json" })
         .end(typeof value === "string" ? value : JSON.stringify(value));

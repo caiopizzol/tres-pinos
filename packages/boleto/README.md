@@ -1,7 +1,8 @@
 # Boleto
 
-Lê os códigos de boleto e Pix de um PDF ou da foto de uma conta, como CLI ou como biblioteca. Nunca usa a rede.
-Nenhum conector o usa ainda: espera a primeira skill ou o primeiro conector que receba contas.
+Lê os códigos de boleto e Pix de um PDF ou da foto de uma conta, como CLI ou como biblioteca. Nunca usa a rede. O
+conector do [Sicoob](../../connectors/sicoob) confere com `@tres-pinos/boleto/code` os dígitos verificadores do
+boleto que vai pagar.
 
 > [!IMPORTANT]
 > Um código lido só da imagem do código de barras fica `unconfirmed`: o código de barras de 44 dígitos tem um

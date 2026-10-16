@@ -38,7 +38,7 @@ prontos para o resto do mundo e travam nas nossas jabuticabas.
 
 | Conector                      | O que o agente pode fazer                                                                               |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------- |
-| [`sicoob`](connectors/sicoob) | Ler o saldo e o extrato da conta corrente. Nunca movimenta dinheiro                                     |
+| [`sicoob`](connectors/sicoob) | Ler o saldo e o extrato da conta corrente. Se você ligar, pagar boletos que você aprovar, um a um       |
 | [`inter`](connectors/inter)   | Ler o saldo e o extrato da conta PJ. Nunca movimenta dinheiro                                           |
 | [`nfse`](connectors/nfse)     | Ler as notas fiscais de serviço da empresa. Emite só no ambiente de teste, se você ligar. Nunca cancela |
 

@@ -11,4 +11,4 @@ const REQUESTS = [
 ].map((pattern) => new RegExp(pattern));
 
 export const readOnly = (fetch) =>
-  allowOnly(fetch, { tokenUrl: TOKEN_URL, scope: SCOPE, requests: REQUESTS });
+  allowOnly(fetch, { tokenUrl: TOKEN_URL, scopes: [SCOPE], requests: REQUESTS });

@@ -67,18 +67,18 @@ export function certificateFetch({ cert, key, passphrase, ca }, timeout = 10_000
 const guarded = new WeakSet();
 export const isGuarded = (fetch) => guarded.has(fetch);
 
-// Lets through only a token request at `tokenUrl` for exactly `scope`, and requests whose "METHOD url" matches
+// Lets through only a token request at `tokenUrl` for one of `scopes`, and requests whose "METHOD url" matches
 // one of `requests`. Anything else, such as a payment, is refused before the network, even if a later change
 // calls it by mistake. Without `tokenUrl`, only the listed requests pass.
-export function allowOnly(fetch, { tokenUrl, scope, requests }) {
+export function allowOnly(fetch, { tokenUrl, scopes = [], requests }) {
   const guard = (url, init = {}) => {
     const method = (init.method ?? "GET").toUpperCase();
-    // A body can repeat `scope`; only the one read-only scope passes.
-    const scopes =
+    // A body can repeat `scope`; only a single listed scope passes.
+    const asked =
       typeof init.body === "string" ? new URLSearchParams(init.body).getAll("scope") : [];
     const allowed =
       url === tokenUrl
-        ? method === "POST" && scopes.length === 1 && scopes[0] === scope
+        ? method === "POST" && asked.length === 1 && scopes.includes(asked[0])
         : requests.some((p) => p.test(`${method} ${url}`));
     if (!allowed) return Promise.reject(new Error(`Refused ${method} request`));
     return fetch(url, init).then((res) => {
