@@ -5,7 +5,7 @@ import { test } from "node:test";
 import { certificateFetch } from "@tres-pinos/api";
 import { certificates, fakeApi } from "@tres-pinos/testing";
 import { guard } from "../src/guard.mjs";
-import { API_URL, SicoobError, sicoobClient, TOKEN_URL } from "../src/sicoob.mjs";
+import { API_URL, paced, SicoobError, sicoobClient, TOKEN_URL } from "../src/sicoob.mjs";
 import { buildServer } from "../src/tools.mjs";
 
 const certs = certificates(
@@ -150,4 +150,42 @@ test("an error carries Sicoob's code and status, never its message text", async 
   assert.ok(error instanceof SicoobError);
   assert.equal(error.message, "Sicoob token request failed (HTTP 400): Sicoob code 10320");
   assert.doesNotMatch(error.message, /1234567/);
+});
+
+test("a message Sicoob is known to send carries no data, so it reaches the agent in words", async () => {
+  reply = [
+    422,
+    {
+      mensagens: [
+        { codigo: "0001", mensagem: "O seu limite diário para a operação foi excedido!" },
+      ],
+    },
+  ];
+  const error = await sicoobClient(config, guard(client()))
+    .getBalance()
+    .catch((e) => e);
+  reply = null;
+  assert.equal(
+    error.reason,
+    "Sicoob code 0001, the account's daily limit for this operation was exceeded",
+  );
+});
+
+test("requests to the payments API go out at most 2 per second, even after a stall, and others are not held", async () => {
+  const sent = [];
+  const fetch = paced(async (url) => sent.push([url, Date.now()]));
+  const pay = `${API_URL}/pagamentos/v3/boletos/x`;
+  const start = Date.now();
+  const calls = [fetch(pay), fetch(TOKEN_URL), fetch(pay), fetch(pay), fetch(pay)];
+  // The process stalls past two of the waits, as a busy event loop would.
+  await new Promise((resolve) => setTimeout(resolve, 300));
+  while (Date.now() - start < 1500);
+  await Promise.all(calls);
+  const times = sent.filter(([url]) => url === pay).map(([, at]) => at);
+  const gaps = times.slice(1).map((at, i) => at - times[i]);
+  assert.ok(
+    gaps.every((gap) => gap >= 595),
+    String(gaps),
+  );
+  assert.ok(sent.find(([url]) => url === TOKEN_URL)[1] - start < 50);
 });

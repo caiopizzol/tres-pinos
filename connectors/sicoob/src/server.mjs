@@ -3,7 +3,7 @@ import { X509Certificate } from "node:crypto";
 import { certificateFetch, readCertificate } from "@tres-pinos/api";
 import { createApprovals, icons, serve } from "@tres-pinos/server";
 import { guard } from "./guard.mjs";
-import { sicoobClient } from "./sicoob.mjs";
+import { paced, sicoobClient } from "./sicoob.mjs";
 import { buildServer } from "./tools.mjs";
 
 // PORT is for tests; the image always listens on 8080.
@@ -45,7 +45,7 @@ if (pay) {
 
 const sicoob = sicoobClient(
   { clientId: env.SICOOB_CLIENT_ID, account: env.SICOOB_ACCOUNT, payer },
-  guard(certificateFetch(certificate), { pay: Boolean(pay) }),
+  guard(paced(certificateFetch(certificate)), { pay: Boolean(pay) }),
 );
 serve({
   name: "SICOOB_KEY",
