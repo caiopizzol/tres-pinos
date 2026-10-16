@@ -28,14 +28,17 @@ const BILL = {
   identificadorConsulta: "consulta-1",
 };
 
-// Sicoob's payments, by idempotency key, how the next payment ends, and changes to the boleto it looks up.
+// Sicoob's payments, by idempotency key, how the next payment ends, how it answers a key with no payment, and
+// changes to the boleto it looks up.
 let payments;
 let outcome;
+let absence;
 let bill;
 let start;
 beforeEach(() => {
   payments = new Map();
   outcome = "Agendado";
+  absence = 400;
   bill = {};
   start = requests.length;
 });
@@ -48,8 +51,9 @@ const fake = fakeApi(certs, ({ method, path, body, headers }) => {
   );
   if (receipt) {
     const paid = payments.get(receipt[1]);
-    return paid
-      ? [200, { resultado: paid }]
+    if (paid) return [200, { resultado: paid }];
+    return absence === 204
+      ? [204, ""]
       : [400, { mensagens: [{ codigo: "10275", mensagem: "Comprovante não encontrado" }] }];
   }
   if (method === "GET" && url.pathname === `/pagamentos/v3/boletos/${BARCODE}`) {
@@ -68,12 +72,16 @@ const fake = fakeApi(certs, ({ method, path, body, headers }) => {
   }
   if (method === "POST" && url.pathname === `/pagamentos/v3/boletos/pagamentos/${BARCODE}`) {
     const sent = JSON.parse(body);
+    const key = headers["x-idempotency-key"];
+    // Like Sicoob, a key that already paid answers with that payment instead of paying again.
+    const earlier = payments.get(key);
+    if (earlier) return [200, { resultado: earlier }];
     const paid = {
       idPagamento: 1000 + payments.size,
       situacaoPagamento: outcome,
       dataPagamento: sent.date,
     };
-    payments.set(headers["x-idempotency-key"], paid);
+    payments.set(key, paid);
     return [200, { resultado: paid }];
   }
   return [404, {}];
@@ -225,6 +233,35 @@ test("a boleto already paid or scheduled is reported, not paid again", async () 
   assert.equal(payments.size, 2);
 });
 
+test("a second approval for the same boleto never reports an amount Sicoob didn't pay", async () => {
+  const gate = approvals();
+  const agent = await connect(gate);
+  // Both are prepared before either is paid, so the boleto has no payment yet and both get the same key.
+  const first = result(await call(agent, "prepare_boleto", { line: LINE, date: "2026-10-26" }));
+  bill = { valorMultaMora: 4.5, valorPagamento: 269.5 };
+  const second = result(await call(agent, "prepare_boleto", { line: LINE, date: "2026-10-27" }));
+  assert.deepEqual(
+    [first.amountCents, first.paymentDate, second.amountCents, second.paymentDate],
+    [26850, "2026-10-26", 26950, "2026-10-27"],
+  );
+  await approve(gate, first.link);
+  await approve(gate, second.link);
+
+  assert.deepEqual(result(await call(agent, "pay_boleto", { approval: first.approval })), {
+    id: 1000,
+    state: "Agendado",
+    paymentDate: "2026-10-26",
+    payee: "LOJA EXEMPLO LTDA",
+    amountCents: 26850,
+  });
+  // Sicoob answers the second key with the first payment: the second approval's day was never scheduled, so
+  // its amount was never paid and must not be reported as if it had been.
+  const replay = await call(agent, "pay_boleto", { approval: second.approval });
+  assert.ok(replay.isError, replay.content[0].text);
+  assert.equal(payments.size, 1);
+  assert.equal(paid().length, 2);
+});
+
 test("a payment Sicoob rejects fails with its state, and the approval is used up", async () => {
   const gate = approvals();
   const agent = await connect(gate);
@@ -238,6 +275,22 @@ test("a payment Sicoob rejects fails with its state, and the approval is used up
   assert.match(
     (await call(agent, "pay_boleto", { approval: prepared.approval })).content[0].text,
     /No pending approval/,
+  );
+});
+
+test("a receipt answered with no content means the key is free, not a failure", async () => {
+  absence = 204;
+  const gate = approvals();
+  const agent = await connect(gate);
+  const prepared = result(await call(agent, "prepare_boleto", { line: LINE, date: "2026-10-26" }));
+  assert.deepEqual(
+    [prepared.payee, prepared.amountCents, prepared.paymentDate],
+    ["LOJA EXEMPLO LTDA", 26850, "2026-10-26"],
+  );
+  await approve(gate, prepared.link);
+  assert.equal(
+    result(await call(agent, "pay_boleto", { approval: prepared.approval })).state,
+    "Agendado",
   );
 });
 

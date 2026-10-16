@@ -89,8 +89,10 @@ export function sicoobClient({ clientId, account, payer }, fetch) {
     return body.access_token;
   }
 
-  // Sicoob's `resultado` for one request with a token for `scope`; `init` adds a method, headers and a body.
-  async function result(scope, url, context, init = {}) {
+  // Sicoob's `resultado` for one request with a token for `scope`; `init` adds a method, headers and a body. With
+  // `allowEmpty`, a success with no body gives null instead of failing: only a caller that has a meaning for
+  // "nothing here", such as looking for a payment, asks for it.
+  async function result(scope, url, context, { allowEmpty = false, ...init } = {}) {
     const res = await fetch(url, {
       ...init,
       headers: {
@@ -101,6 +103,7 @@ export function sicoobClient({ clientId, account, payer }, fetch) {
       },
     });
     if (res.status < 200 || res.status >= 300) throw failure(context, res);
+    if (allowEmpty && !res.text) return null;
     const { resultado } = json(res.text, context);
     if (typeof resultado !== "object" || resultado === null)
       throw new Error(`Unexpected Sicoob ${context} response`);
@@ -187,14 +190,15 @@ export function sicoobClient({ clientId, account, payer }, fetch) {
         const key = paymentKey(barcode, attempt);
         let earlier;
         try {
-          earlier = payment(
-            await result(
-              LOOKUP_SCOPE,
-              `${BOLETOS}/pagamentos/${key}/idempotency/comprovantes?${query}`,
-              "boleto receipt",
-            ),
+          const found = await result(
+            LOOKUP_SCOPE,
+            `${BOLETOS}/pagamentos/${key}/idempotency/comprovantes?${query}`,
             "boleto receipt",
+            { allowEmpty: true },
           );
+          // Sicoob answered that the request worked and there is no payment to return.
+          if (found === null) return { key };
+          earlier = payment(found, "boleto receipt");
         } catch (error) {
           // Sicoob has no payment with this key.
           if (error instanceof SicoobError && error.reason === "Sicoob code 10275") return { key };
@@ -206,7 +210,8 @@ export function sicoobClient({ clientId, account, payer }, fetch) {
     },
 
     // Pays `boleto`, as getBoleto returned it, today or on its paymentDate. This moves money. A payment Sicoob
-    // doesn't take, even with HTTP 200, fails with its state.
+    // doesn't take, even with HTTP 200, fails with its state. Two approvals prepared before either was paid share
+    // a key, so Sicoob can answer the second with the first payment: a payment for another day is not this one.
     async payBoleto(boleto, key) {
       const paid = payment(
         await result(PAY_SCOPE, `${BOLETOS}/pagamentos/${boleto.barcode}`, "boleto payment", {
@@ -232,6 +237,8 @@ export function sicoobClient({ clientId, account, payer }, fetch) {
         }),
         "boleto payment",
       );
+      if (paid.paymentDate !== boleto.paymentDate)
+        throw new SicoobError("boleto payment", 200, "already paid for another day");
       if (!["Efetivado", "Agendado"].includes(paid.state))
         throw new SicoobError("boleto payment", 200, paid.state);
       return paid;
