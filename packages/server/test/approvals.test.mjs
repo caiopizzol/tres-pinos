@@ -205,6 +205,33 @@ test("two approvals of the same request at once run the work once", async () => 
   assert.equal(runs.length, 1);
 });
 
+test("running work outlives its expiry and a hundred newer requests, and keeps what came of it", async () => {
+  const { approvals } = await start();
+  let finish;
+  const { approval, link } = approvals.request({
+    title: "Pagar este boleto?",
+    summary: [],
+    button: "Aprovar e pagar",
+    run: () => new Promise((resolve) => (finish = resolve)),
+    report: (r) => [["Nº no Sicoob", r.id]],
+    describe: () => undefined,
+  });
+  clock += 60 * 60_000 - 1;
+  const approved = approve(link);
+  while (!finish) await new Promise((resolve) => setTimeout(resolve, 1));
+  clock += 2;
+  for (let i = 0; i < 100; i++) ask(approvals);
+  // Ended before the checks, so a failing check doesn't leave the owner's request open.
+  finish({ id: 1000 });
+  assert.match(await (await approved).text(), /Feito/);
+  assert.deepEqual(approvals.status(approval), {
+    status: "done",
+    result: { id: 1000 },
+    error: undefined,
+  });
+  assert.match(await (await fetch(link)).text(), /Feito/);
+});
+
 test("each request is its own approval: approving one runs no other", async () => {
   const { approvals } = await start();
   const first = ask(approvals);

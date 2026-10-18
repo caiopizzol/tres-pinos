@@ -10,7 +10,7 @@ import { escape, page, read, send, style } from "./page.mjs";
 const TTL_MS = 60 * 60_000;
 // Wrong keys before the request is dropped, so the agent, which knows the link, can't keep guessing.
 const MAX_WRONG = 5;
-// Each approval holds its work in memory, so a loop of requests replaces the oldest.
+// Each approval holds its work in memory, so a loop of requests replaces the oldest, unless its work is running.
 const MAX_PENDING = 100;
 
 // Why a tool can't go on: its message is for the agent.
@@ -46,7 +46,8 @@ export function createApprovals({ name, hash, url, now = () => Date.now() }) {
   // failure, as for toolAnswer. Returns the approval's id and the link to it.
   function request({ title, summary, button, run, report, describe }) {
     for (const [id, entry] of approvals) if (entry.expiresAt <= now()) approvals.delete(id);
-    while (approvals.size >= MAX_PENDING) approvals.delete(approvals.keys().next().value);
+    for (const [id, entry] of approvals)
+      if (approvals.size >= MAX_PENDING && entry.status !== "running") approvals.delete(id);
     const id = randomBytes(24).toString("base64url");
     approvals.set(id, {
       title,
@@ -147,8 +148,9 @@ ${wrong ? '<p style="color:#B42318">Chave errada.</p>' : ""}
       return true;
     }
     // Running from here on, with no await since the check above, so a second approval of the same request can't
-    // start the work again.
+    // start the work again. Running work doesn't expire: what comes of it stays for an hour after it ends.
     entry.status = "running";
+    entry.expiresAt = Infinity;
     try {
       entry.result = await entry.run();
       entry.status = "done";
