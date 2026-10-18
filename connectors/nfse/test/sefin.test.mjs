@@ -267,7 +267,8 @@ const connect = async (server) => {
 };
 const result = (answer) => JSON.parse(answer.content[0].text);
 
-// The owner approves on the page: here, the same form post the page sends, from the page's own origin.
+// The owner approves on the page: here, the same form post the page sends, from the page's own origin. Returns the
+// page that answers it.
 async function ownerApproves(gate, link) {
   const page = new URL(link);
   const req = Object.assign(
@@ -278,8 +279,10 @@ async function ownerApproves(gate, link) {
       headers: { origin: page.origin, host: page.host },
     },
   );
-  const res = { writeHead: () => res, end: () => {} };
+  let html = "";
+  const res = { writeHead: () => res, end: (body) => (html = String(body ?? "")) };
   assert.ok(await gate.handle(req, res));
+  return html;
 }
 
 test("the issuing tools appear only with issuing on, and only with the owner's approvals", async () => {
@@ -300,13 +303,13 @@ test("the issuing tools appear only with issuing on, and only with the owner's a
   const { tools } = await agent.listTools();
   assert.deepEqual(
     tools.map((t) => t.name),
-    ["list_invoices", "read_skill", "prepare_invoice", "issue_invoice", "find_invoice"],
+    ["list_invoices", "read_skill", "prepare_invoice", "get_approval", "find_invoice"],
   );
-  assert.equal(tools.find((t) => t.name === "issue_invoice").annotations.readOnlyHint, false);
+  assert.ok(tools.every((t) => t.annotations.readOnlyHint));
   await agent.close();
 });
 
-test("issue_invoice sends only the DPS the owner approved, once", async () => {
+test("approving on the page sends only the DPS the owner read, once", async () => {
   const gate = approvals();
   const agent = await connect(
     buildServer(adnClient(guard(client(), { issue: true })), undefined, sefin(), gate),
@@ -318,29 +321,24 @@ test("issue_invoice sends only the DPS the owner approved, once", async () => {
   assert.equal(prepared.id, ID);
   assert.match(prepared.link, /^https:\/\/nfse\.example\.com\/approve\/[\w-]{32}$/);
 
-  const issue = (approval) => agent.callTool({ name: "issue_invoice", arguments: { approval } });
-  assert.match((await issue(prepared.approval)).content[0].text, /not approved it yet/);
-  assert.match((await issue("made-up")).content[0].text, /No pending approval/);
-  // The old way, with the DPS in the call, is not a way around the approval.
+  const status = async (approval) =>
+    result(await agent.callTool({ name: "get_approval", arguments: { approval } }));
+  assert.deepEqual(await status(prepared.approval), { status: "pending" });
+  // The old way, sending from the agent, is gone.
   const withDps = await agent.callTool({ name: "issue_invoice", arguments: { dps: DPS } });
   assert.ok(withDps.isError);
   assert.equal(requests.length, before);
 
-  await ownerApproves(gate, prepared.link);
-
-  // A DPS the agent sends along is ignored: what goes out is the one the owner read.
   reply = issued();
-  const invoice = result(
-    await agent.callTool({
-      name: "issue_invoice",
-      arguments: { approval: prepared.approval, dps: DPS.replace("1500.50", "9500.50") },
-    }),
-  );
+  const page = await ownerApproves(gate, prepared.link);
+  assert.match(page, new RegExp(`Feito[\\s\\S]*${KEY}`));
+  const { status: done, result: invoice } = await status(prepared.approval);
+  assert.equal(done, "done");
   assert.deepEqual([invoice.dpsId, invoice.accessKey], [ID, KEY]);
   assert.equal(requests.length, before + 1);
   const sent = gunzipSync(Buffer.from(JSON.parse(requests.at(-1).body).dpsXmlGZipB64, "base64"));
   assert.match(sent.toString(), /<vServ>1500\.50<\/vServ>/);
-  assert.match((await issue(prepared.approval)).content[0].text, /No pending approval/);
+  await ownerApproves(gate, prepared.link);
   assert.equal(requests.length, before + 1);
   await agent.close();
 });
@@ -350,15 +348,17 @@ test("a failure answers with only its status and codes", async () => {
   const agent = await connect(
     buildServer(adnClient(guard(client(), { issue: true })), undefined, sefin(), gate),
   );
-  const { approval } = result(
+  const { approval, link } = result(
     await agent.callTool({ name: "prepare_invoice", arguments: { dps: DPS } }),
   );
-  await ownerApproves(gate, `https://nfse.example.com/approve/${approval}`);
   reply = [400, { erros: [{ Codigo: "E0014", Descricao: "CNPJ 00000000000191" }] }];
-  assert.deepEqual(await agent.callTool({ name: "issue_invoice", arguments: { approval } }), {
-    isError: true,
-    content: [{ type: "text", text: "NFS-e: HTTP 400 E0014" }],
-  });
+  const page = await ownerApproves(gate, link);
+  assert.match(page, /HTTP 400 E0014/);
+  assert.doesNotMatch(page, /00000000000191/);
+  assert.deepEqual(
+    result(await agent.callTool({ name: "get_approval", arguments: { approval } })),
+    { status: "failed", error: "HTTP 400 E0014" },
+  );
   const refused = await agent.callTool({
     name: "prepare_invoice",
     arguments: { dps: DPS.replace("<tpAmb>2</tpAmb>", "<tpAmb>1</tpAmb>") },

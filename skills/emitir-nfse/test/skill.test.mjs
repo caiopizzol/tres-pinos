@@ -85,7 +85,7 @@ test("the tools and fields the skill names are the ones the connector gives", as
     "list_invoices",
     "find_invoice",
     "prepare_invoice",
-    "issue_invoice",
+    "get_approval",
     "approval",
     "link",
     "afterNsu",
@@ -116,7 +116,7 @@ test("the next DPS number is the first that find_invoice reports as not issued",
   assert.equal((await call("find_invoice", { dpsId: id(2) })).issued, false);
 });
 
-test("the template, filled for the invoice, passes the official schema and issues once the owner approves", async () => {
+test("the template, filled for the invoice, passes the official schema and the owner's approval issues it", async () => {
   const prepared = await call("prepare_invoice", { dps: filled(EXPECTED.nDPS) });
   assert.equal(prepared.id, id(EXPECTED.nDPS));
   const page = await fetch(prepared.link);
@@ -127,7 +127,8 @@ test("the template, filled for the invoice, passes the official schema and issue
     body: new URLSearchParams({ key: APPROVAL_KEY, decision: "approve" }),
   });
   assert.equal(approved.status, 200);
-  const invoice = await call("issue_invoice", { approval: prepared.approval });
+  const { status, result: invoice } = await call("get_approval", { approval: prepared.approval });
+  assert.equal(status, "done");
   assert.equal(invoice.dpsId, id(EXPECTED.nDPS));
   assert.equal(invoice.netAmountCents, 1_036_060);
   assert.match(sent.at(-1), new RegExp(`<vServMoeda>${EXPECTED.usd}</vServMoeda>`));

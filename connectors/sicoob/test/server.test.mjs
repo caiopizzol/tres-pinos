@@ -69,7 +69,7 @@ test("with SICOOB_PAY=boletos, it also offers the payment tools", async () => {
   const url = await runningServer(SERVER, { ...SETTINGS, ...PAYING });
   assert.deepEqual(
     (await listTools(url)).map((t) => t.name),
-    ["get_balance", "get_statement", "prepare_boleto", "pay_boleto"],
+    ["get_balance", "get_statement", "prepare_boleto", "get_approval"],
   );
 });
 

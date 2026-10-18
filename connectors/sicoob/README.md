@@ -78,7 +78,7 @@ Depois, pergunte: "Qual é o saldo da minha conta no Sicoob?"
 | `get_balance`    | Saldo e limite, em centavos                                                                        |
 | `get_statement`  | As transações de um mês, em centavos. O Sicoob guarda só os últimos três meses                     |
 | `prepare_boleto` | Consulta um boleto, sem pagar, e devolve o link para você aprovar o pagamento. Só com `SICOOB_PAY` |
-| `pay_boleto`     | Paga ou agenda uma vez o boleto que você aprovou. Só com `SICOOB_PAY`                              |
+| `get_approval`   | Se você já aprovou ou recusou, e o pagamento que a aprovação fez. Só com `SICOOB_PAY`              |
 
 O conector só deixa sair as chamadas dessas ferramentas. Qualquer outra, como um Pix ou cancelar um agendamento, é
 recusada antes de chegar ao Sicoob, mesmo que o certificado permita. Em rajadas, o Sicoob responde HTTP 429: faça as
@@ -86,19 +86,19 @@ chamadas de saldo e extrato com uns 20 segundos de intervalo. As de pagamento o 
 
 ## Pagar
 
-Com `SICOOB_PAY=boletos`, o conector paga e agenda boletos da sua conta. Cada boleto sai só depois que você o
-aprova, numa página do conector, com uma chave de aprovação que o agente não recebe. O conector guarda só o SHA-256
-dela e recusa chaves com menos de 32 caracteres. Gere a chave e o hash como na
+Com `SICOOB_PAY=boletos`, o conector paga e agenda boletos da sua conta. Cada boleto sai só quando você o aprova,
+numa página do conector, com uma chave de aprovação que o agente não recebe; nenhuma ferramenta do agente paga. O
+conector guarda só o SHA-256 da chave e recusa chaves com menos de 32 caracteres. Gere a chave e o hash como na
 [NFS-e](../nfse#emitir), e ponha o hash em `SICOOB_APPROVAL_HASH`.
 
 1. `prepare_boleto` recebe a linha digitável ou o código de barras e, se quiser agendar, a data. Ele consulta o
    boleto no Sicoob e devolve um link. Nele você lê o beneficiário, o valor com desconto, multa e juros, o vencimento
    e o dia em que o Sicoob vai pagar, e aprova com a chave, ou recusa. Num fim de semana ou feriado, o Sicoob paga no
    dia útil seguinte, e a página já mostra esse dia.
-2. `pay_boleto` paga uma vez o boleto que você aprovou, hoje ou no dia agendado. A aprovação serve para um pagamento
-   só, em até 10 minutos.
-3. Se a resposta não for clara, `prepare_boleto` com o mesmo boleto mostra o pagamento já feito, em vez de pagar de
-   novo.
+2. Aprovar paga o boleto uma vez, hoje ou no dia agendado, e a página mostra o que o Sicoob respondeu. O pedido vale
+   uma hora, e cinco chaves erradas o apagam.
+3. `get_approval` conta ao agente o que veio da aprovação. Se o pagamento falhou, `prepare_boleto` com o mesmo boleto
+   mostra um pagamento que tenha chegado ao Sicoob, em vez de pagar de novo.
 
 O comprovante mostra como pagador quem está no boleto, mas o dinheiro sai da sua conta. Acima do limite diário de
 pagamentos pela API, o Sicoob recusa o pagamento, e o agente avisa; a cooperativa pode aumentar esse limite. Para

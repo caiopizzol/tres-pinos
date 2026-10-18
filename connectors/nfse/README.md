@@ -63,7 +63,7 @@ IA, com o mesmo cuidado com apps na nuvem. Os logins ficam no volume `nfse`.
 | `list_invoices`   | Os próximos documentos, até 50, depois de um NSU. Comece no 0 e continue até `done` vir `true`              |
 | `read_skill`      | As skills que usam este conector, para o agente seguir sem instalar nada. Veja [Skills](#skills)            |
 | `prepare_invoice` | Confere a DPS no esquema oficial, sem enviar, e devolve o link para você aprová-la. Só com `NFSE_ISSUE`     |
-| `issue_invoice`   | Envia uma vez a DPS que você aprovou e devolve a nota emitida. Só com `NFSE_ISSUE`                          |
+| `get_approval`    | Se você já aprovou ou recusou, e a nota que a aprovação emitiu. Só com `NFSE_ISSUE`                         |
 | `find_invoice`    | Diz se o sistema nacional gerou uma nota para um Id de DPS e, se gerou, devolve a nota. Só com `NFSE_ISSUE` |
 
 O NSU é o número que o sistema nacional dá a cada documento, em ordem. Guarde o `lastNsu` de uma resposta para
@@ -105,11 +105,12 @@ O agente monta a DPS, a declaração da qual a nota é gerada, com `tpAmb` 2, e:
 
 1. `prepare_invoice` confere a DPS no esquema oficial, sem enviar, e devolve um link. Nele você lê a DPS (o tomador,
    o valor, a competência, a descrição e depois cada campo, tirados da própria DPS) e aprova com a chave, ou recusa.
-   O pedido vale uma hora, e cinco chaves erradas o apagam. Depois de aprovar, a mesma página deixa cancelar.
-2. `issue_invoice` envia uma vez a DPS que você aprovou e devolve a nota emitida, lida como em `list_invoices`. A
-   aprovação serve para um envio só, em até 10 minutos, e o conector esquece as que não foram usadas quando reinicia.
-3. Se a resposta não for clara, como um tempo esgotado, `find_invoice` diz se a nota foi gerada. Nunca envie a mesma
-   DPS com outro número: isso emitiria uma segunda nota.
+   O pedido vale uma hora, e cinco chaves erradas o apagam.
+2. Aprovar envia a DPS uma vez, e a página mostra o número e a chave da nota emitida. O conector esquece os pedidos
+   quando reinicia.
+3. `get_approval` conta ao agente o que veio da aprovação, com a nota lida como em `list_invoices`. Se o envio
+   falhou, `find_invoice` diz se a nota foi gerada mesmo assim. Nunca prepare a mesma nota com outro número de DPS:
+   isso emitiria uma segunda nota.
 
 O link é sempre `http://127.0.0.1:3014/approve/...`, ou o endereço de `NFSE_PUBLIC_URL`: confira o endereço antes de
 digitar a chave. A aprovação protege contra um agente que só tem a chave do conector. Quem controla a máquina do
