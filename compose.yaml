@@ -3,7 +3,7 @@
 # key, so one connector can't read another's; a missing file stops it instead of becoming a directory.
 services:
   sicoob:
-    image: ghcr.io/caiopizzol/tres-pinos/sicoob:${TRES_PINOS_VERSION:-v0.1.8}
+    image: ghcr.io/caiopizzol/tres-pinos/sicoob:${TRES_PINOS_VERSION:-v0.1.9}
     build:
       context: .
       dockerfile: connectors/sicoob/Dockerfile
@@ -39,7 +39,7 @@ services:
           create_host_path: false
       - sicoob:/data
   inter:
-    image: ghcr.io/caiopizzol/tres-pinos/inter:${TRES_PINOS_VERSION:-v0.1.8}
+    image: ghcr.io/caiopizzol/tres-pinos/inter:${TRES_PINOS_VERSION:-v0.1.9}
     build:
       context: .
       dockerfile: connectors/inter/Dockerfile
@@ -69,7 +69,7 @@ services:
           create_host_path: false
       - inter:/data
   nfse:
-    image: ghcr.io/caiopizzol/tres-pinos/nfse:${TRES_PINOS_VERSION:-v0.1.8}
+    image: ghcr.io/caiopizzol/tres-pinos/nfse:${TRES_PINOS_VERSION:-v0.1.9}
     build:
       context: .
       dockerfile: connectors/nfse/Dockerfile
