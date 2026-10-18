@@ -138,8 +138,9 @@ async function page(gate, link, form) {
   return html;
 }
 const approve = (gate, link) => page(gate, link, { key: APPROVAL_KEY, decision: "approve" });
+const status = async (agent, approval) => result(await call(agent, "get_approval", { approval }));
 
-test("the payment tools appear only with the owner's approvals", async () => {
+test("the payment tools appear only with the owner's approvals, and none of them pays", async () => {
   const readOnly = await connect(null);
   assert.deepEqual(
     (await readOnly.listTools()).tools.map((t) => t.name),
@@ -148,12 +149,12 @@ test("the payment tools appear only with the owner's approvals", async () => {
   const { tools } = await (await connect(approvals())).listTools();
   assert.deepEqual(
     tools.map((t) => t.name),
-    ["get_balance", "get_statement", "prepare_boleto", "pay_boleto"],
+    ["get_balance", "get_statement", "prepare_boleto", "get_approval"],
   );
-  assert.equal(tools.find((t) => t.name === "pay_boleto").annotations.destructiveHint, true);
+  assert.ok(tools.every((t) => t.annotations.readOnlyHint));
 });
 
-test("pays only the boleto the owner approved on the page, once", async () => {
+test("approving on the page pays only that boleto, once, and the agent reads what came of it", async () => {
   const gate = approvals();
   const agent = await connect(gate);
   const prepared = result(await call(agent, "prepare_boleto", { line: LINE, date: "2026-10-25" }));
@@ -177,21 +178,29 @@ test("pays only the boleto the owner approved on the page, once", async () => {
     "25/10/2026",
     "Agendado para 26/10/2026",
     BARCODE,
+    "Aprovar e pagar",
   ])
     assert.ok(shown.includes(fact), fact);
 
-  const pay = (approval) => call(agent, "pay_boleto", { approval });
-  assert.match((await pay(prepared.approval)).content[0].text, /not approved it yet/);
-  assert.match((await pay("made-up")).content[0].text, /No pending approval/);
+  assert.deepEqual(await status(agent, prepared.approval), { status: "pending" });
+  assert.match(
+    (await call(agent, "get_approval", { approval: "made-up" })).content[0].text,
+    /No approval with this id/,
+  );
   assert.equal(paid().length, 0);
 
-  await approve(gate, prepared.link);
-  assert.deepEqual(result(await pay(prepared.approval)), {
-    id: 1000,
-    state: "Agendado",
-    paymentDate: "2026-10-26",
-    payee: "LOJA EXEMPLO LTDA",
-    amountCents: 26850,
+  const done = await approve(gate, prepared.link);
+  for (const fact of ["Feito", "Agendado para 26/10/2026", "1000"])
+    assert.ok(done.includes(fact), fact);
+  assert.deepEqual(await status(agent, prepared.approval), {
+    status: "done",
+    result: {
+      id: 1000,
+      state: "Agendado",
+      paymentDate: "2026-10-26",
+      payee: "LOJA EXEMPLO LTDA",
+      amountCents: 26850,
+    },
   });
   const sent = JSON.parse(paid()[0].body);
   assert.deepEqual(
@@ -210,7 +219,7 @@ test("pays only the boleto the owner approved on the page, once", async () => {
   });
   assert.match([...payments.keys()][0], /^3031-1234567-[0-9a-f-]{36}$/);
 
-  assert.match((await pay(prepared.approval)).content[0].text, /No pending approval/);
+  await approve(gate, prepared.link);
   assert.equal(paid().length, 1);
 });
 
@@ -219,8 +228,7 @@ test("a boleto already paid or scheduled is reported, not paid again", async () 
   const agent = await connect(gate);
   const first = result(await call(agent, "prepare_boleto", { line: LINE, date: "2026-10-26" }));
   await approve(gate, first.link);
-  await call(agent, "pay_boleto", { approval: first.approval });
-  // The answer was lost, so the agent prepares the same boleto again, by its barcode this time.
+  // The agent prepares the same boleto again, by its barcode this time.
   assert.deepEqual(result(await call(agent, "prepare_boleto", { line: BARCODE })), {
     earlierPayment: { id: 1000, state: "Agendado", paymentDate: "2026-10-26" },
   });
@@ -230,10 +238,7 @@ test("a boleto already paid or scheduled is reported, not paid again", async () 
   payments.get([...payments.keys()][0]).situacaoPagamento = "Cancelado";
   const again = result(await call(agent, "prepare_boleto", { line: LINE, date: "2026-10-26" }));
   await approve(gate, again.link);
-  assert.equal(
-    result(await call(agent, "pay_boleto", { approval: again.approval })).state,
-    "Agendado",
-  );
+  assert.equal((await status(agent, again.approval)).result.state, "Agendado");
   assert.equal(payments.size, 2);
 });
 
@@ -249,57 +254,50 @@ test("a second approval for the same boleto is answered with the payment already
     [26850, 26950, "2026-10-26", "2026-10-26"],
   );
   await approve(gate, first.link);
-  await approve(gate, second.link);
+  assert.equal((await status(agent, first.approval)).result.amountCents, 26850);
 
-  assert.deepEqual(result(await call(agent, "pay_boleto", { approval: first.approval })), {
-    id: 1000,
-    state: "Agendado",
-    paymentDate: "2026-10-26",
-    payee: "LOJA EXEMPLO LTDA",
-    amountCents: 26850,
-  });
   // The second approval pays nothing and is answered with the payment the first one made, never with its own
   // amount, which Sicoob was never asked for.
-  assert.deepEqual(result(await call(agent, "pay_boleto", { approval: second.approval })), {
-    earlierPayment: { id: 1000, state: "Agendado", paymentDate: "2026-10-26" },
+  assert.match(await approve(gate, second.link), /Nada foi pago agora/);
+  assert.deepEqual(await status(agent, second.approval), {
+    status: "done",
+    result: { earlierPayment: { id: 1000, state: "Agendado", paymentDate: "2026-10-26" } },
   });
   assert.equal(paid().length, 1);
   assert.equal(payments.size, 1);
 });
 
-test("two approvals for the same boleto paid at once send only one payment", async () => {
+test("two approvals for the same boleto given at once send only one payment", async () => {
   const gate = approvals();
   const agent = await connect(gate);
   const first = result(await call(agent, "prepare_boleto", { line: LINE, date: "2026-10-26" }));
   const second = result(await call(agent, "prepare_boleto", { line: LINE, date: "2026-10-26" }));
-  await approve(gate, first.link);
-  await approve(gate, second.link);
 
   // Both look for a key before either payment lands, so without the guard both would believe it is free.
-  const answers = await Promise.all(
-    [first, second].map((a) => call(agent, "pay_boleto", { approval: a.approval })),
+  await Promise.all([approve(gate, first.link), approve(gate, second.link)]);
+  const answers = await Promise.all([first, second].map((a) => status(agent, a.approval)));
+  assert.deepEqual(
+    answers.map((a) => a.status).sort(),
+    ["done", "failed"],
+    JSON.stringify(answers),
   );
-  const refused = answers.filter((a) => a.isError);
-  assert.equal(refused.length, 1, JSON.stringify(answers));
-  assert.equal(result(answers.find((a) => !a.isError)).state, "Agendado");
+  assert.equal(answers.find((a) => a.status === "done").result.state, "Agendado");
   assert.equal(paid().length, 1);
   assert.equal(payments.size, 1);
 });
 
-test("a payment Sicoob rejects fails with its state, and the approval is used up", async () => {
+test("a payment Sicoob rejects fails with its state, on the page and for the agent, once", async () => {
   const gate = approvals();
   const agent = await connect(gate);
   outcome = "Rejeitado";
   const prepared = result(await call(agent, "prepare_boleto", { line: LINE }));
-  await approve(gate, prepared.link);
-  assert.deepEqual(await call(agent, "pay_boleto", { approval: prepared.approval }), {
-    isError: true,
-    content: [{ type: "text", text: "Sicoob: HTTP 200, Rejeitado" }],
+  assert.match(await approve(gate, prepared.link), /Não deu certo[\s\S]*HTTP 200, Rejeitado/);
+  assert.deepEqual(await status(agent, prepared.approval), {
+    status: "failed",
+    error: "HTTP 200, Rejeitado",
   });
-  assert.match(
-    (await call(agent, "pay_boleto", { approval: prepared.approval })).content[0].text,
-    /No pending approval/,
-  );
+  await approve(gate, prepared.link);
+  assert.equal(paid().length, 1);
 });
 
 test("the account written with a leading zero finds the payment made without it", async () => {
@@ -307,10 +305,7 @@ test("the account written with a leading zero finds the payment made without it"
   const padded = await connect(gate, "01234567");
   const first = result(await call(padded, "prepare_boleto", { line: LINE, date: "2026-10-26" }));
   await approve(gate, first.link);
-  assert.equal(
-    result(await call(padded, "pay_boleto", { approval: first.approval })).state,
-    "Agendado",
-  );
+  assert.equal((await status(padded, first.approval)).result.state, "Agendado");
 
   // The owner drops the leading zero and the connector restarts: the same account, so the same payment.
   const plain = await connect(gate, "1234567");
@@ -331,10 +326,7 @@ test("a receipt answered with no content means the key is free, not a failure", 
     ["LOJA EXEMPLO LTDA", 26850, "2026-10-26"],
   );
   await approve(gate, prepared.link);
-  assert.equal(
-    result(await call(agent, "pay_boleto", { approval: prepared.approval })).state,
-    "Agendado",
-  );
+  assert.equal((await status(agent, prepared.approval)).result.state, "Agendado");
 });
 
 test("refuses a mistyped line, a guia and an impossible date before Sicoob", async () => {

@@ -1,5 +1,6 @@
 // The MCP tools: list the company's NFS-e from the national system, read the skills that use them and, when the owner
-// turns issuing on, issue them in produção restrita, where an invoice has no legal effect. It never cancels an invoice.
+// turns issuing on, ask them to issue one in produção restrita, where an invoice has no legal effect, which their
+// approval, outside the agent, does. It never cancels an invoice.
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { isGuarded } from "@tres-pinos/api";
@@ -9,21 +10,26 @@ import { AdnError } from "./adn.mjs";
 import { SefinError, summarize } from "./sefin.mjs";
 import { offerSkills } from "./skills.mjs";
 
-// The answer to a tool call. A failure carries only the national system's status and error codes, never its text.
-const answer = (work) =>
-  toolAnswer("NFS-e", work, (error) =>
-    error instanceof AdnError
-      ? `HTTP ${error.status}`
-      : error instanceof SefinError
-        ? `HTTP ${error.status}${error.codes.length ? ` ${error.codes.join(", ")}` : ""}`
-        : error instanceof ApprovalError || error.message.startsWith("The DPS")
-          ? error.message
-          : undefined,
-  );
+// What a failure may say: only the national system's status and error codes, never its text.
+const describe = (error) =>
+  error instanceof AdnError
+    ? `HTTP ${error.status}`
+    : error instanceof SefinError
+      ? `HTTP ${error.status}${error.codes.length ? ` ${error.codes.join(", ")}` : ""}`
+      : error instanceof ApprovalError || error.message.startsWith("The DPS")
+        ? error.message
+        : undefined;
+const answer = (work) => toolAnswer("NFS-e", work, describe);
+
+// What the owner reads after approving: the invoice the national system generated.
+const report = (nfse) => [
+  ["Número", nfse.number],
+  ["Chave de acesso", nfse.accessKey],
+];
 
 const DPS = z.string().min(1).max(1_000_000).describe("The DPS XML, unsigned, for tpAmb 2");
 
-// `approvals`, from createApprovals, is required with `sefin`: an invoice goes out only after the owner approves it.
+// `approvals`, from createApprovals, is required with `sefin`: an invoice goes out only by the owner's approval.
 export function buildServer(adn, icons, sefin = null, approvals = null) {
   // Without the guard, a bug could reach anything the e-CNPJ allows.
   if (!isGuarded(adn.fetch) || (sefin && !isGuarded(sefin.fetch)))
@@ -55,28 +61,35 @@ export function buildServer(adn, icons, sefin = null, approvals = null) {
     "prepare_invoice",
     {
       description:
-        "Checks a DPS against the official schema and signs it with the company's e-CNPJ, without sending it, then asks the owner to approve it. Returns the DPS Id, an approval id and a link: give the owner the link, where they read the DPS and approve it with a key you don't have, and wait for them to say they did. Only produção restrita (tpAmb 2), where an invoice has no legal effect.",
+        "Checks a DPS against the official schema and signs it with the company's e-CNPJ, without sending it, then asks the owner to approve it. Returns the DPS Id, an approval id and a link: give the owner the link, where they read the DPS and approve it with a key you don't have. Approving sends it, once; get_approval tells what came of it. Only produção restrita (tpAmb 2), where an invoice has no legal effect.",
       inputSchema: { dps: DPS },
       annotations: { readOnlyHint: true },
     },
     ({ dps }) =>
       answer(async () => {
         const { id } = await sefin.prepare(dps);
-        const request = { title: "Emitir esta NFS-e?", summary: summarize(dps), payload: dps };
+        const request = {
+          title: "Emitir esta NFS-e?",
+          summary: summarize(dps),
+          button: "Aprovar e emitir",
+          run: () => sefin.issue(dps),
+          report,
+          describe,
+        };
         return { id, ...approvals.request(request) };
       }),
   );
   server.registerTool(
-    "issue_invoice",
+    "get_approval",
     {
       description:
-        "Issues an NFS-e in produção restrita (tpAmb 2), where it has no legal effect, from the DPS of an approval the owner gave on its link. Sends once and returns the invoice's facts; the approval is used up either way. If the answer is unclear, such as a timeout, call find_invoice with the DPS Id before anything else: sending the same DPS again is refused as a duplicate, and a new DPS number would issue a second invoice.",
+        "What came of an invoice the owner was asked to approve: status pending (not decided yet), refused, running, done with result (the invoice's facts, as list_invoices gives them), or failed with error. A failed send may still have generated the invoice: call find_invoice with the DPS Id before anything else, and never prepare the same invoice with a new DPS number, which would issue a second one.",
       inputSchema: {
         approval: z.string().max(100).describe("The approval id from prepare_invoice"),
       },
-      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false },
+      annotations: { readOnlyHint: true },
     },
-    ({ approval }) => answer(() => sefin.issue(approvals.take(approval))),
+    ({ approval }) => answer(() => approvals.status(approval)),
   );
   server.registerTool(
     "find_invoice",

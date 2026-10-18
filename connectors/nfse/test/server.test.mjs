@@ -63,9 +63,9 @@ test("with NFSE_ISSUE=restrita, it also offers the issuing tools", async () => {
   const listed = await listTools(url);
   assert.deepEqual(
     listed.map((t) => t.name),
-    ["list_invoices", "read_skill", "prepare_invoice", "issue_invoice", "find_invoice"],
+    ["list_invoices", "read_skill", "prepare_invoice", "get_approval", "find_invoice"],
   );
-  assert.equal(listed.find((t) => t.name === "issue_invoice").annotations.readOnlyHint, false);
+  assert.ok(listed.every((t) => t.annotations.readOnlyHint));
 });
 
 test(
