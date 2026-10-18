@@ -16,5 +16,5 @@ diz do erro, como o status HTTP. O texto da mensagem da API nunca chega ao agent
 
 Com `approvals`, de `createApprovals`, um conector pede a aprovação do dono para o que tem efeito legal ou
 financeiro. O dono lê o pedido em `/approve/<id>` e aprova com a chave de aprovação, da qual o servidor guarda só o
-SHA-256, ou recusa sem ela. Aprovar faz o trabalho ali, uma vez, e a página mostra o resultado; o agente o lê com
-`status`. O pedido vale uma hora, e cinco chaves erradas o apagam.
+SHA-256, ou recusa sem ela. Aprovar faz o trabalho ali, uma vez, e a página mostra o resultado; o agente o lê com a
+ferramenta `get_approval` do conector, que usa `status`. O pedido vale uma hora, e cinco chaves erradas o apagam.
