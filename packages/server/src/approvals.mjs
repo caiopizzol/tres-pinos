@@ -10,8 +10,10 @@ import { escape, page, read, send, style } from "./page.mjs";
 const TTL_MS = 60 * 60_000;
 // Wrong keys before the request is dropped, so the agent, which knows the link, can't keep guessing.
 const MAX_WRONG = 5;
-// Each approval holds its work in memory, so a loop of requests replaces the oldest, unless its work is running.
-const MAX_PENDING = 100;
+// Each request holds its work in memory, so a loop of them replaces the oldest. Only requests the agent can make on
+// its own count: undecided ones, and refused ones, since refusing needs no key. What the owner approved, running or
+// settled, stays its hour, and only the owner's key adds to it.
+const MAX_OPEN = 100;
 
 // Why a tool can't go on: its message is for the agent.
 export class ApprovalError extends Error {}
@@ -46,8 +48,10 @@ export function createApprovals({ name, hash, url, now = () => Date.now() }) {
   // failure, as for toolAnswer. Returns the approval's id and the link to it.
   function request({ title, summary, button, run, report, describe }) {
     for (const [id, entry] of approvals) if (entry.expiresAt <= now()) approvals.delete(id);
-    for (const [id, entry] of approvals)
-      if (approvals.size >= MAX_PENDING && entry.status !== "running") approvals.delete(id);
+    const open = [...approvals.keys()].filter((id) =>
+      ["pending", "refused"].includes(approvals.get(id).status),
+    );
+    for (const id of open.slice(0, Math.max(0, open.length + 1 - MAX_OPEN))) approvals.delete(id);
     const id = randomBytes(24).toString("base64url");
     approvals.set(id, {
       title,

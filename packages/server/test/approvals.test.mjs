@@ -205,25 +205,33 @@ test("two approvals of the same request at once run the work once", async () => 
   assert.equal(runs.length, 1);
 });
 
-test("running work outlives its expiry and a hundred newer requests, and keeps what came of it", async () => {
+test("what the owner approved outlives its expiry and a hundred newer requests, which push out only open ones", async () => {
   const { approvals } = await start();
+  let started;
   let finish;
+  const running = new Promise((resolve) => (started = resolve));
   const { approval, link } = approvals.request({
     title: "Pagar este boleto?",
     summary: [],
     button: "Aprovar e pagar",
-    run: () => new Promise((resolve) => (finish = resolve)),
+    run: () => (started(), new Promise((resolve) => (finish = resolve))),
     report: (r) => [["Nº no Sicoob", r.id]],
     describe: () => undefined,
   });
   clock += 60 * 60_000 - 1;
   const approved = approve(link);
-  while (!finish) await new Promise((resolve) => setTimeout(resolve, 1));
+  // Settles either way, so approving without running fails here instead of waiting forever.
+  await Promise.race([running, approved]);
+  assert.ok(finish, "approving ran the work");
   clock += 2;
   for (let i = 0; i < 100; i++) ask(approvals);
   // Ended before the checks, so a failing check doesn't leave the owner's request open.
   finish({ id: 1000 });
   assert.match(await (await approved).text(), /Feito/);
+
+  const older = ask(approvals);
+  for (let i = 0; i < 100; i++) ask(approvals);
+  assert.throws(() => approvals.status(older.approval), /No approval with this id/);
   assert.deepEqual(approvals.status(approval), {
     status: "done",
     result: { id: 1000 },
