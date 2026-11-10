@@ -8,6 +8,9 @@ FROM node:22-alpine
 # with the password on stdin.
 RUN apk add --no-cache imagemagick imagemagick-heic imagemagick-jpeg imagemagick-svg imagemagick-tiff imagemagick-webp font-dejavu ffmpeg poppler-utils qpdf
 COPY packages/media/src/policy.xml /etc/ImageMagick-7/policy.xml
+# ImageMagick tries inkscape on an SVG before librsvg. Since 7.1.2-34 the policy refuses that call with an error,
+# which fails the read; without the delegate, librsvg renders it.
+RUN sed -i '/decode="svg:decode"/d' /etc/ImageMagick-7/delegates.xml
 COPY --from=oven/bun:1.3.14-alpine /usr/local/bin/bun /usr/local/bin/bun
 WORKDIR /app
 COPY package.json bun.lock ./
