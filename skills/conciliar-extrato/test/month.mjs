@@ -232,7 +232,9 @@ function sicoobBank(url) {
 
 // The national system: batches of up to 50 after an NSU, and its answer past the last one.
 function adn(url) {
-  const after = Number(/\/DFe\/(\d+)\?lote=true$/.exec(url)?.[1]);
+  const after = Number(
+    new RegExp(`/DFe/(\\d+)\\?lote=true&cnpjConsulta=${COMPANY}$`).exec(url)?.[1],
+  );
   const batch = records.filter((r) => r.NSU > after).slice(0, 50);
   if (!batch.length) return answer(404, { StatusProcessamento: "NENHUM_DOCUMENTO_LOCALIZADO" });
   return answer(200, {
@@ -245,7 +247,7 @@ function adn(url) {
 export function start({ interPort = 0, sicoobPort = 0, nfsePort = 0 } = {}) {
   const inter = interClient({ clientId: "id", clientSecret: "secret" }, interGuard(bank));
   const sicoob = sicoobClient({ clientId: "id", account: "1234567" }, sicoobGuard(sicoobBank));
-  const nfse = adnClient(adnGuard(adn));
+  const nfse = adnClient(adnGuard(adn, { cnpj: COMPANY }), COMPANY);
   const servers = [
     serve({
       name: "INTER_KEY",
