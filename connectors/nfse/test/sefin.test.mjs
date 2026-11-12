@@ -23,6 +23,7 @@ const certs = certificates({
   owner: "/CN=EMPRESA FICTICIA LTDA:00000000000191",
 });
 
+const CNPJ = "00000000000191";
 const NFSE = readFileSync(new URL("../../../packages/nfse/fixtures/nfse.xml", import.meta.url));
 const KEY = "41069022200000000000191000000000000126090000000001";
 const ID = "DPS410690220000000000019100001000000000000001";
@@ -53,7 +54,7 @@ function client() {
 }
 const owner = certs.identity("owner");
 const certificate = { keyPem: createPrivateKey(owner.key), certPem: owner.cert.toString() };
-const sefin = () => sefinClient(guard(client(), { issue: true }), certificate);
+const sefin = () => sefinClient(guard(client(), { cnpj: CNPJ, issue: true }), certificate);
 
 test("issues a DPS once: checked, signed with the e-CNPJ, sent gzipped, and read back", async () => {
   reply = issued();
@@ -208,10 +209,10 @@ test("find tells whether a DPS generated an invoice, and reads back the invoice 
 
 test("the guard lets out issuing only when it's on, and only in produção restrita", async () => {
   const before = requests.length;
-  const off = guard(() => assert.fail("reached the network"));
+  const off = guard(() => assert.fail("reached the network"), { cnpj: CNPJ });
   await assert.rejects(off(`${SEFIN_URL}/nfse`, { method: "POST" }), /Refused/);
   await assert.rejects(off(`${SEFIN_URL}/dps/${ID}`), /Refused/);
-  const on = guard(() => assert.fail("reached the network"), { issue: true });
+  const on = guard(() => assert.fail("reached the network"), { cnpj: CNPJ, issue: true });
   for (const [url, init] of [
     ["https://sefin.nfse.gov.br/SefinNacional/nfse", { method: "POST" }],
     [`${SEFIN_URL}/nfse/${KEY}/eventos`, { method: "POST" }],
@@ -286,8 +287,10 @@ async function ownerApproves(gate, link) {
 }
 
 test("the issuing tools appear only with issuing on, and only with the owner's approvals", async () => {
-  const adn = adnClient(guard(client(), { issue: true }));
-  const readOnlyAgent = await connect(buildServer(adnClient(guard(client())), undefined));
+  const adn = adnClient(guard(client(), { cnpj: CNPJ, issue: true }), CNPJ);
+  const readOnlyAgent = await connect(
+    buildServer(adnClient(guard(client(), { cnpj: CNPJ }), CNPJ), undefined),
+  );
   assert.deepEqual(
     (await readOnlyAgent.listTools()).tools.map((t) => t.name),
     ["list_invoices", "read_skill"],
@@ -312,7 +315,12 @@ test("the issuing tools appear only with issuing on, and only with the owner's a
 test("approving on the page sends only the DPS the owner read, once", async () => {
   const gate = approvals();
   const agent = await connect(
-    buildServer(adnClient(guard(client(), { issue: true })), undefined, sefin(), gate),
+    buildServer(
+      adnClient(guard(client(), { cnpj: CNPJ, issue: true }), CNPJ),
+      undefined,
+      sefin(),
+      gate,
+    ),
   );
   const before = requests.length;
   const prepared = result(
@@ -346,7 +354,12 @@ test("approving on the page sends only the DPS the owner read, once", async () =
 test("a failure answers with only its status and codes", async () => {
   const gate = approvals();
   const agent = await connect(
-    buildServer(adnClient(guard(client(), { issue: true })), undefined, sefin(), gate),
+    buildServer(
+      adnClient(guard(client(), { cnpj: CNPJ, issue: true }), CNPJ),
+      undefined,
+      sefin(),
+      gate,
+    ),
   );
   const { approval, link } = result(
     await agent.callTool({ name: "prepare_invoice", arguments: { dps: DPS } }),

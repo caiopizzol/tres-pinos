@@ -3,16 +3,21 @@
 // issuing real invoices and cancelling them.
 import { allowOnly } from "@tres-pinos/api";
 import { ACCESS_KEY, DPS_ID } from "@tres-pinos/nfse";
-import { API_URL } from "./adn.mjs";
+import { API_URL, CNPJ } from "./adn.mjs";
 import { SEFIN_URL } from "./sefin.mjs";
 
 const pattern = (url) => url.replaceAll(".", "\\.");
-const READ = [new RegExp(`^GET ${pattern(API_URL)}/DFe/\\d{1,16}\\?lote=true$`)];
+// Only the company's own CNPJ: another one would read the documents of anyone who gave the e-CNPJ a procuração.
+const read = (cnpj) => [
+  new RegExp(`^GET ${pattern(API_URL)}/DFe/\\d{1,16}\\?lote=true&cnpjConsulta=${cnpj}$`),
+];
 const ISSUE = [
   new RegExp(`^GET ${pattern(SEFIN_URL)}/dps/${DPS_ID.source.slice(1)}`),
   new RegExp(`^GET ${pattern(SEFIN_URL)}/nfse/${ACCESS_KEY.source.slice(1)}`),
   new RegExp(`^POST ${pattern(SEFIN_URL)}/nfse$`),
 ];
 
-export const guard = (fetch, { issue = false } = {}) =>
-  allowOnly(fetch, { requests: issue ? [...READ, ...ISSUE] : READ });
+export function guard(fetch, { cnpj, issue = false }) {
+  if (!CNPJ.test(cnpj)) throw new Error("cnpj is not a CNPJ");
+  return allowOnly(fetch, { requests: issue ? [...read(cnpj), ...ISSUE] : read(cnpj) });
+}

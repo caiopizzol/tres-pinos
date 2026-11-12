@@ -2,10 +2,21 @@
 // appears as issuer, recipient or intermediary, in the order the system numbered them (the NSU). The company's
 // e-CNPJ authenticates each request (mutual TLS); there is no token.
 // https://www.gov.br/nfse/pt-br/biblioteca/documentacao-tecnica
+import { X509Certificate } from "node:crypto";
 import { gunzipSync } from "node:zlib";
 import { ACCESS_KEY, MAX_BYTES, readNfse } from "@tres-pinos/nfse";
 
 export const API_URL = "https://adn.nfse.gov.br/contribuintes";
+
+// A CNPJ: 14 characters, with letters since August 2026.
+export const CNPJ = /^[0-9A-Z]{14}$/;
+
+// The company's CNPJ, which an e-CNPJ's subject name carries after a colon ("CN=EMPRESA LTDA:00000000000191").
+export function certificateCnpj(cert) {
+  const cnpj = /^CN=.*:([0-9A-Z]{14})$/m.exec(new X509Certificate(cert).subject)?.[1];
+  if (!cnpj) throw new Error("The certificate is not an e-CNPJ");
+  return cnpj;
+}
 
 // A request the ADN answered with an error status. It carries only the status.
 export class AdnError extends Error {
@@ -50,14 +61,16 @@ function document(record, afterNsu) {
   return { nsu, type, ...nfse };
 }
 
-export function adnClient(fetch) {
+// The ADN answers a request without cnpjConsulta with 400 REJEICAO, so every request names the company.
+export function adnClient(fetch, cnpj) {
+  if (!CNPJ.test(cnpj)) throw new Error("cnpj is not a CNPJ");
   return {
     fetch,
 
     // The next batch, of up to 50 documents, after `afterNsu`. `done` means there are none yet.
     async listDocuments(afterNsu) {
       if (!isNsu(afterNsu)) throw new Error("afterNsu is not an NSU");
-      const res = await fetch(`${API_URL}/DFe/${afterNsu}?lote=true`, {
+      const res = await fetch(`${API_URL}/DFe/${afterNsu}?lote=true&cnpjConsulta=${cnpj}`, {
         headers: { Accept: "application/json" },
       });
       let body;

@@ -8,7 +8,7 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { certificateFetch } from "@tres-pinos/api";
 import { certificates, fakeApi } from "@tres-pinos/testing";
-import { AdnError, adnClient, API_URL } from "../src/adn.mjs";
+import { AdnError, adnClient, API_URL, certificateCnpj } from "../src/adn.mjs";
 import { guard } from "../src/guard.mjs";
 import { buildServer } from "../src/tools.mjs";
 
@@ -17,6 +17,7 @@ const certs = certificates({
   owner: "/CN=EMPRESA FICTICIA LTDA:00000000000191",
 });
 
+const CNPJ = "00000000000191";
 const XML = readFileSync(new URL("../../../packages/nfse/fixtures/nfse.xml", import.meta.url));
 const KEY = "41069022200000000000191000000000000126090000000001";
 const nfse = (nsu, xml = XML) => ({
@@ -61,7 +62,7 @@ function client() {
   const real = certificateFetch({ ...certs.identity("owner"), ca: certs.read("ca.crt") });
   return (url, init) => real(url.replace(new URL(API_URL).origin, fake.url()), init);
 }
-const adn = () => adnClient(guard(client()));
+const adn = () => adnClient(guard(client(), { cnpj: CNPJ }), CNPJ);
 
 test("lists a batch after an NSU, reading each NFS-e, with the company's e-CNPJ", async () => {
   reply = found(nfse(5), cancellation(7));
@@ -111,7 +112,7 @@ test("lists a batch after an NSU, reading each NFS-e, with the company's e-CNPJ"
   });
   assert.deepEqual(requests.at(-1), {
     method: "GET",
-    path: "/contribuintes/DFe/4?lote=true",
+    path: "/contribuintes/DFe/4?lote=true&cnpjConsulta=00000000000191",
     body: "",
     auth: undefined,
     client: "EMPRESA FICTICIA LTDA:00000000000191",
@@ -165,19 +166,32 @@ test("the ADN refuses a client with no certificate", async () => {
 
 test("the guard lets out only the next batch, before the network", async () => {
   const before = requests.length;
-  const fetch = guard(() => assert.fail("reached the network"));
+  const fetch = guard(() => assert.fail("reached the network"), { cnpj: CNPJ });
+  const own = `cnpjConsulta=${CNPJ}`;
   for (const [url, init] of [
-    [`${API_URL}/DFe/0?lote=true`, { method: "POST" }],
-    [`${API_URL}/DFe/0`, {}],
-    [`${API_URL}/DFe/0?lote=false`, {}],
-    [`${API_URL}/DFe/0?lote=true&cnpjConsulta=00000000000191`, {}],
-    [`${API_URL}/DFe/-1?lote=true`, {}],
+    [`${API_URL}/DFe/0?lote=true&${own}`, { method: "POST" }],
+    [`${API_URL}/DFe/0?lote=true`, {}],
+    [`${API_URL}/DFe/0?${own}`, {}],
+    [`${API_URL}/DFe/0?lote=false&${own}`, {}],
+    // Another company's CNPJ, which a procuração would let the e-CNPJ read.
+    [`${API_URL}/DFe/0?lote=true&cnpjConsulta=11111111000191`, {}],
+    [`${API_URL}/DFe/0?lote=true&${own}&cpfConsulta=00000000191`, {}],
+    [`${API_URL}/DFe/-1?lote=true&${own}`, {}],
     [`${API_URL}/NFSe/${KEY}/Eventos`, {}],
     ["https://sefin.nfse.gov.br/SefinNacional/nfse", { method: "POST" }],
-    [`https://elsewhere.example/contribuintes/DFe/0?lote=true`, {}],
+    [`https://elsewhere.example/contribuintes/DFe/0?lote=true&${own}`, {}],
   ])
     await assert.rejects(fetch(url, init), /Refused/, url);
   assert.equal(requests.length, before);
+});
+
+test("the CNPJ comes from the e-CNPJ, and nothing runs without one", () => {
+  assert.equal(certificateCnpj(certs.read("owner.crt")), CNPJ);
+  assert.throws(() => certificateCnpj(certs.read("server.crt")), /not an e-CNPJ/);
+  for (const cnpj of [undefined, "1", "0000000000019.", ".*"]) {
+    assert.throws(() => guard(client(), { cnpj }), /not a CNPJ/, String(cnpj));
+    assert.throws(() => adnClient(guard(client(), { cnpj: CNPJ }), cnpj), /not a CNPJ/);
+  }
 });
 
 test("the guard refuses a redirect instead of following it", async () => {
@@ -186,7 +200,7 @@ test("the guard refuses a redirect instead of following it", async () => {
 });
 
 test("the tool won't run on a fetch the guard didn't wrap", () => {
-  assert.throws(() => buildServer(adnClient(client())), /guarded fetch/);
+  assert.throws(() => buildServer(adnClient(client(), CNPJ)), /guarded fetch/);
   buildServer(adn());
 });
 
@@ -208,7 +222,7 @@ test("the tool asks for the batch after the NSU it is given, and answers a failu
 
   reply = found(cancellation(8));
   const listed = await call(7);
-  assert.equal(requests.at(-1).path, "/contribuintes/DFe/7?lote=true");
+  assert.equal(requests.at(-1).path, "/contribuintes/DFe/7?lote=true&cnpjConsulta=00000000000191");
   assert.deepEqual(JSON.parse(listed.content[0].text).documents, [
     { nsu: 8, type: "EVENTO", eventType: "CANCELAMENTO", accessKey: KEY },
   ]);

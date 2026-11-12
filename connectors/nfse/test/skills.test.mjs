@@ -9,10 +9,11 @@ import { adnClient } from "../src/adn.mjs";
 import { guard } from "../src/guard.mjs";
 import { buildServer } from "../src/tools.mjs";
 
+const CNPJ = "00000000000191";
 const SKILLS = ["emitir-nfse", "estimar-impostos"];
 
 const [clientSide, serverSide] = InMemoryTransport.createLinkedPair();
-await buildServer(adnClient(guard(fetch))).connect(serverSide);
+await buildServer(adnClient(guard(fetch, { cnpj: CNPJ }), CNPJ)).connect(serverSide);
 const agent = new Client({ name: "test", version: "0" });
 await agent.connect(clientSide);
 

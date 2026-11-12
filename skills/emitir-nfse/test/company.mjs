@@ -77,7 +77,9 @@ const keyOf = (xml) => /Id="NFS(\w{50})"/.exec(xml)[1];
 // sent DPS inside, as the real one returns it.
 function national(url, init = {}) {
   if (url.startsWith(`${API_URL}/DFe/`)) {
-    const after = Number(/\/DFe\/(\d+)\?lote=true$/.exec(url)?.[1]);
+    const after = Number(
+      new RegExp(`/DFe/(\\d+)\\?lote=true&cnpjConsulta=${COMPANY}$`).exec(url)?.[1],
+    );
     const batch = records.filter((r) => r.NSU > after).slice(0, 50);
     if (!batch.length) return answer(404, { StatusProcessamento: "NENHUM_DOCUMENTO_LOCALIZADO" });
     return answer(200, { StatusProcessamento: "DOCUMENTOS_LOCALIZADOS", LoteDFe: batch });
@@ -188,8 +190,8 @@ export function writeInvoice(dir) {
 
 // Starts the connector and returns its MCP URL.
 export function start({ port = 0 } = {}) {
-  const fetch = guard(national, { issue: true });
-  const adn = adnClient(fetch);
+  const fetch = guard(national, { cnpj: COMPANY, issue: true });
+  const adn = adnClient(fetch, COMPANY);
   const sefin = sefinClient(fetch, certificate());
   // The address is known only once the server listens, so approvals are made then; tools are built per request.
   let approvals;

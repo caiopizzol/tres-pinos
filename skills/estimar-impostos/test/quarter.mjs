@@ -160,7 +160,9 @@ const answer = (status, body) => Promise.resolve({ status, text: JSON.stringify(
 
 // The national system: batches of up to 50 after an NSU, and its answer past the last one.
 function adn(url) {
-  const after = Number(/\/DFe\/(\d+)\?lote=true$/.exec(url)?.[1]);
+  const after = Number(
+    new RegExp(`/DFe/(\\d+)\\?lote=true&cnpjConsulta=${COMPANY}$`).exec(url)?.[1],
+  );
   const batch = records.filter((r) => r.NSU > after).slice(0, 50);
   if (!batch.length) return answer(404, { StatusProcessamento: "NENHUM_DOCUMENTO_LOCALIZADO" });
   return answer(200, { StatusProcessamento: "DOCUMENTOS_LOCALIZADOS", LoteDFe: batch });
@@ -171,7 +173,7 @@ export function start({ port = 0 } = {}) {
   const server = serve({
     name: "NFSE_KEY",
     key: KEY,
-    tools: () => nfseTools(adnClient(adnGuard(adn))),
+    tools: () => nfseTools(adnClient(adnGuard(adn, { cnpj: COMPANY }), COMPANY)),
     port,
   });
   return new Promise((resolve) =>

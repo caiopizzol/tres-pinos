@@ -2,7 +2,7 @@
 import { createPrivateKey } from "node:crypto";
 import { certificateFetch, readCertificate } from "@tres-pinos/api";
 import { createApprovals, icons, serve } from "@tres-pinos/server";
-import { adnClient } from "./adn.mjs";
+import { adnClient, certificateCnpj } from "./adn.mjs";
 import { guard } from "./guard.mjs";
 import { sefinClient } from "./sefin.mjs";
 import { buildServer } from "./tools.mjs";
@@ -28,8 +28,9 @@ const approvals =
   });
 
 const certificate = readCertificate(env, "NFSE");
-const fetch = guard(certificateFetch(certificate, 60_000), { issue: Boolean(issue) });
-const adn = adnClient(fetch);
+const cnpj = certificateCnpj(certificate.cert);
+const fetch = guard(certificateFetch(certificate, 60_000), { cnpj, issue: Boolean(issue) });
+const adn = adnClient(fetch, cnpj);
 const sefin =
   issue &&
   sefinClient(fetch, {
